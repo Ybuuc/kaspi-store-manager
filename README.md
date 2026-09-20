@@ -22,3 +22,10 @@ Kaspi дүкенін басқаруға арналған оқу ақпаратт
 
 ## Жобаның ағымдағы кезеңі
 Жұмыс кеңістігін баптау және MVP талаптарын анықтау.
+## Жұмыс кеңістігіне сілтемелер
+
+- [GitHub Project](https://github.com/users/Ybuuc/projects/1)
+- [Kanban тақтасы](https://github.com/users/Ybuuc/projects/1/views/2)
+- [Жоба Wiki](https://github.com/Ybuuc/kaspi-store-manager/wiki)
+- [Жұмыс тәртібі және атау ережелері](https://github.com/Ybuuc/kaspi-store-manager/wiki/Workflow)
+- [ADR-001](docs/adr/ADR-001-delivery-model.md)
