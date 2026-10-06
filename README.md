@@ -29,3 +29,10 @@ Kaspi дүкенін басқаруға арналған оқу ақпаратт
 - [Жоба Wiki](https://github.com/Ybuuc/kaspi-store-manager/wiki)
 - [Жұмыс тәртібі және атау ережелері](https://github.com/Ybuuc/kaspi-store-manager/wiki/Workflow)
 - [ADR-001](docs/adr/ADR-001-delivery-model.md)
+
+
+## ЛЗ 5 жоспарлау артефактілері
+- [WBS және WBS сөздігі](docs/planning/lz5/WBS.md)
+- [Семестрлік релиздер жоспары](docs/planning/lz5/release-plan.md)
+- [Тәуелділіктер картасы](docs/planning/lz5/dependencies.md)
+- [Team Topology, RACI және Capacity](docs/planning/lz5/team-raci-capacity.md)
