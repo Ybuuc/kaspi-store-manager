@@ -41,7 +41,7 @@ R — Responsible, A — Accountable, C — Consulted, I — Informed.
 
 Қолжетімді коэффициент: **65%**.
 
-Нақты capacity: **105 × 0.65 = 68.25 ≈ 68 сағ**.
+Нақты capacity: **105 × 0,65 = 68,25 ≈ 68 сағ**.
 
 Қазіргі US-01–US-18 backlog бағасы: **92 сағ**, сондықтан толық backlog семестр capacity-інен **24 сағатқа артық**.
 
