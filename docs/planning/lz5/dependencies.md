@@ -30,7 +30,7 @@ flowchart LR
 |---|---|---|---|---|---|
 | DEP-01 | GitHub репозиторийі және Issues қолжетімділігі | Сыртқы сервис | Developer | 06.10.2026 | Confirmed |
 | DEP-02 | Kaspi API қолжетімділігі және интеграция шарты | Сыртқы интеграция | Project Manager / Kaspi | 23.10.2026 | Pending |
-| DEP-03 | Деректер базасын орналастыру ортасын таңдау | Инфрақұрылым | Developer | 16.10.2026 | Pending |
+| DEP-03 | PostgreSQL / DB hosting ортасының қолжетімділігі | Сыртқы инфрақұрылым | Developer / hosting provider | 16.10.2026 | Pending |
 | DEP-04 | Low-stock threshold мәнін бекіту | Тапсырыс беруші шешімі | Store Owner | 30.10.2026 | Pending |
 | DEP-05 | Order Status workflow келісімі | Тапсырыс беруші шешімі | Store Owner | 06.11.2026 | Pending |
 
