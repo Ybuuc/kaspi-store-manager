@@ -36,3 +36,12 @@ Kaspi дүкенін басқаруға арналған оқу ақпаратт
 - [Семестрлік релиздер жоспары](docs/planning/lz5/release-plan.md)
 - [Тәуелділіктер картасы](docs/planning/lz5/dependencies.md)
 - [Team Topology, RACI және Capacity](docs/planning/lz5/team-raci-capacity.md)
+
+
+## ЛЗ 7 — қауіптер және сәйкестік
+- [RAID тәуекелдер журналы](docs/security/lz7/RAID-risk-register.md)
+- [STRIDE Threat Model](docs/security/lz7/STRIDE-threat-model.md)
+- [Сәйкестік чек-листі](docs/security/lz7/compliance-checklist.md)
+- [Қауіпсіздік скандарының GitHub Actions workflow-ы](.github/workflows/security-scans.yml)
+
+Ескерту: скан workflow-ы қосылды, бірақ нақты нәтижелер workflow орындалғаннан кейін тіркелуі тиіс.
