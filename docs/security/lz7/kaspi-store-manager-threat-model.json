@@ -3,9 +3,9 @@
   "release_version": "",
   "released_at": "",
   "summary": {
-    "title": "New Threat Model",
-    "owner": "",
-    "description": "",
+    "title": "Kaspi Store Manager — Threat Model",
+    "owner": "Project Owner",
+    "description": "STRIDE threat model for authentication, role-based access control, and data handling. This is a proposed logical model that must be reconciled with the actual implementation.",
     "id": 0
   },
   "detail": {
@@ -13,16 +13,1482 @@
     "diagrams": [
       {
         "id": 0,
-        "title": "New STRIDE diagram",
+        "title": "Authentication and RBAC Data Flow",
         "diagramType": "STRIDE",
-        "placeholder": "New STRIDE diagram description",
+        "placeholder": "Logical data-flow model for authentication, authorization, business data, and audit logging.",
         "thumbnail": "./public/content/images/thumbnail.stride.jpg",
         "version": "2.6.2",
-        "cells": []
+        "cells": [
+          {
+            "position": {
+              "x": 50,
+              "y": 130
+            },
+            "size": {
+              "width": 180,
+              "height": 70
+            },
+            "attrs": {
+              "text": {
+                "text": "Пользователь / сотрудник"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              }
+            },
+            "visible": true,
+            "shape": "actor",
+            "zIndex": 0,
+            "ports": {
+              "groups": {
+                "top": {
+                  "position": "top",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": "right",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "bottom": {
+                  "position": "bottom",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "left": {
+                  "position": "left",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                }
+              },
+              "items": [
+                {
+                  "group": "top",
+                  "id": "user-port-top"
+                },
+                {
+                  "group": "right",
+                  "id": "user-port-right"
+                },
+                {
+                  "group": "bottom",
+                  "id": "user-port-bottom"
+                },
+                {
+                  "group": "left",
+                  "id": "user-port-left"
+                }
+              ]
+            },
+            "id": "actor-user",
+            "data": {
+              "type": "tm.Actor",
+              "name": "Пользователь / сотрудник",
+              "description": "Пользователь работает с приложением через браузер.",
+              "isTrustBoundary": false,
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "providesAuthentication": false,
+              "threats": [
+                {
+                  "id": "threat-spoofing",
+                  "title": "Вход под чужой учётной записью",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Spoofing",
+                  "description": "Злоумышленник может использовать украденные учётные данные или подбирать пароль для входа от имени легитимного пользователя.",
+                  "mitigation": "Хранить пароли в виде стойких хешей, ограничивать попытки входа и применять безопасное восстановление пароля. MFA следует использовать, если она поддерживается.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 1,
+                  "score": ""
+                }
+              ]
+            },
+            "children": []
+          },
+          {
+            "position": {
+              "x": 290,
+              "y": 260
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Web UI"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 1,
+            "ports": {
+              "groups": {
+                "top": {
+                  "position": "top",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": "right",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "bottom": {
+                  "position": "bottom",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "left": {
+                  "position": "left",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                }
+              },
+              "items": [
+                {
+                  "group": "top",
+                  "id": "web-port-top"
+                },
+                {
+                  "group": "right",
+                  "id": "web-port-right"
+                },
+                {
+                  "group": "bottom",
+                  "id": "web-port-bottom"
+                },
+                {
+                  "group": "left",
+                  "id": "web-port-left"
+                }
+              ]
+            },
+            "id": "process-web-ui",
+            "data": {
+              "type": "tm.Process",
+              "name": "Web UI",
+              "description": "Клиентский интерфейс приложения. Данные со стороны клиента считаются недоверенными.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": false,
+              "isWebApplication": true,
+              "privilegeLevel": "Untrusted client",
+              "threats": []
+            },
+            "children": []
+          },
+          {
+            "position": {
+              "x": 510,
+              "y": 140
+            },
+            "size": {
+              "width": 190,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Auth / API"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "ports": {
+              "groups": {
+                "top": {
+                  "position": "top",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": "right",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "bottom": {
+                  "position": "bottom",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "left": {
+                  "position": "left",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                }
+              },
+              "items": [
+                {
+                  "group": "top",
+                  "id": "auth-port-top"
+                },
+                {
+                  "group": "right",
+                  "id": "auth-port-right"
+                },
+                {
+                  "group": "bottom",
+                  "id": "auth-port-bottom"
+                },
+                {
+                  "group": "left",
+                  "id": "auth-port-left"
+                }
+              ]
+            },
+            "id": "process-auth-api",
+            "data": {
+              "type": "tm.Process",
+              "name": "Auth / API",
+              "description": "Серверная точка входа: проверка учётных данных, управление сессией и обработка запросов.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": false,
+              "isWebApplication": true,
+              "privilegeLevel": "Server",
+              "threats": [
+                {
+                  "id": "threat-dos",
+                  "title": "Перегрузка точки входа",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Denial of service",
+                  "description": "Большое количество запросов к авторизации или API может снизить доступность приложения.",
+                  "mitigation": "Ограничивать частоту запросов, устанавливать тайм-ауты, ограничивать размеры входных данных и отслеживать всплески ошибок.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 5,
+                  "score": ""
+                }
+              ]
+            },
+            "children": []
+          },
+          {
+            "position": {
+              "x": 890,
+              "y": 140
+            },
+            "size": {
+              "width": 200,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "RBAC / Authorization"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 3,
+            "ports": {
+              "groups": {
+                "top": {
+                  "position": "top",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": "right",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "bottom": {
+                  "position": "bottom",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "left": {
+                  "position": "left",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                }
+              },
+              "items": [
+                {
+                  "group": "top",
+                  "id": "rbac-port-top"
+                },
+                {
+                  "group": "right",
+                  "id": "rbac-port-right"
+                },
+                {
+                  "group": "bottom",
+                  "id": "rbac-port-bottom"
+                },
+                {
+                  "group": "left",
+                  "id": "rbac-port-left"
+                }
+              ]
+            },
+            "id": "process-rbac",
+            "data": {
+              "type": "tm.Process",
+              "name": "RBAC / Authorization",
+              "description": "Серверная проверка ролей и разрешений перед защищёнными операциями.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": false,
+              "isWebApplication": true,
+              "privilegeLevel": "Server",
+              "threats": [
+                {
+                  "id": "threat-tampering",
+                  "title": "Подмена роли или параметров запроса",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Tampering",
+                  "description": "Клиент может изменить роль, идентификатор объекта или другой параметр, если сервер доверяет непроверенным данным.",
+                  "mitigation": "Не доверять роли, переданной клиентом; проверять права на сервере для каждой защищённой операции и валидировать входные данные.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 2,
+                  "score": ""
+                },
+                {
+                  "id": "threat-elevation",
+                  "title": "Обычный сотрудник получает права администратора",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "type": "Elevation of privilege",
+                  "description": "Ошибка проверки разрешений может позволить сотруднику выполнять операции, предназначенные только для администратора.",
+                  "mitigation": "Применять deny-by-default и принцип минимальных привилегий; проверять права на сервере; добавить отрицательные тесты доступа.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 6,
+                  "score": ""
+                }
+              ]
+            },
+            "children": []
+          },
+          {
+            "position": {
+              "x": 630,
+              "y": 380
+            },
+            "size": {
+              "width": 190,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "User Store"
+              },
+              "topLine": {
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              },
+              "bottomLine": {
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              }
+            },
+            "visible": true,
+            "shape": "store",
+            "zIndex": 4,
+            "ports": {
+              "groups": {
+                "top": {
+                  "position": "top",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": "right",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "bottom": {
+                  "position": "bottom",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "left": {
+                  "position": "left",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "groups": {
+                  "right": {
+                    "position": "right",
+                    "attrs": {
+                      "circle": {
+                        "r": 4,
+                        "magnet": true,
+                        "stroke": "#5F95FF",
+                        "strokeWidth": 1,
+                        "fill": "#fff",
+                        "style": {
+                          "visibility": "hidden"
+                        }
+                      }
+                    }
+                  },
+                  "bottom": {
+                    "position": "bottom",
+                    "attrs": {
+                      "circle": {
+                        "r": 4,
+                        "magnet": true,
+                        "stroke": "#5F95FF",
+                        "strokeWidth": 1,
+                        "fill": "#fff",
+                        "style": {
+                          "visibility": "hidden"
+                        }
+                      }
+                    }
+                  },
+                  "left": {
+                    "position": "left",
+                    "attrs": {
+                      "circle": {
+                        "r": 4,
+                        "magnet": true,
+                        "stroke": "#5F95FF",
+                        "strokeWidth": 1,
+                        "fill": "#fff",
+                        "style": {
+                          "visibility": "hidden"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "items": [
+                {
+                  "group": "top",
+                  "id": "users-port-top"
+                },
+                {
+                  "group": "right",
+                  "id": "users-port-right"
+                },
+                {
+                  "group": "bottom",
+                  "id": "users-port-bottom"
+                },
+                {
+                  "group": "left",
+                  "id": "users-port-left"
+                }
+              ]
+            },
+            "id": "store-users",
+            "data": {
+              "type": "tm.Store",
+              "name": "User Store",
+              "description": "Предполагаемое хранилище учётных записей, хешей паролей и назначений ролей; сверить с фактической БД.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isALog": false,
+              "isEncrypted": false,
+              "isSigned": false,
+              "storesCredentials": true,
+              "storesInventory": false,
+              "threats": [
+                {
+                  "id": "threat-disclosure",
+                  "title": "Получение данных другого пользователя",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "Недостаточная проверка доступа может позволить прочитать сведения другой учётной записи.",
+                  "mitigation": "Проверять права на каждую запись и операцию на сервере; ограничивать доступ к данным; хранить пароли только в виде стойких хешей.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 4,
+                  "score": ""
+                }
+              ]
+            },
+            "children": []
+          },
+          {
+            "position": {
+              "x": 1280,
+              "y": 390
+            },
+            "size": {
+              "width": 200,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "Business Data Store"
+              },
+              "topLine": {
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              },
+              "bottomLine": {
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              }
+            },
+            "visible": true,
+            "shape": "store",
+            "zIndex": 5,
+            "ports": {
+              "groups": {
+                "top": {
+                  "position": "top",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": "right",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "bottom": {
+                  "position": "bottom",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "left": {
+                  "position": "left",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "groups": {
+                  "right": {
+                    "position": "right",
+                    "attrs": {
+                      "circle": {
+                        "r": 4,
+                        "magnet": true,
+                        "stroke": "#5F95FF",
+                        "strokeWidth": 1,
+                        "fill": "#fff",
+                        "style": {
+                          "visibility": "hidden"
+                        }
+                      }
+                    }
+                  },
+                  "bottom": {
+                    "position": "bottom",
+                    "attrs": {
+                      "circle": {
+                        "r": 4,
+                        "magnet": true,
+                        "stroke": "#5F95FF",
+                        "strokeWidth": 1,
+                        "fill": "#fff",
+                        "style": {
+                          "visibility": "hidden"
+                        }
+                      }
+                    }
+                  },
+                  "left": {
+                    "position": "left",
+                    "attrs": {
+                      "circle": {
+                        "r": 4,
+                        "magnet": true,
+                        "stroke": "#5F95FF",
+                        "strokeWidth": 1,
+                        "fill": "#fff",
+                        "style": {
+                          "visibility": "hidden"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "items": [
+                {
+                  "group": "top",
+                  "id": "business-port-top"
+                },
+                {
+                  "group": "right",
+                  "id": "business-port-right"
+                },
+                {
+                  "group": "bottom",
+                  "id": "business-port-bottom"
+                },
+                {
+                  "group": "left",
+                  "id": "business-port-left"
+                }
+              ]
+            },
+            "id": "store-business-data",
+            "data": {
+              "type": "tm.Store",
+              "name": "Business Data Store",
+              "description": "Предполагаемое хранилище товаров, цен, складских остатков и заказов; включать, только если такие данные хранятся приложением.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isALog": false,
+              "isEncrypted": false,
+              "isSigned": false,
+              "storesCredentials": false,
+              "storesInventory": true,
+              "threats": [
+                {
+                  "id": "threat-business-tampering",
+                  "title": "Несанкционированное изменение бизнес-данных",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Tampering",
+                  "description": "Недостаточная проверка полномочий или валидации может привести к изменению цены, остатка или заказа.",
+                  "mitigation": "Проверять разрешения на сервере, валидировать бизнес-правила и фиксировать критические изменения.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 7,
+                  "score": ""
+                }
+              ]
+            },
+            "children": []
+          },
+          {
+            "position": {
+              "x": 1340,
+              "y": 190
+            },
+            "size": {
+              "width": 200,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "Audit Log"
+              },
+              "topLine": {
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              },
+              "bottomLine": {
+                "strokeWidth": 1.5,
+                "strokeDasharray": null
+              }
+            },
+            "visible": true,
+            "shape": "store",
+            "zIndex": 6,
+            "ports": {
+              "groups": {
+                "top": {
+                  "position": "top",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": "right",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "bottom": {
+                  "position": "bottom",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "left": {
+                  "position": "left",
+                  "attrs": {
+                    "circle": {
+                      "r": 4,
+                      "magnet": true,
+                      "stroke": "#5F95FF",
+                      "strokeWidth": 1,
+                      "fill": "#fff",
+                      "style": {
+                        "visibility": "hidden"
+                      }
+                    }
+                  }
+                },
+                "groups": {
+                  "right": {
+                    "position": "right",
+                    "attrs": {
+                      "circle": {
+                        "r": 4,
+                        "magnet": true,
+                        "stroke": "#5F95FF",
+                        "strokeWidth": 1,
+                        "fill": "#fff",
+                        "style": {
+                          "visibility": "hidden"
+                        }
+                      }
+                    }
+                  },
+                  "bottom": {
+                    "position": "bottom",
+                    "attrs": {
+                      "circle": {
+                        "r": 4,
+                        "magnet": true,
+                        "stroke": "#5F95FF",
+                        "strokeWidth": 1,
+                        "fill": "#fff",
+                        "style": {
+                          "visibility": "hidden"
+                        }
+                      }
+                    }
+                  },
+                  "left": {
+                    "position": "left",
+                    "attrs": {
+                      "circle": {
+                        "r": 4,
+                        "magnet": true,
+                        "stroke": "#5F95FF",
+                        "strokeWidth": 1,
+                        "fill": "#fff",
+                        "style": {
+                          "visibility": "hidden"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "items": [
+                {
+                  "group": "top",
+                  "id": "audit-port-top"
+                },
+                {
+                  "group": "right",
+                  "id": "audit-port-right"
+                },
+                {
+                  "group": "bottom",
+                  "id": "audit-port-bottom"
+                },
+                {
+                  "group": "left",
+                  "id": "audit-port-left"
+                }
+              ]
+            },
+            "id": "store-audit-log",
+            "data": {
+              "type": "tm.Store",
+              "name": "Audit Log",
+              "description": "Рекомендуемое хранилище аудита критических действий; проверить, реализовано ли оно в приложении.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isALog": true,
+              "isEncrypted": false,
+              "isSigned": false,
+              "storesCredentials": false,
+              "storesInventory": false,
+              "threats": [
+                {
+                  "id": "threat-repudiation",
+                  "title": "Невозможно установить автора критического действия",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Repudiation",
+                  "description": "Пользователь может отрицать изменение данных или прав, если система не сохраняет достоверную запись события.",
+                  "mitigation": "Журналировать идентификатор пользователя, время, тип действия и результат; ограничить изменение и удаление журналов.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 3,
+                  "score": ""
+                }
+              ]
+            },
+            "children": []
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 20,
+            "connector": "smooth",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Запросы браузера",
+              "description": "Пользователь обращается к интерфейсу приложения.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "protocol": "HTTPS",
+              "threats": [],
+              "trustBoundaryIds": []
+            },
+            "labels": [
+              "HTTPS: запросы браузера"
+            ],
+            "id": "flow-user-web",
+            "source": {
+              "cell": "actor-user",
+              "port": "user-port-right"
+            },
+            "target": {
+              "cell": "process-web-ui",
+              "port": "web-port-left"
+            },
+            "vertices": []
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 21,
+            "connector": "smooth",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Учётные данные / запрос входа",
+              "description": "Логин и пароль передаются по защищённому соединению; данные клиента считаются недоверенными.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": false,
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "protocol": "HTTPS",
+              "threats": [
+                {
+                  "id": "threat-login-flow",
+                  "title": "Перехват или повторное использование учётных данных",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "При отсутствии защищённого соединения или безопасной обработки сессии учётные данные могут быть раскрыты или повторно использованы.",
+                  "mitigation": "Использовать HTTPS с корректной TLS-конфигурацией; не помещать пароль в URL и логи; защищать сессионные идентификаторы.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 8,
+                  "score": ""
+                }
+              ],
+              "trustBoundaryIds": []
+            },
+            "labels": [
+              "Учётные данные / запрос входа"
+            ],
+            "id": "flow-web-auth",
+            "source": {
+              "cell": "process-web-ui",
+              "port": "web-port-right"
+            },
+            "target": {
+              "cell": "process-auth-api",
+              "port": "auth-port-left"
+            },
+            "vertices": []
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 22,
+            "connector": "smooth",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Проверка учётной записи",
+              "description": "Auth/API обращается к хранилищу пользователей для проверки учётных данных.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": true,
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "Internal",
+              "threats": [],
+              "trustBoundaryIds": []
+            },
+            "labels": [
+              "Проверка учётной записи / хеша пароля"
+            ],
+            "id": "flow-auth-users",
+            "source": {
+              "cell": "process-auth-api",
+              "port": "auth-port-bottom"
+            },
+            "target": {
+              "cell": "store-users",
+              "port": "users-port-top"
+            },
+            "vertices": []
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 23,
+            "connector": "smooth",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Контекст аутентифицированной сессии",
+              "description": "После успешного входа передаётся идентификатор пользователя или контекст сессии; конкретный механизм зависит от реализации.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": false,
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "Internal",
+              "threats": [],
+              "trustBoundaryIds": []
+            },
+            "labels": [
+              "Контекст сессии"
+            ],
+            "id": "flow-auth-rbac",
+            "source": {
+              "cell": "process-auth-api",
+              "port": "auth-port-right"
+            },
+            "target": {
+              "cell": "process-rbac",
+              "port": "rbac-port-left"
+            },
+            "vertices": []
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 24,
+            "connector": "smooth",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Запрос роли и разрешений",
+              "description": "RBAC получает назначенные роли и разрешения из доверенного источника.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": true,
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "Internal",
+              "threats": [
+                {
+                  "id": "threat-rbac-flow",
+                  "title": "Подмена роли при проверке разрешений",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Tampering",
+                  "description": "Если роль принимается из клиентского запроса без проверки доверенного источника, пользователь может попытаться повысить свои полномочия.",
+                  "mitigation": "Получать роль из серверного хранилища или проверенного подписанного контекста; проверять разрешения при каждой защищённой операции.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 9,
+                  "score": ""
+                }
+              ],
+              "trustBoundaryIds": []
+            },
+            "labels": [
+              "Запрос роли и разрешений"
+            ],
+            "id": "flow-rbac-users",
+            "source": {
+              "cell": "process-rbac",
+              "port": "rbac-port-bottom"
+            },
+            "target": {
+              "cell": "store-users",
+              "port": "users-port-right"
+            },
+            "vertices": []
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 25,
+            "connector": "smooth",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Разрешённая бизнес-операция",
+              "description": "Доступ к бизнес-данным выполняется после проверки полномочий.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": true,
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "Internal",
+              "threats": [
+                {
+                  "id": "threat-object-access",
+                  "title": "Доступ к данным без достаточных полномочий",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "Ошибка проверки доступа на уровне объекта может позволить пользователю прочитать или изменить данные вне его полномочий.",
+                  "mitigation": "Проверять полномочия на сервере для каждой записи и операции; добавить негативные тесты на доступ к чужим объектам.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 10,
+                  "score": ""
+                }
+              ],
+              "trustBoundaryIds": []
+            },
+            "labels": [
+              "Разрешённая бизнес-операция"
+            ],
+            "id": "flow-rbac-business",
+            "source": {
+              "cell": "process-rbac",
+              "port": "rbac-port-bottom"
+            },
+            "target": {
+              "cell": "store-business-data",
+              "port": "business-port-top"
+            },
+            "vertices": []
+          },
+          {
+            "shape": "flow",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": null
+              }
+            },
+            "width": 200,
+            "height": 100,
+            "zIndex": 26,
+            "connector": "smooth",
+            "data": {
+              "type": "tm.Flow",
+              "name": "События аудита",
+              "description": "Критические операции и отказы доступа направляются в журнал аудита, если он реализован.",
+              "outOfScope": false,
+              "isTrustBoundary": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": false,
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "Internal",
+              "threats": [],
+              "trustBoundaryIds": []
+            },
+            "labels": [
+              "События аудита"
+            ],
+            "id": "flow-audit",
+            "source": {
+              "cell": "process-rbac",
+              "port": "rbac-port-right"
+            },
+            "target": {
+              "cell": "store-audit-log",
+              "port": "audit-port-top"
+            },
+            "vertices": []
+          }
+        ]
       }
     ],
     "diagramTop": 1,
     "reviewer": "",
-    "threatTop": 0
+    "threatTop": 10
   }
 }
