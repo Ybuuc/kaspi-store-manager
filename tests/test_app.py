@@ -497,6 +497,30 @@ class AppTests(unittest.TestCase):
         self.assertEqual(app.config["SESSION_COOKIE_SAMESITE"], "Lax")
         self.assertTrue(app.config["SESSION_COOKIE_SECURE"])
 
+    def test_backup_command_creates_restorable_snapshot(self):
+        self.login()
+        token = self.token()
+        self.client.post("/products/new", data={"name": "Tea", "sku": "T", "category": "Food",
+                                                "price": "1.00", "stock": "2", "csrf_token": token})
+        backup_dir = os.path.join(self.tempdir.name, "backups")
+        runner = self.app.test_cli_runner()
+        self.assertNotEqual(runner.invoke(args=["backup-db", backup_dir]).exit_code, 0)
+        os.mkdir(backup_dir)
+        result = runner.invoke(args=["backup-db", backup_dir])
+        self.assertEqual(result.exit_code, 0, result.output)
+        files = os.listdir(backup_dir)
+        self.assertEqual(len(files), 1)
+        with closing(sqlite3.connect(os.path.join(backup_dir, files[0]))) as snapshot:
+            self.assertEqual(snapshot.execute("PRAGMA integrity_check").fetchone()[0], "ok")
+            self.assertEqual(snapshot.execute("SELECT sku FROM products").fetchone()[0], "T")
+            self.assertEqual(snapshot.execute("SELECT COUNT(*) FROM audit_log").fetchone()[0], 1)
+        restored = create_app({"TESTING": True, "SECRET_KEY": "restore-test-secret",
+                               "DATABASE": os.path.join(backup_dir, files[0])})
+        restored_client = restored.test_client()
+        self.assertEqual(restored_client.post("/login", data={"username": "employee",
+                                                          "password": "correct-password"}).status_code, 302)
+        self.assertIn("Tea", restored_client.get("/products").get_data(as_text=True))
+
 
 if __name__ == "__main__":
     unittest.main()
