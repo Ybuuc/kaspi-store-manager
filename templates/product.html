@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}{{ product['name'] }} · Kaspi Store Manager{% endblock %}
+{% block content %}
+<a href="{{ url_for('products') }}">← Тауарлар тізімі</a>
+<section class="panel"><h1>{{ product['name'] }}</h1>
+  <dl><dt>SKU</dt><dd>{{ product['sku'] }}</dd>
+  <dt>Бағасы</dt><dd>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</dd>
+  <dt>Қойма қалдығы</dt><dd>{{ product['stock'] }}</dd></dl>
+</section>
+{% endblock %}

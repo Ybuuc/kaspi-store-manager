@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Тауарлар · Kaspi Store Manager{% endblock %}
+{% block content %}
+<h1>Тауарлар</h1>
+{% if products %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Атауы</th><th>SKU</th><th>Бағасы</th><th>Қойма қалдығы</th></tr></thead>
+  <tbody>{% for product in products %}<tr>
+    <td><a href="{{ url_for('product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></td>
+    <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{{ product['stock'] }}</td>
+  </tr>{% endfor %}</tbody>
+</table></div>
+{% else %}<p class="empty">Әзірге тауарлар жоқ.</p>{% endif %}
+{% endblock %}
