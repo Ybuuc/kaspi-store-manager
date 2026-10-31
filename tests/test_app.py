@@ -33,7 +33,8 @@ class AppTests(unittest.TestCase):
             return session["csrf_token"]
 
     def test_login_validation_and_protected_pages(self):
-        for path in ("/products", "/products/1", "/products/new", "/products/1/edit", "/products/1/stock"):
+        for path in ("/products", "/products/1", "/products/new", "/products/1/edit",
+                     "/products/1/price", "/products/1/stock"):
             response = self.client.get(path)
             self.assertEqual(response.status_code, 302)
             self.assertTrue(response.headers["Location"].endswith("/login"))
@@ -130,9 +131,39 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.client.post("/products/1/stock", data={"stock": "2.5", "csrf_token": token}).status_code, 400)
         with closing(sqlite3.connect(self.database)) as db:
             entries = db.execute("SELECT action, old_value, new_value, actor_id, occurred_at FROM audit_log ORDER BY id").fetchall()
-        self.assertEqual([entry[0] for entry in entries], ["create", "edit", "stock"])
+        self.assertEqual([entry[0] for entry in entries], ["create", "edit", "price", "stock"])
+        self.assertEqual(entries[2][1:4], ("125050", "140000", 1))
         self.assertEqual((entries[-1][1], entries[-1][2], entries[-1][3]), ("0", "7", 1))
         self.assertTrue(all(entry[4] for entry in entries))
+
+    def test_price_change_validation_card_and_audit(self):
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("INSERT INTO products (name, sku, price_cents, stock) VALUES (?, ?, ?, ?)",
+                       ("Шай", "TEA-1", 125050, 2))
+        self.assertEqual(self.client.post("/products/1/price", data={"price": "1400.00"}).status_code, 302)
+        self.login()
+        token = self.token()
+        form = self.client.get("/products/1/price")
+        self.assertIn("1250.50", form.get_data(as_text=True))
+        for invalid in ("0", "-1", "1.234", "not-a-price"):
+            response = self.client.post("/products/1/price", data={"price": invalid, "csrf_token": token})
+            self.assertEqual(response.status_code, 400)
+        self.assertEqual(self.client.post("/products/1/price", data={"price": "1400.00", "csrf_token": "bad"}).status_code, 400)
+        self.assertEqual(self.client.post("/products/999/price", data={"price": "1400.00", "csrf_token": token}).status_code, 404)
+        response = self.client.post("/products/1/price", data={"price": "1400.00", "csrf_token": token})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].endswith("/products/1"))
+        self.assertIn("1400.00", self.client.get("/products/1").get_data(as_text=True))
+        self.assertEqual(self.client.post("/products/1/price", data={"price": "1400.00", "csrf_token": token}).status_code, 302)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT price_cents FROM products WHERE id = 1").fetchone()[0], 140000)
+            entries = db.execute("SELECT action, old_value, new_value, actor_id, occurred_at FROM audit_log").fetchall()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0][:4], ("price", "125050", "140000", 1))
+        self.assertTrue(entries[0][4])
+        self.client.post("/products/1/archive", data={"csrf_token": token})
+        self.assertEqual(self.client.get("/products/1/price").status_code, 409)
+        self.assertEqual(self.client.post("/products/1/price", data={"price": "1500", "csrf_token": token}).status_code, 409)
 
     def test_10000_product_search_under_one_second(self):
         with closing(sqlite3.connect(self.database)) as db, db:
