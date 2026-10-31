@@ -6,8 +6,8 @@
     <label>Дейін <input type="date" name="to" value="{{ end }}" required></label>
     <button type="submit">Көрсету</button></form>
   {% if start %}<p>{{ start }} – {{ end }} аралығындағы сақталған тапсырыстар:</p>
-  <dl><dt>Тапсырыстар саны</dt><dd>{{ summary['order_count'] }}</dd>
-  <dt>Жалпы сома</dt><dd>{{ '%.2f'|format(summary['total_cents'] / 100) }} ₸</dd></dl>
+  <dl><dt>Тапсырыстар саны (барлық статустар)</dt><dd>{{ summary['order_count'] }}</dd>
+  <dt>Орындалған тапсырыстар сомасы</dt><dd>{{ '%.2f'|format(summary['total_cents'] / 100) }} ₸</dd></dl>
   {% else %}<p>Есепті көру үшін күндер диапазонын таңдаңыз.</p>{% endif %}
   <p>Қазір тапсырыстар оқу деректерімен енгізіледі. Бұл есеп сақталған тапсырыстардың жалпы сомасын көрсетеді; нақты Kaspi сатылымы ретінде қолданбаңыз.</p>
 </section>

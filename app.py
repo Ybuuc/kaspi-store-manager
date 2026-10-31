@@ -15,6 +15,14 @@ import click
 from flask import Flask, abort, g, redirect, render_template, request, session, url_for
 
 
+ORDER_TRANSITIONS = {
+    "Жаңа": ("Өңделуде", "Бас тартылды"),
+    "Өңделуде": ("Орындалды", "Бас тартылды"),
+    "Орындалды": (),
+    "Бас тартылды": (),
+}
+
+
 def hash_password(password, salt=None):
     salt = salt or secrets.token_bytes(16)
     digest = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=16384, r=8, p=1)
@@ -197,8 +205,8 @@ def create_app(test_config=None):
         except ValueError as exc:
             raise click.ClickException(str(exc)) from exc
         status = status.strip()
-        if not status:
-            raise click.ClickException("Status is required")
+        if status not in ORDER_TRANSITIONS:
+            raise click.ClickException("Use an approved order status: " + ", ".join(ORDER_TRANSITIONS))
         db().execute(
             "INSERT INTO orders (ordered_on, amount_cents, status, source) VALUES (?, ?, ?, 'demo')",
             (ordered_on, cents, status),
@@ -340,7 +348,21 @@ def create_app(test_config=None):
                 "SELECT id, ordered_on, amount_cents, status, source FROM orders "
                 "ORDER BY ordered_on DESC, id DESC"
             ).fetchall()
-        return render_template("orders.html", orders=rows, status=status)
+        return render_template("orders.html", orders=rows, status=status, transitions=ORDER_TRANSITIONS)
+
+    @app.post("/orders/<int:order_id>/status")
+    @login_required
+    def change_order_status(order_id):
+        check_csrf()
+        order = db().execute("SELECT id, status FROM orders WHERE id = ?", (order_id,)).fetchone()
+        if order is None:
+            abort(404, description="Тапсырыс табылмады.")
+        new_status = request.form.get("status", "")
+        if new_status not in ORDER_TRANSITIONS.get(order["status"], ()):
+            abort(400, description="Бұл статусқа ауысуға болмайды.")
+        db().execute("UPDATE orders SET status = ? WHERE id = ?", (new_status, order_id))
+        db().commit()
+        return redirect(url_for("orders"))
 
     @app.get("/products/archive")
     @login_required
@@ -586,7 +608,9 @@ def create_app(test_config=None):
             if start > end:
                 abort(400, description="Бастапқы күн соңғы күннен кейін болмауы керек.")
             summary = db().execute("""
-                SELECT COUNT(*) AS order_count, COALESCE(SUM(amount_cents), 0) AS total_cents
+                SELECT COUNT(*) AS order_count,
+                       COALESCE(SUM(CASE WHEN status = 'Орындалды' THEN amount_cents ELSE 0 END), 0)
+                           AS total_cents
                 FROM orders WHERE ordered_on BETWEEN ? AND ?
             """, (start, end)).fetchone()
         else:
