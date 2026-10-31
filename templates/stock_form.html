@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Қалдықты өзгерту · Kaspi Store Manager{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <h1>{{ product['name'] }}: қалдықты өзгерту</h1>
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <form method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="stock">Қойма қалдығы</label>
+    <input id="stock" name="stock" type="number" min="0" step="1" required value="{{ request.form.get('stock', product['stock']) }}">
+    <button type="submit">Сақтау</button>
+  </form>
+</section>
+{% endblock %}

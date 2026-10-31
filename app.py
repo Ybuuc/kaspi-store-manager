@@ -8,6 +8,7 @@ import sqlite3
 import time
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
+from functools import wraps
 
 import click
 from flask import Flask, abort, g, redirect, render_template, request, session, url_for
@@ -26,6 +27,23 @@ def verify_password(password, stored):
         return hmac.compare_digest(candidate, stored)
     except (ValueError, TypeError):
         return False
+
+
+def price_cents(value):
+    try:
+        amount = Decimal(value)
+        cents = amount * 100
+        if amount.is_finite() and cents == cents.to_integral_value() and cents > 0:
+            return int(cents)
+    except (InvalidOperation, ValueError, OverflowError):
+        pass
+    raise ValueError("Баға 0-ден үлкен, ең көбі екі ондық таңбамен болуы керек.")
+
+
+def stock_value(value):
+    if not value or not value.isdecimal():
+        raise ValueError("Қалдық бүтін және 0-ден кем емес болуы керек.")
+    return int(value)
 
 
 def create_app(test_config=None):
@@ -63,7 +81,8 @@ def create_app(test_config=None):
                 username TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 failed_attempts INTEGER NOT NULL DEFAULT 0,
-                locked_until INTEGER NOT NULL DEFAULT 0
+                locked_until INTEGER NOT NULL DEFAULT 0,
+                role TEXT NOT NULL DEFAULT 'employee' CHECK(role IN ('employee', 'admin'))
             );
             CREATE TABLE IF NOT EXISTS products (
                 id INTEGER PRIMARY KEY,
@@ -72,7 +91,23 @@ def create_app(test_config=None):
                 price_cents INTEGER NOT NULL CHECK(price_cents > 0),
                 stock INTEGER NOT NULL CHECK(stock >= 0)
             );
+            CREATE TABLE IF NOT EXISTS audit_log (
+                id INTEGER PRIMARY KEY,
+                product_id INTEGER NOT NULL REFERENCES products(id),
+                actor_id INTEGER NOT NULL REFERENCES users(id),
+                action TEXT NOT NULL,
+                old_value TEXT,
+                new_value TEXT NOT NULL,
+                occurred_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+            );
         """)
+        columns = {row["name"] for row in db().execute("PRAGMA table_info(products)")}
+        if "category" not in columns:
+            db().execute("ALTER TABLE products ADD COLUMN category TEXT NOT NULL DEFAULT 'Жалпы'")
+        user_columns = {row["name"] for row in db().execute("PRAGMA table_info(users)")}
+        if "role" not in user_columns:
+            db().execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'employee'")
+        db().execute("CREATE UNIQUE INDEX IF NOT EXISTS products_sku_ci ON products(lower(sku))")
         db().commit()
 
     @app.cli.command("init-db")
@@ -83,13 +118,14 @@ def create_app(test_config=None):
     @app.cli.command("create-user")
     @click.argument("username")
     @click.password_option()
-    def create_user_command(username, password):
+    @click.option("--role", type=click.Choice(["employee", "admin"]), default="employee")
+    def create_user_command(username, password, role):
         init_db()
         if not username.strip() or not password:
             raise click.ClickException("Username and password are required")
         try:
-            db().execute("INSERT INTO users (username, password_hash) VALUES (?, ?)",
-                         (username.strip(), hash_password(password)))
+            db().execute("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+                         (username.strip(), hash_password(password), role))
             db().commit()
         except sqlite3.IntegrityError as exc:
             raise click.ClickException("Username already exists") from exc
@@ -103,15 +139,14 @@ def create_app(test_config=None):
     def add_product_command(name, sku, price, stock):
         init_db()
         try:
-            amount = Decimal(price)
-            cents = amount * 100
-        except InvalidOperation as exc:
-            raise click.ClickException("Price must be a positive amount") from exc
-        if not name.strip() or not sku.strip() or not amount.is_finite() or cents != cents.to_integral_value() or cents <= 0 or stock < 0:
-            raise click.ClickException("Provide name, SKU, positive price with two decimals and nonnegative stock")
+            cents = price_cents(price)
+        except ValueError as exc:
+            raise click.ClickException(str(exc)) from exc
+        if not name.strip() or not sku.strip() or stock < 0:
+            raise click.ClickException("Provide name, SKU and nonnegative stock")
         try:
             db().execute("INSERT INTO products (name, sku, price_cents, stock) VALUES (?, ?, ?, ?)",
-                         (name.strip(), sku.strip(), int(cents), stock))
+                         (name.strip(), sku.strip(), cents, stock))
             db().commit()
         except sqlite3.IntegrityError as exc:
             raise click.ClickException("SKU already exists or product data is invalid") from exc
@@ -121,7 +156,7 @@ def create_app(test_config=None):
     def load_user():
         g.user = None
         if "user_id" in session:
-            g.user = db().execute("SELECT id, username FROM users WHERE id = ?",
+            g.user = db().execute("SELECT id, username, role FROM users WHERE id = ?",
                                   (session["user_id"],)).fetchone()
             if g.user is None:
                 session.clear()
@@ -171,28 +206,143 @@ def create_app(test_config=None):
             return redirect(url_for("login"))
         return None
 
-    @app.get("/products")
-    def products():
-        denied = require_login()
-        if denied:
-            return denied
-        rows = db().execute(
-            "SELECT id, name, sku, price_cents, stock FROM products ORDER BY name, id"
-        ).fetchall()
-        return render_template("products.html", products=rows)
+    def login_required(fn):
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            denied = require_login()
+            return denied if denied else fn(*args, **kwargs)
+        return wrapped
 
-    @app.get("/products/<int:product_id>")
-    def product_detail(product_id):
-        denied = require_login()
-        if denied:
-            return denied
+    def admin_required(fn):
+        @wraps(fn)
+        @login_required
+        def wrapped(*args, **kwargs):
+            if g.user["role"] != "admin":
+                abort(403, description="Бұл бетке тек әкімші кіре алады.")
+            return fn(*args, **kwargs)
+        return wrapped
+
+    def csrf_token():
+        if "csrf_token" not in session:
+            session["csrf_token"] = secrets.token_urlsafe(32)
+        return session["csrf_token"]
+
+    app.jinja_env.globals["csrf_token"] = csrf_token
+
+    def check_csrf():
+        if not hmac.compare_digest(request.form.get("csrf_token", ""), session.get("csrf_token", "missing")):
+            abort(400, description="Сұрауды растау мүмкін болмады.")
+
+    def product_by_id(product_id):
         product = db().execute(
-            "SELECT id, name, sku, price_cents, stock FROM products WHERE id = ?",
+            "SELECT id, name, sku, category, price_cents, stock FROM products WHERE id = ?",
             (product_id,),
         ).fetchone()
         if product is None:
             abort(404, description="Тауар табылмады.")
-        return render_template("product.html", product=product)
+        return product
+
+    def product_fields(form):
+        name = form.get("name", "").strip()
+        sku = form.get("sku", "").strip()
+        category = form.get("category", "").strip()
+        if not name or not sku or not category:
+            raise ValueError("Атауы, SKU және санат міндетті.")
+        return name, sku, category, price_cents(form.get("price", ""))
+
+    def audit(product_id, action, old_value, new_value):
+        db().execute(
+            "INSERT INTO audit_log (product_id, actor_id, action, old_value, new_value) VALUES (?, ?, ?, ?, ?)",
+            (product_id, g.user["id"], action, old_value, new_value),
+        )
+
+    @app.get("/products")
+    @login_required
+    def products():
+        query = request.args.get("q", "").strip()
+        rows = db().execute(
+            "SELECT id, name, sku, category, price_cents, stock FROM products ORDER BY name, id"
+        ).fetchall()
+        if query:
+            needle = query.casefold()
+            rows = [row for row in rows if needle in row["name"].casefold()]
+        return render_template("products.html", products=rows, query=query)
+
+    @app.get("/products/<int:product_id>")
+    @login_required
+    def product_detail(product_id):
+        return render_template("product.html", product=product_by_id(product_id))
+
+    @app.route("/products/new", methods=["GET", "POST"])
+    @login_required
+    def product_new():
+        error = None
+        if request.method == "POST":
+            check_csrf()
+            try:
+                name, sku, category, cents = product_fields(request.form)
+                stock = stock_value(request.form.get("stock", ""))
+                cursor = db().execute(
+                    "INSERT INTO products (name, sku, category, price_cents, stock) VALUES (?, ?, ?, ?, ?)",
+                    (name, sku, category, cents, stock),
+                )
+                audit(cursor.lastrowid, "create", None, f"{name}|{sku}|{category}|{cents}|{stock}")
+                db().commit()
+                return redirect(url_for("product_detail", product_id=cursor.lastrowid))
+            except ValueError as exc:
+                error = str(exc)
+            except sqlite3.IntegrityError:
+                db().rollback()
+                error = "SKU қайталанбауы тиіс."
+        return render_template("product_form.html", product=None, error=error), (400 if error else 200)
+
+    @app.route("/products/<int:product_id>/edit", methods=["GET", "POST"])
+    @login_required
+    def product_edit(product_id):
+        product = product_by_id(product_id)
+        error = None
+        if request.method == "POST":
+            check_csrf()
+            try:
+                name, sku, category, cents = product_fields(request.form)
+                old = f"{product['name']}|{product['sku']}|{product['category']}|{product['price_cents']}"
+                new = f"{name}|{sku}|{category}|{cents}"
+                db().execute(
+                    "UPDATE products SET name = ?, sku = ?, category = ?, price_cents = ? WHERE id = ?",
+                    (name, sku, category, cents, product_id),
+                )
+                audit(product_id, "edit", old, new)
+                db().commit()
+                return redirect(url_for("product_detail", product_id=product_id))
+            except ValueError as exc:
+                error = str(exc)
+            except sqlite3.IntegrityError:
+                db().rollback()
+                error = "SKU қайталанбауы тиіс."
+        return render_template("product_form.html", product=product, error=error), (400 if error else 200)
+
+    @app.route("/products/<int:product_id>/stock", methods=["GET", "POST"])
+    @login_required
+    def product_stock(product_id):
+        product = product_by_id(product_id)
+        error = None
+        if request.method == "POST":
+            check_csrf()
+            try:
+                stock = stock_value(request.form.get("stock", ""))
+                db().execute("UPDATE products SET stock = ? WHERE id = ?", (stock, product_id))
+                audit(product_id, "stock", str(product["stock"]), str(stock))
+                db().commit()
+                return redirect(url_for("product_detail", product_id=product_id))
+            except ValueError as exc:
+                error = str(exc)
+        return render_template("stock_form.html", product=product, error=error), (400 if error else 200)
+
+    @app.get("/admin")
+    @admin_required
+    def admin_dashboard():
+        count = db().execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        return render_template("admin.html", user_count=count)
 
     return app
 

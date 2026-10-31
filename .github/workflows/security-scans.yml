@@ -19,10 +19,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Resolve Python dependencies for vulnerability scan
+        run: |
+          python3 -m venv .scan-venv
+          .scan-venv/bin/python -m pip install -r requirements.txt
+          .scan-venv/bin/python -m pip freeze > requirements-resolved.txt
       - name: Run Trivy filesystem scan
         run: |
           docker run --rm -v "$PWD:/work" aquasec/trivy:latest fs \
             --scanners vuln,misconfig,secret \
+            --skip-dirs /work/.scan-venv \
             --severity HIGH,CRITICAL \
             --ignore-unfixed \
             --exit-code 1 \
