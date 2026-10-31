@@ -69,6 +69,7 @@ class AppTests(unittest.TestCase):
         start = time.perf_counter()
         response = self.client.get("/products")
         elapsed = time.perf_counter() - start
+        print(f"100-product list response in Flask test client: {elapsed:.3f} s")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_data(as_text=True).count("/products/"), 100)
         self.assertLess(elapsed, 2.0)
