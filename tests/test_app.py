@@ -514,6 +514,12 @@ class AppTests(unittest.TestCase):
             self.assertEqual(snapshot.execute("PRAGMA integrity_check").fetchone()[0], "ok")
             self.assertEqual(snapshot.execute("SELECT sku FROM products").fetchone()[0], "T")
             self.assertEqual(snapshot.execute("SELECT COUNT(*) FROM audit_log").fetchone()[0], 1)
+        restored = create_app({"TESTING": True, "SECRET_KEY": "restore-test-secret",
+                               "DATABASE": os.path.join(backup_dir, files[0])})
+        restored_client = restored.test_client()
+        self.assertEqual(restored_client.post("/login", data={"username": "employee",
+                                                          "password": "correct-password"}).status_code, 302)
+        self.assertIn("Tea", restored_client.get("/products").get_data(as_text=True))
 
 
 if __name__ == "__main__":
