@@ -2,7 +2,7 @@
 {% block title %}Тауарлар · Kaspi Store Manager{% endblock %}
 {% block content %}
 <h1>Тауарлар</h1>
-<p><a href="{{ url_for('product_new') }}">+ Жаңа тауар</a></p>
+<p><a href="{{ url_for('product_new') }}">+ Жаңа тауар</a> · <a href="{{ url_for('product_archive') }}">Архив</a></p>
 <form method="get" action="{{ url_for('products') }}" class="search">
   <label for="q">Атауы бойынша іздеу</label>
   <input id="q" name="q" value="{{ query }}" placeholder="Тауар атауы">
