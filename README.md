@@ -21,7 +21,24 @@ Kaspi дүкенін басқаруға арналған оқу ақпаратт
 - Жұмыс тәртібі репозиторийдің Wiki бөлімінде сипатталады.
 
 ## Жобаның ағымдағы кезеңі
-Жұмыс кеңістігін баптау және MVP талаптарын анықтау.
+MVP-дің алғашқы жұмыс істейтін бөлігі: қызметкердің кіруі және тауарлар тізімі.
+
+## Қолданбаны жергілікті іске қосу
+
+Python 3.10+ қажет. `python -m venv .venv` жасап, ортаны іске қосыңыз, содан кейін:
+
+```sh
+pip install -r requirements.txt
+export KSM_SECRET_KEY="replace-with-a-long-random-secret"
+flask --app app:create_app init-db
+flask --app app:create_app create-user employee
+flask --app app:create_app add-product "Шай" TEA-1 1250.50 0
+flask --app app:create_app run
+```
+
+Windows PowerShell-де `export` орнына `$env:KSM_SECRET_KEY = "..."` қолданыңыз. `create-user` құпиясөзді интерактивті сұрайды. Қолданба `http://127.0.0.1:5000` адресінде ашылады. Өндірісте HTTPS прокси қажет және `KSM_HTTPS=1` орнатылуы тиіс. Дерекқор `instance/` ішінде сақталады; бұл қалта Git-ке қосылмайды. Қазір тауар қосу CLI арқылы орындалады; веб-форма бөлек US-03 жұмысы.
+
+Тесттер: `python -m unittest discover -s tests -v`.
 ## Жұмыс кеңістігіне сілтемелер
 
 - [GitHub Project](https://github.com/users/Ybuuc/projects/1)
