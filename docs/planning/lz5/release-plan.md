@@ -28,6 +28,12 @@ M1 жоспарлы күні 30.10.2026 болды. Нақты код [PR #40](h
 - Тапсырыстар тізімі және status filtering жұмыс істейді.
 - Regression tests өткен.
 
+### Нақты орындалу мәртебесі
+
+US-09 ([PR #48](https://github.com/Ybuuc/kaspi-store-manager/pull/48)), US-10 ([PR #43](https://github.com/Ybuuc/kaspi-store-manager/pull/43)), US-11 ([PR #46](https://github.com/Ybuuc/kaspi-store-manager/pull/46)) және US-13 ([PR #47](https://github.com/Ybuuc/kaspi-store-manager/pull/47)) `main` тармағына біріктірілді. [M2 issue #28](https://github.com/Ybuuc/kaspi-store-manager/issues/28) қабылдау шарттары тексеріліп жабылды; PR #48 финалдық нұсқасында 16 unit tests, Application tests және Security scans сәтті өтті. Жоспарлы 20.11.2026 күні нақты аяқталу күні ретінде қолданылмайды — нақты уақыт GitHub оқиғаларында сақталған.
+
+Тапсырыстар тізімі әзірше тек оқу деректерін көрсетеді; нақты Kaspi интеграциясы [DEP-02 #23](https://github.com/Ybuuc/kaspi-store-manager/issues/23) бойынша ашық. Өндірістік DB hosting және жеке деректерді сақтау саясаты да бөлек шешіледі.
+
 ## M3 — Semester Release
 - Қойма есебі дұрыс есептеледі.
 - Admin/Employee құқықтары бөлінген.
