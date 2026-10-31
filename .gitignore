@@ -1,4 +1,7 @@
 .venv/
+.scan-venv/
+scan/
+trivy-report.txt
 __pycache__/
 *.pyc
 instance/
