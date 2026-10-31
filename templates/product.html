@@ -9,6 +9,7 @@
   <dt>Бағасы</dt><dd>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</dd>
   <dt>Қойма қалдығы</dt><dd>{{ product['stock'] }}</dd>
   <dt>Төмен қалдық шегі</dt><dd>{{ product['low_stock_threshold'] if product['low_stock_threshold'] is not none else 'Орнатылмаған' }}</dd></dl>
+  {% if g.user['role'] == 'admin' %}<p><a href="{{ url_for('price_history', product_id=product['id']) }}">Баға тарихы</a></p>{% endif %}
   {% if not product['archived_at'] and product['low_stock_threshold'] is not none and product['stock'] < product['low_stock_threshold'] %}
   <p class="warning" role="alert">Төмен қалдық: тауар саны белгіленген шектен аз.</p>
   {% endif %}

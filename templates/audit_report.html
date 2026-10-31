@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Өзгерістер журналы · Kaspi Store Manager{% endblock %}
+{% block content %}
+<section class="panel"><h1>Өзгерістер журналы</h1>
+  {% if entries %}<table><thead><tr><th>Уақыты (UTC)</th><th>Пайдаланушы</th><th>Тауар</th><th>Әрекет</th><th>Бұрын</th><th>Кейін</th></tr></thead><tbody>
+  {% for entry in entries %}<tr><td>{{ entry['occurred_at'] }}</td><td>{{ entry['username'] }}</td><td>{{ entry['name'] }} ({{ entry['sku'] }})</td><td>{{ entry['action'] }}</td><td>{{ entry['old_value'] or '—' }}</td><td>{{ entry['new_value'] }}</td></tr>{% endfor %}
+  </tbody></table>{% else %}<p>Журнал әзірге бос.</p>{% endif %}
+  <p>{% if page > 1 %}<a href="{{ url_for('audit_report', page=page-1) }}">← Алдыңғы бет</a>{% endif %}
+  {% if has_next %}<a href="{{ url_for('audit_report', page=page+1) }}">Келесі бет →</a>{% endif %}</p>
+</section>
+{% endblock %}

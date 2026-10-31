@@ -390,6 +390,71 @@ class AppTests(unittest.TestCase):
         self.assertNotIn("Қойма есебі", page)
         self.assertNotIn("Әкімші</a>", page)
 
+    def test_price_history_shows_chronological_actor_and_legacy_edits(self):
+        self.login()
+        self.assertEqual(self.client.get("/products/1/price-history").status_code, 403)
+        self.client.post("/logout")
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("UPDATE users SET role = 'admin' WHERE username = 'employee'")
+            db.execute("INSERT INTO products (name, sku, price_cents, stock) VALUES ('Tea', 'T', 300, 0)")
+            actor = db.execute("SELECT id FROM users WHERE username = 'employee'").fetchone()[0]
+            db.executemany(
+                "INSERT INTO audit_log (product_id, actor_id, action, old_value, new_value, occurred_at) "
+                "VALUES (1, ?, ?, ?, ?, ?)",
+                [(actor, "edit", "Tea|T|General|100", "Tea|T|General|200", "2026-01-01T00:00:00Z"),
+                 (actor, "edit", "Tea|T|General", "Tea|T|Other", "2026-01-02T00:00:00Z"),
+                 (actor, "price", "200", "300", "2026-01-03T00:00:00Z")],
+            )
+        self.assertEqual(self.client.get("/products/1/price-history").status_code, 302)
+        self.login()
+        page = self.client.get("/products/1/price-history").get_data(as_text=True)
+        self.assertLess(page.index("2026-01-01"), page.index("2026-01-03"))
+        self.assertIn("1.00 ₸", page)
+        self.assertIn("2.00 ₸", page)
+        self.assertIn("3.00 ₸", page)
+        self.assertEqual(page.count("<tr><td>2026-01-"), 2)
+        self.assertIn("employee", page)
+
+    def test_audit_report_is_admin_only_and_entries_are_immutable(self):
+        self.login()
+        self.assertEqual(self.client.get("/admin/audit").status_code, 403)
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("UPDATE users SET role = 'admin' WHERE username = 'employee'")
+        token = self.token()
+        self.client.post("/products/new", data={"name": "Tea", "sku": "T", "category": "Food",
+                                                "price": "1.00", "stock": "2", "csrf_token": token})
+        self.client.post("/products/1/price", data={"price": "2.00", "csrf_token": token})
+        self.client.post("/products/1/stock", data={"stock": "1", "csrf_token": token})
+        page = self.client.get("/admin/audit").get_data(as_text=True)
+        for value in ("Tea", "employee", "create", "price", "stock", "UTC"):
+            self.assertIn(value, page)
+        self.assertEqual(self.client.get("/admin/audit?page=0").status_code, 400)
+        with closing(sqlite3.connect(self.database)) as db:
+            with self.assertRaises(sqlite3.IntegrityError):
+                db.execute("UPDATE audit_log SET new_value = 'tampered' WHERE id = 1")
+            with self.assertRaises(sqlite3.IntegrityError):
+                db.execute("DELETE FROM audit_log WHERE id = 1")
+
+    def test_sales_report_date_range_empty_period_and_validation(self):
+        self.login()
+        self.assertEqual(self.client.get("/reports/sales").status_code, 403)
+        self.client.post("/logout")
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("UPDATE users SET role = 'admin' WHERE username = 'employee'")
+            db.executemany("INSERT INTO orders (ordered_on, amount_cents, status) VALUES (?, ?, 'demo')",
+                           [("2026-01-01", 100), ("2026-01-02", 250), ("2026-02-01", 400)])
+        self.assertEqual(self.client.get("/reports/sales").status_code, 302)
+        self.login()
+        for path in ("/reports/sales?from=2026-01-01", "/reports/sales?from=bad&to=2026-01-02",
+                     "/reports/sales?from=2026-02-01&to=2026-01-01"):
+            self.assertEqual(self.client.get(path).status_code, 400)
+        page = self.client.get("/reports/sales?from=2026-01-01&to=2026-01-02").get_data(as_text=True)
+        self.assertIn("<dd>2</dd>", page)
+        self.assertIn("3.50 ₸", page)
+        empty = self.client.get("/reports/sales?from=2026-03-01&to=2026-03-31").get_data(as_text=True)
+        self.assertIn("<dd>0</dd>", empty)
+        self.assertIn("0.00 ₸", empty)
+
     def test_secure_session_cookie_configuration(self):
         with patch.dict(os.environ, {"KSM_HTTPS": "1", "KSM_SECRET_KEY": "production-test-only"}):
             app = create_app({"TESTING": True, "DATABASE": os.path.join(self.tempdir.name, "secure.sqlite3")})
