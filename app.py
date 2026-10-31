@@ -6,6 +6,7 @@ import os
 import secrets
 import sqlite3
 import time
+from datetime import date
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from functools import wraps
@@ -101,6 +102,13 @@ def create_app(test_config=None):
                 new_value TEXT NOT NULL,
                 occurred_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
             );
+            CREATE TABLE IF NOT EXISTS orders (
+                id INTEGER PRIMARY KEY,
+                ordered_on TEXT NOT NULL,
+                amount_cents INTEGER NOT NULL CHECK(amount_cents > 0),
+                status TEXT NOT NULL CHECK(length(trim(status)) > 0),
+                source TEXT NOT NULL DEFAULT 'demo' CHECK(source IN ('demo', 'kaspi'))
+            );
         """)
         columns = {row["name"] for row in db().execute("PRAGMA table_info(products)")}
         if "category" not in columns:
@@ -162,6 +170,28 @@ def create_app(test_config=None):
             db().rollback()
             raise click.ClickException("SKU already exists or product data is invalid") from exc
         click.echo("Product added")
+
+    @app.cli.command("add-demo-order")
+    @click.argument("ordered_on")
+    @click.argument("amount")
+    @click.argument("status")
+    def add_demo_order_command(ordered_on, amount, status):
+        init_db()
+        try:
+            if date.fromisoformat(ordered_on).isoformat() != ordered_on:
+                raise ValueError("Date must use YYYY-MM-DD")
+            cents = price_cents(amount)
+        except ValueError as exc:
+            raise click.ClickException(str(exc)) from exc
+        status = status.strip()
+        if not status:
+            raise click.ClickException("Status is required")
+        db().execute(
+            "INSERT INTO orders (ordered_on, amount_cents, status, source) VALUES (?, ?, ?, 'demo')",
+            (ordered_on, cents, status),
+        )
+        db().commit()
+        click.echo("Demo order added")
 
     @app.before_request
     def load_user():
@@ -281,6 +311,22 @@ def create_app(test_config=None):
             needle = query.casefold()
             rows = [row for row in rows if needle in row["name"].casefold()]
         return render_template("products.html", products=rows, query=query)
+
+    @app.get("/orders")
+    @login_required
+    def orders():
+        status = request.args.get("status", "").strip()
+        if status:
+            rows = db().execute(
+                "SELECT id, ordered_on, amount_cents, status, source FROM orders "
+                "WHERE status = ? ORDER BY ordered_on DESC, id DESC", (status,),
+            ).fetchall()
+        else:
+            rows = db().execute(
+                "SELECT id, ordered_on, amount_cents, status, source FROM orders "
+                "ORDER BY ordered_on DESC, id DESC"
+            ).fetchall()
+        return render_template("orders.html", orders=rows, status=status)
 
     @app.get("/products/archive")
     @login_required
