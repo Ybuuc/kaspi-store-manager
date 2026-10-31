@@ -134,6 +134,7 @@ class AppTests(unittest.TestCase):
             ["2026-01-15", "0", "Жаңа"],
             ["2026-01-15", "12.345", "Жаңа"],
             ["2026-01-15", "100.00", "   "],
+            ["2026-01-15", "100.00", "Басқа"],
         ):
             result = runner.invoke(args=["add-demo-order", *args])
             self.assertNotEqual(result.exit_code, 0)
@@ -441,19 +442,53 @@ class AppTests(unittest.TestCase):
         self.client.post("/logout")
         with closing(sqlite3.connect(self.database)) as db, db:
             db.execute("UPDATE users SET role = 'admin' WHERE username = 'employee'")
-            db.executemany("INSERT INTO orders (ordered_on, amount_cents, status) VALUES (?, ?, 'demo')",
-                           [("2026-01-01", 100), ("2026-01-02", 250), ("2026-02-01", 400)])
+            db.executemany("INSERT INTO orders (ordered_on, amount_cents, status) VALUES (?, ?, ?)",
+                           [("2026-01-01", 100, "Орындалды"), ("2026-01-02", 250, "Орындалды"),
+                            ("2026-01-02", 500, "Бас тартылды"), ("2026-02-01", 400, "Жаңа")])
         self.assertEqual(self.client.get("/reports/sales").status_code, 302)
         self.login()
         for path in ("/reports/sales?from=2026-01-01", "/reports/sales?from=bad&to=2026-01-02",
                      "/reports/sales?from=2026-02-01&to=2026-01-01"):
             self.assertEqual(self.client.get(path).status_code, 400)
         page = self.client.get("/reports/sales?from=2026-01-01&to=2026-01-02").get_data(as_text=True)
-        self.assertIn("<dd>2</dd>", page)
+        self.assertIn("<dd>3</dd>", page)
         self.assertIn("3.50 ₸", page)
         empty = self.client.get("/reports/sales?from=2026-03-01&to=2026-03-31").get_data(as_text=True)
         self.assertIn("<dd>0</dd>", empty)
         self.assertIn("0.00 ₸", empty)
+
+    def test_order_status_follows_approved_transitions_and_persists(self):
+        runner = self.app.test_cli_runner()
+        result = runner.invoke(args=["add-demo-order", "2026-01-01", "10.00", "Жаңа"])
+        self.assertEqual(result.exit_code, 0, result.output)
+        path = "/orders/1/status"
+        self.assertEqual(self.client.post(path, data={"status": "Өңделуде"}).status_code, 302)
+        self.login()
+        token = self.token()
+        page = self.client.get("/orders").get_data(as_text=True)
+        self.assertIn("Өңделуде", page)
+        self.assertIn("Бас тартылды", page)
+        self.assertNotIn('<option value="Орындалды">', page)
+        for payload in ({"status": "Өңделуде"}, {"csrf_token": "bad", "status": "Өңделуде"},
+                        {"csrf_token": token, "status": "Орындалды"},
+                        {"csrf_token": token, "status": "Басқа"}):
+            self.assertEqual(self.client.post(path, data=payload).status_code, 400)
+        self.assertEqual(self.client.post("/orders/999/status",
+                                          data={"csrf_token": token, "status": "Өңделуде"}).status_code, 404)
+        self.assertEqual(self.client.post(path, data={"csrf_token": token, "status": "Өңделуде"}).status_code, 302)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT status FROM orders WHERE id = 1").fetchone()[0], "Өңделуде")
+        self.assertEqual(self.client.post(path, data={"csrf_token": token, "status": "Орындалды"}).status_code, 302)
+        self.assertEqual(self.client.post(path, data={"csrf_token": token, "status": "Бас тартылды"}).status_code, 400)
+        page = self.client.get("/orders").get_data(as_text=True)
+        self.assertIn("Өзгерту мүмкін емес", page)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT status FROM orders WHERE id = 1").fetchone()[0], "Орындалды")
+        self.assertEqual(runner.invoke(args=["add-demo-order", "2026-01-02", "5.00", "Жаңа"]).exit_code, 0)
+        self.assertEqual(self.client.post("/orders/2/status",
+                                          data={"csrf_token": token, "status": "Бас тартылды"}).status_code, 302)
+        self.assertEqual(self.client.post("/orders/2/status",
+                                          data={"csrf_token": token, "status": "Өңделуде"}).status_code, 400)
 
     def test_secure_session_cookie_configuration(self):
         with patch.dict(os.environ, {"KSM_HTTPS": "1", "KSM_SECRET_KEY": "production-test-only"}):

@@ -11,11 +11,17 @@
 </form>
 {% if orders %}
 <div class="table-wrap"><table>
-  <thead><tr><th>ID</th><th>Күні</th><th>Сомасы</th><th>Статус</th><th>Дерек</th></tr></thead>
+  <thead><tr><th>ID</th><th>Күні</th><th>Сомасы</th><th>Статус</th><th>Дерек</th><th>Статусты өзгерту</th></tr></thead>
   <tbody>{% for order in orders %}<tr>
     <td>{{ order['id'] }}</td><td>{{ order['ordered_on'] }}</td>
     <td>{{ '%.2f'|format(order['amount_cents'] / 100) }} ₸</td>
     <td>{{ order['status'] }}</td><td>{{ 'Оқу дерегі' if order['source'] == 'demo' else 'Kaspi' }}</td>
+    <td>{% if transitions.get(order['status']) %}<form action="{{ url_for('change_order_status', order_id=order['id']) }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <select name="status" aria-label="{{ order['id'] }} тапсырыс статусы">
+        {% for next_status in transitions[order['status']] %}<option value="{{ next_status }}">{{ next_status }}</option>{% endfor %}
+      </select><button type="submit">Сақтау</button>
+    </form>{% else %}Өзгерту мүмкін емес{% endif %}</td>
   </tr>{% endfor %}</tbody>
 </table></div>
 {% else %}<p class="empty">{% if status %}Осы статус бойынша тапсырыс табылмады.{% else %}Әзірге тапсырыстар жоқ.{% endif %}</p>{% endif %}
