@@ -1,12 +1,24 @@
 {% extends 'base.html' %}
 {% block title %}{{ product['name'] }} · Kaspi Store Manager{% endblock %}
 {% block content %}
-<a href="{{ url_for('products') }}">← Тауарлар тізімі</a>
+<a href="{{ url_for('product_archive' if product['archived_at'] else 'products') }}">← {{ 'Архив' if product['archived_at'] else 'Тауарлар тізімі' }}</a>
 <section class="panel"><h1>{{ product['name'] }}</h1>
+  {% if product['archived_at'] %}<p>Архивтегі тауар</p>{% endif %}
   <dl><dt>SKU</dt><dd>{{ product['sku'] }}</dd>
   <dt>Санат</dt><dd>{{ product['category'] }}</dd>
   <dt>Бағасы</dt><dd>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</dd>
   <dt>Қойма қалдығы</dt><dd>{{ product['stock'] }}</dd></dl>
+  {% if product['archived_at'] %}
+  <form action="{{ url_for('product_archive_restore', product_id=product['id']) }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit">Архивтен қайтару</button>
+  </form>
+  {% else %}
   <p><a href="{{ url_for('product_edit', product_id=product['id']) }}">Тауарды өзгерту</a> · <a href="{{ url_for('product_stock', product_id=product['id']) }}">Қалдықты өзгерту</a></p>
+  <form action="{{ url_for('product_archive_add', product_id=product['id']) }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit">Архивке жіберу</button>
+  </form>
+  {% endif %}
 </section>
 {% endblock %}
