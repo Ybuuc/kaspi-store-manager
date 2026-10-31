@@ -23,7 +23,8 @@ jobs:
         run: |
           python3 -m venv .scan-venv
           .scan-venv/bin/python -m pip install -r requirements.txt
-          .scan-venv/bin/python -m pip freeze > requirements-resolved.txt
+          mkdir -p scan
+          .scan-venv/bin/python -m pip freeze > scan/requirements.txt
       - name: Run Trivy filesystem scan
         run: |
           docker run --rm -v "$PWD:/work" aquasec/trivy:latest fs \

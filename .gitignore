@@ -1,4 +1,6 @@
 .venv/
+.scan-venv/
+scan/
 __pycache__/
 *.pyc
 instance/
