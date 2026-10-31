@@ -91,7 +91,8 @@ def create_app(test_config=None):
                 sku TEXT NOT NULL UNIQUE,
                 price_cents INTEGER NOT NULL CHECK(price_cents > 0),
                 stock INTEGER NOT NULL CHECK(stock >= 0),
-                archived_at TEXT
+                archived_at TEXT,
+                low_stock_threshold INTEGER CHECK(low_stock_threshold >= 0)
             );
             CREATE TABLE IF NOT EXISTS audit_log (
                 id INTEGER PRIMARY KEY,
@@ -115,6 +116,11 @@ def create_app(test_config=None):
             db().execute("ALTER TABLE products ADD COLUMN category TEXT NOT NULL DEFAULT 'Жалпы'")
         if "archived_at" not in columns:
             db().execute("ALTER TABLE products ADD COLUMN archived_at TEXT")
+        if "low_stock_threshold" not in columns:
+            db().execute(
+                "ALTER TABLE products ADD COLUMN low_stock_threshold INTEGER "
+                "CHECK(low_stock_threshold >= 0)"
+            )
         user_columns = {row["name"] for row in db().execute("PRAGMA table_info(users)")}
         if "role" not in user_columns:
             db().execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'employee'")
@@ -278,7 +284,8 @@ def create_app(test_config=None):
 
     def product_by_id(product_id):
         product = db().execute(
-            "SELECT id, name, sku, category, price_cents, stock, archived_at FROM products WHERE id = ?",
+            "SELECT id, name, sku, category, price_cents, stock, archived_at, low_stock_threshold "
+            "FROM products WHERE id = ?",
             (product_id,),
         ).fetchone()
         if product is None:
@@ -304,7 +311,7 @@ def create_app(test_config=None):
     def products():
         query = request.args.get("q", "").strip()
         rows = db().execute(
-            "SELECT id, name, sku, category, price_cents, stock FROM products "
+            "SELECT id, name, sku, category, price_cents, stock, low_stock_threshold FROM products "
             "WHERE archived_at IS NULL ORDER BY name, id"
         ).fetchall()
         if query:
@@ -442,6 +449,32 @@ def create_app(test_config=None):
             except ValueError as exc:
                 error = str(exc)
         return render_template("price_form.html", product=product, error=error), (400 if error else 200)
+
+    @app.route("/products/<int:product_id>/threshold", methods=["GET", "POST"])
+    @login_required
+    def product_threshold(product_id):
+        product = product_by_id(product_id)
+        if product["archived_at"] is not None:
+            abort(409, description="Алдымен тауарды архивтен қайтарыңыз.")
+        error = None
+        if request.method == "POST":
+            check_csrf()
+            try:
+                value = request.form.get("threshold", "").strip()
+                threshold = stock_value(value) if value else None
+                if threshold != product["low_stock_threshold"]:
+                    db().execute(
+                        "UPDATE products SET low_stock_threshold = ? WHERE id = ?",
+                        (threshold, product_id),
+                    )
+                    old = product["low_stock_threshold"]
+                    audit(product_id, "threshold", str(old) if old is not None else None,
+                          str(threshold) if threshold is not None else "unset")
+                    db().commit()
+                return redirect(url_for("product_detail", product_id=product_id))
+            except ValueError as exc:
+                error = str(exc)
+        return render_template("threshold_form.html", product=product, error=error), (400 if error else 200)
 
     @app.route("/products/<int:product_id>/stock", methods=["GET", "POST"])
     @login_required
