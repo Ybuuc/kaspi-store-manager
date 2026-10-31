@@ -15,6 +15,12 @@ Capacity қайта есептелгеннен кейін семестрге 65 
 - SKU unique және inventory validation тексерілген.
 - GitHub Issues жаңартылған.
 
+### Нақты орындалу мәртебесі — 01.11.2026
+
+M1 жоспарлы күні 30.10.2026 болды. Нақты код [PR #40](https://github.com/Ybuuc/kaspi-store-manager/pull/40) (31.10.2026 19:35:19 UTC) және [PR #41](https://github.com/Ybuuc/kaspi-store-manager/pull/41) (31.10.2026 19:50:55 UTC) арқылы `main` тармағына біріктірілді. US-01–US-08 issues және [M1 issue #27](https://github.com/Ybuuc/kaspi-store-manager/issues/27) нақты біріктіруден кейін жабылды; Project #1 карточкалары `Done`. Application tests (10) және Security scans финалдық commit үшін сәтті аяқталды. Жергілікті Flask test client ішінде 100 тауар тізімі мен 10 000 тауар іздеуі Issue шектерінен жылдам болды; өндірістік жүктеме тексерісі жасалған жоқ.
+
+Бұл мәртебе өндірістік орналастыруды, Kaspi API интеграциясын, backup/restore сынағын немесе PRIV-03 заңдық/retention бекітуін білдірмейді. Олар бөлек ашық тәуелділіктер болып қалады.
+
 ## M2 — Operations Ready
 - Low-stock notification шектік мәнге сәйкес жұмыс істейді.
 - Архивтеу/қалпына келтіру жұмыс істейді.
