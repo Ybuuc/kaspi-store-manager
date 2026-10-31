@@ -340,6 +340,56 @@ class AppTests(unittest.TestCase):
             db.execute("UPDATE users SET role = 'admin' WHERE username = 'employee'")
         self.assertEqual(self.client.get("/admin").status_code, 200)
 
+    def test_inventory_report_counts_current_active_products(self):
+        self.login()
+        self.assertEqual(self.client.get("/reports/inventory").status_code, 403)
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("UPDATE users SET role = 'admin' WHERE username = 'employee'")
+            db.executemany(
+                "INSERT INTO products (name, sku, price_cents, stock, low_stock_threshold, archived_at) "
+                "VALUES (?, ?, 100, ?, ?, ?)",
+                [("Low", "L", 1, 2, None), ("Equal", "E", 2, 2, None),
+                 ("No threshold", "N", 0, None, None),
+                 ("Archived", "A", 0, 2, "2026-01-01")],
+            )
+        page = self.client.get("/reports/inventory").get_data(as_text=True)
+        self.assertIn("<dd>3</dd>", page)
+        self.assertIn("<dd>1</dd>", page)
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("UPDATE products SET stock = 2 WHERE sku = 'L'")
+        self.assertIn("<dd>0</dd>", self.client.get("/reports/inventory").get_data(as_text=True))
+
+    def test_admin_can_change_role_and_employee_loses_direct_access(self):
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'admin')",
+                       ("owner", hash_password("owner-password")))
+            employee_id = db.execute("SELECT id FROM users WHERE username = 'employee'").fetchone()[0]
+            owner_id = db.execute("SELECT id FROM users WHERE username = 'owner'").fetchone()[0]
+        self.client.post("/login", data={"username": "owner", "password": "owner-password"})
+        token = self.token()
+        path = f"/admin/users/{employee_id}/role"
+        self.assertEqual(self.client.post(path, data={"role": "admin"}).status_code, 400)
+        self.assertEqual(self.client.post(path, data={"csrf_token": token, "role": "invalid"}).status_code, 400)
+        self.assertEqual(self.client.post(f"/admin/users/{owner_id}/role",
+                                          data={"csrf_token": token, "role": "employee"}).status_code, 409)
+        self.assertEqual(self.client.post(path, data={"csrf_token": token, "role": "admin"}).status_code, 302)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT role FROM users WHERE id = ?", (employee_id,)).fetchone()[0], "admin")
+        self.client.post("/logout")
+        self.login()
+        self.assertEqual(self.client.get("/admin").status_code, 200)
+        token = self.token()
+        self.assertEqual(self.client.post(f"/admin/users/{owner_id}/role",
+                                          data={"csrf_token": token, "role": "employee"}).status_code, 302)
+        self.client.post("/logout")
+        self.client.post("/login", data={"username": "owner", "password": "owner-password"})
+        self.assertEqual(self.client.get("/admin").status_code, 403)
+        self.assertEqual(self.client.get("/reports/inventory").status_code, 403)
+        self.assertEqual(self.client.post(path, data={"csrf_token": token, "role": "employee"}).status_code, 403)
+        page = self.client.get("/products").get_data(as_text=True)
+        self.assertNotIn("Қойма есебі", page)
+        self.assertNotIn("Әкімші</a>", page)
+
     def test_secure_session_cookie_configuration(self):
         with patch.dict(os.environ, {"KSM_HTTPS": "1", "KSM_SECRET_KEY": "production-test-only"}):
             app = create_app({"TESTING": True, "DATABASE": os.path.join(self.tempdir.name, "secure.sqlite3")})
