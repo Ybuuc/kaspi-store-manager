@@ -358,13 +358,16 @@ def create_app(test_config=None):
             check_csrf()
             try:
                 name, sku, category, cents = product_fields(request.form)
-                old = f"{product['name']}|{product['sku']}|{product['category']}|{product['price_cents']}"
-                new = f"{name}|{sku}|{category}|{cents}"
+                old = f"{product['name']}|{product['sku']}|{product['category']}"
+                new = f"{name}|{sku}|{category}"
                 db().execute(
                     "UPDATE products SET name = ?, sku = ?, category = ?, price_cents = ? WHERE id = ?",
                     (name, sku, category, cents, product_id),
                 )
-                audit(product_id, "edit", old, new)
+                if old != new:
+                    audit(product_id, "edit", old, new)
+                if product["price_cents"] != cents:
+                    audit(product_id, "price", str(product["price_cents"]), str(cents))
                 db().commit()
                 return redirect(url_for("product_detail", product_id=product_id))
             except ValueError as exc:
@@ -373,6 +376,26 @@ def create_app(test_config=None):
                 db().rollback()
                 error = "SKU қайталанбауы тиіс."
         return render_template("product_form.html", product=product, error=error), (400 if error else 200)
+
+    @app.route("/products/<int:product_id>/price", methods=["GET", "POST"])
+    @login_required
+    def product_price(product_id):
+        product = product_by_id(product_id)
+        if product["archived_at"] is not None:
+            abort(409, description="Алдымен тауарды архивтен қайтарыңыз.")
+        error = None
+        if request.method == "POST":
+            check_csrf()
+            try:
+                cents = price_cents(request.form.get("price", ""))
+                if cents != product["price_cents"]:
+                    db().execute("UPDATE products SET price_cents = ? WHERE id = ?", (cents, product_id))
+                    audit(product_id, "price", str(product["price_cents"]), str(cents))
+                    db().commit()
+                return redirect(url_for("product_detail", product_id=product_id))
+            except ValueError as exc:
+                error = str(exc)
+        return render_template("price_form.html", product=product, error=error), (400 if error else 200)
 
     @app.route("/products/<int:product_id>/stock", methods=["GET", "POST"])
     @login_required
