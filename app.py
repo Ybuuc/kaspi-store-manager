@@ -125,6 +125,13 @@ def create_app(test_config=None):
         if "role" not in user_columns:
             db().execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'employee'")
         db().execute("CREATE UNIQUE INDEX IF NOT EXISTS products_sku_ci ON products(lower(sku))")
+        db().executescript("""
+            CREATE TRIGGER IF NOT EXISTS audit_log_no_update
+            BEFORE UPDATE ON audit_log BEGIN SELECT RAISE(ABORT, 'audit log is immutable'); END;
+            CREATE TRIGGER IF NOT EXISTS audit_log_no_delete
+            BEFORE DELETE ON audit_log BEGIN SELECT RAISE(ABORT, 'audit log is immutable'); END;
+            CREATE INDEX IF NOT EXISTS audit_log_product_time ON audit_log(product_id, occurred_at, id);
+        """)
         db().commit()
 
     @app.cli.command("init-db")
@@ -349,6 +356,35 @@ def create_app(test_config=None):
     def product_detail(product_id):
         return render_template("product.html", product=product_by_id(product_id))
 
+    @app.get("/products/<int:product_id>/price-history")
+    @admin_required
+    def price_history(product_id):
+        product = product_by_id(product_id)
+        rows = db().execute("""
+            SELECT audit_log.id, audit_log.action, audit_log.old_value, audit_log.new_value,
+                   audit_log.occurred_at, users.username
+            FROM audit_log JOIN users ON users.id = audit_log.actor_id
+            WHERE audit_log.product_id = ? AND audit_log.action IN ('price', 'edit')
+            ORDER BY audit_log.occurred_at, audit_log.id
+        """, (product_id,)).fetchall()
+        changes = []
+        for row in rows:
+            if row["action"] == "price":
+                old, new = row["old_value"], row["new_value"]
+            else:
+                # Earlier versions stored a changed price at the end of an edit entry.
+                if not row["old_value"] or row["old_value"].count("|") < 3 or row["new_value"].count("|") < 3:
+                    continue
+                old = row["old_value"].rsplit("|", 1)[-1]
+                new = row["new_value"].rsplit("|", 1)[-1]
+                if old == new:
+                    continue
+            if not old or not new or not old.isdecimal() or not new.isdecimal():
+                continue
+            changes.append({"old": int(old), "new": int(new), "occurred_at": row["occurred_at"],
+                            "username": row["username"]})
+        return render_template("price_history.html", product=product, changes=changes)
+
     @app.post("/products/<int:product_id>/archive")
     @login_required
     def product_archive_add(product_id):
@@ -533,6 +569,49 @@ def create_app(test_config=None):
             FROM products WHERE archived_at IS NULL
         """).fetchone()
         return render_template("inventory_report.html", summary=summary)
+
+    @app.get("/reports/sales")
+    @admin_required
+    def sales_report():
+        start = request.args.get("from", "")
+        end = request.args.get("to", "")
+        if bool(start) != bool(end):
+            abort(400, description="Екі күнді де таңдаңыз.")
+        if start:
+            try:
+                if date.fromisoformat(start).isoformat() != start or date.fromisoformat(end).isoformat() != end:
+                    raise ValueError
+            except ValueError:
+                abort(400, description="Күндер YYYY-MM-DD форматында болуы керек.")
+            if start > end:
+                abort(400, description="Бастапқы күн соңғы күннен кейін болмауы керек.")
+            summary = db().execute("""
+                SELECT COUNT(*) AS order_count, COALESCE(SUM(amount_cents), 0) AS total_cents
+                FROM orders WHERE ordered_on BETWEEN ? AND ?
+            """, (start, end)).fetchone()
+        else:
+            summary = {"order_count": 0, "total_cents": 0}
+        return render_template("sales_report.html", summary=summary, start=start, end=end)
+
+    @app.get("/admin/audit")
+    @admin_required
+    def audit_report():
+        try:
+            page = int(request.args.get("page", "1"))
+        except ValueError:
+            abort(400, description="Бет нөмірі дұрыс емес.")
+        if page < 1:
+            abort(400, description="Бет нөмірі дұрыс емес.")
+        total = db().execute("SELECT COUNT(*) FROM audit_log").fetchone()[0]
+        rows = db().execute("""
+            SELECT audit_log.action, audit_log.old_value, audit_log.new_value,
+                   audit_log.occurred_at, products.name, products.sku, users.username
+            FROM audit_log JOIN products ON products.id = audit_log.product_id
+                           JOIN users ON users.id = audit_log.actor_id
+            ORDER BY audit_log.occurred_at DESC, audit_log.id DESC
+            LIMIT 50 OFFSET ?
+        """, ((page - 1) * 50,)).fetchall()
+        return render_template("audit_report.html", entries=rows, page=page, has_next=page * 50 < total)
 
     return app
 

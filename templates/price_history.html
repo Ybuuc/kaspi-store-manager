@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Баға тарихы · Kaspi Store Manager{% endblock %}
+{% block content %}
+<a href="{{ url_for('product_detail', product_id=product['id']) }}">← {{ product['name'] }}</a>
+<section class="panel"><h1>Баға тарихы: {{ product['name'] }}</h1>
+  {% if changes %}<table><thead><tr><th>Уақыты (UTC)</th><th>Пайдаланушы</th><th>Ескі баға</th><th>Жаңа баға</th></tr></thead><tbody>
+  {% for change in changes %}<tr><td>{{ change['occurred_at'] }}</td><td>{{ change['username'] }}</td><td>{{ '%.2f'|format(change['old'] / 100) }} ₸</td><td>{{ '%.2f'|format(change['new'] / 100) }} ₸</td></tr>{% endfor %}
+  </tbody></table>{% else %}<p>Баға өзгерістері жоқ.</p>{% endif %}
+</section>
+{% endblock %}
