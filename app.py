@@ -498,8 +498,41 @@ def create_app(test_config=None):
     @app.get("/admin")
     @admin_required
     def admin_dashboard():
-        count = db().execute("SELECT COUNT(*) FROM users").fetchone()[0]
-        return render_template("admin.html", user_count=count)
+        users = db().execute(
+            "SELECT id, username, role FROM users WHERE username != 'system' ORDER BY username"
+        ).fetchall()
+        return render_template("admin.html", users=users)
+
+    @app.post("/admin/users/<int:user_id>/role")
+    @admin_required
+    def change_user_role(user_id):
+        check_csrf()
+        role = request.form.get("role", "")
+        if role not in ("admin", "employee"):
+            abort(400, description="Рөл дұрыс таңдалмаған.")
+        user = db().execute(
+            "SELECT id, username, role FROM users WHERE id = ? AND username != 'system'",
+            (user_id,),
+        ).fetchone()
+        if user is None:
+            abort(404, description="Пайдаланушы табылмады.")
+        if user["id"] == g.user["id"] and role != "admin":
+            abort(409, description="Өз әкімші рөліңізді өзгерте алмайсыз.")
+        if role != user["role"]:
+            db().execute("UPDATE users SET role = ? WHERE id = ?", (role, user_id))
+            db().commit()
+        return redirect(url_for("admin_dashboard"))
+
+    @app.get("/reports/inventory")
+    @admin_required
+    def inventory_report():
+        summary = db().execute("""
+            SELECT COUNT(*) AS total_products,
+                   COUNT(CASE WHEN low_stock_threshold IS NOT NULL
+                                   AND stock < low_stock_threshold THEN 1 END) AS low_stock_count
+            FROM products WHERE archived_at IS NULL
+        """).fetchone()
+        return render_template("inventory_report.html", summary=summary)
 
     return app
 
