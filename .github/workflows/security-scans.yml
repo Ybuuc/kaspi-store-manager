@@ -33,7 +33,18 @@ jobs:
             --severity HIGH,CRITICAL \
             --ignore-unfixed \
             --exit-code 1 \
+            --format table \
+            --output /work/trivy-report.txt \
             /work
+      - name: Publish Trivy summary
+        if: always()
+        run: |
+          if test -f trivy-report.txt; then
+            echo '### Trivy filesystem scan' >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            cat trivy-report.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   gitleaks:
     name: Gitleaks repository scan
@@ -44,6 +55,10 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install gitleaks
+        id: gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish Gitleaks summary
+        if: always()
+        run: echo "Gitleaks outcome: ${{ steps.gitleaks.outcome }} (see SARIF artifact and job log)" >> "$GITHUB_STEP_SUMMARY"
