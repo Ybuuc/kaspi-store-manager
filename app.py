@@ -6,7 +6,8 @@ import os
 import secrets
 import sqlite3
 import time
-from datetime import date
+from contextlib import closing
+from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from functools import wraps
@@ -146,6 +147,26 @@ def create_app(test_config=None):
     def init_db_command():
         init_db()
         click.echo("Database initialized")
+
+    @app.cli.command("backup-db")
+    @click.argument("output_dir", type=click.Path(file_okay=False, path_type=Path))
+    def backup_db_command(output_dir):
+        if not output_dir.is_dir():
+            raise click.ClickException("Backup directory must already exist")
+        if not Path(app.config["DATABASE"]).is_file():
+            raise click.ClickException("Initialize the database before backing it up")
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        target = output_dir / f"ksm-{stamp}-{secrets.token_hex(4)}.sqlite3"
+        try:
+            with closing(sqlite3.connect(target)) as backup:
+                db().backup(backup)
+                integrity = backup.execute("PRAGMA integrity_check").fetchone()[0]
+                if integrity != "ok":
+                    raise sqlite3.DatabaseError(integrity)
+        except (OSError, sqlite3.Error) as exc:
+            target.unlink(missing_ok=True)
+            raise click.ClickException(f"Backup failed: {exc}") from exc
+        click.echo(f"Backup created: {target}")
 
     @app.cli.command("create-user")
     @click.argument("username")
