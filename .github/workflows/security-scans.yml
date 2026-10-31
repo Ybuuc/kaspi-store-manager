@@ -61,4 +61,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish Gitleaks summary
         if: always()
-        run: echo "Gitleaks outcome: ${{ steps.gitleaks.outcome }} (see SARIF artifact and job log)" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo "Gitleaks outcome: ${{ steps.gitleaks.outcome }} (see SARIF artifact and job log)" >> "$GITHUB_STEP_SUMMARY"
