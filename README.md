@@ -23,22 +23,109 @@ Kaspi дүкенін басқаруға арналған оқу ақпаратт
 ## Жобаның ағымдағы кезеңі
 MVP Core функционалды бөлігі (US-01–US-08) және тауар архиві (US-10) іске асырылды. [MVP талаптары](docs/requirements/mvp.md) код пен тесттерге негіз болады. Өндірістік орналастыру және сыртқы интеграциялар бөлек кезеңдер.
 
-## Қолданбаны жергілікті іске қосу
+## Как скачать и запустить ИС локально
 
-Python 3.10+ қажет. `python -m venv .venv` жасап, ортаны іске қосыңыз, содан кейін:
+Нужны Python **3.10 или новее**, доступ к интернету для установки зависимостей и, если выбран способ с `git clone`, Git. Система использует Flask и SQLite: отдельный сервер базы данных для локального запуска не требуется. Это локальная учебная версия; для работы с настоящими данными Kaspi интеграция пока не подключена.
+
+### 1. Скачайте проект
+
+**Через Git:** откройте PowerShell (Windows) или терминал (macOS/Linux) в папке, где хотите хранить проект, и выполните:
 
 ```sh
-pip install -r requirements.txt
-export KSM_SECRET_KEY="replace-with-a-long-random-secret"
-flask --app app:create_app init-db
-flask --app app:create_app create-user employee
-flask --app app:create_app add-product "Шай" TEA-1 1250.50 0
-flask --app app:create_app run
+git clone https://github.com/Ybuuc/kaspi-store-manager.git
+cd kaspi-store-manager
 ```
 
-Windows PowerShell-де `export` орнына `$env:KSM_SECRET_KEY = "..."` қолданыңыз. `create-user` құпиясөзді интерактивті сұрайды; әкімші тіркелгісі керек болса `create-user --role admin <username>` пайдаланыңыз. Қолданба `http://127.0.0.1:5000` адресінде ашылады. Өндірісте HTTPS прокси қажет және `KSM_HTTPS=1` орнатылуы тиіс. Дерекқор `instance/` ішінде сақталады; бұл қалта Git-ке қосылмайды. Бұрыннан бар дерекқор үшін жаңартудан кейін `init-db` қайта орындалуы тиіс — ол `category`, `role` және `archived_at` бағандарын қосады. Тауарды веб-форма немесе CLI арқылы қосуға болады; CLI операциясы audit log ішінде `system` орындаушысы ретінде тіркеледі. Архивке жіберу және архивтен қайтару тауар карточкасы мен архив бетінде қолжетімді; екі әрекет те audit log-қа жазылады.
+**Без Git:** на [странице репозитория](https://github.com/Ybuuc/kaspi-store-manager) выберите **Code → Download ZIP**, распакуйте архив и откройте терминал в распакованной папке с файлами `README.md`, `app.py` и `requirements.txt`. Все следующие команды выполняются в этой папке.
 
-Тесттер: `python -m unittest discover -s tests -v`.
+### 2. Создайте окружение и установите зависимости
+
+Проверьте версию Python: в Windows `python --version`, в macOS/Linux `python3 --version`. Если версия ниже 3.10 или команда не найдена, сначала [установите Python](https://www.python.org/downloads/). В Windows при установке отметьте добавление Python в PATH.
+
+**Windows PowerShell:**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+**macOS/Linux:**
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+```
+
+Активация окружения не нужна: команды ниже обращаются прямо к его Python.
+
+### 3. Задайте ключ приложения
+
+Ключ нужен для защищённых сеансов входа. Создайте его в текущем окне терминала. Не публикуйте ключ и не добавляйте его в Git. При перезапуске в новом окне задайте тот же сохранённый в надёжном месте ключ; если создать новый, пользователям потребуется войти снова.
+
+**Windows PowerShell:**
+
+```powershell
+$env:KSM_SECRET_KEY = (.\.venv\Scripts\python.exe -c "import secrets; print(secrets.token_urlsafe(48))")
+```
+
+**macOS/Linux:**
+
+```sh
+export KSM_SECRET_KEY="$(.venv/bin/python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+```
+
+### 4. Создайте базу и учётную запись
+
+**Windows PowerShell:**
+
+```powershell
+.\.venv\Scripts\python.exe -m flask --app app:create_app init-db
+.\.venv\Scripts\python.exe -m flask --app app:create_app create-user employee
+```
+
+**macOS/Linux:**
+
+```sh
+.venv/bin/python -m flask --app app:create_app init-db
+.venv/bin/python -m flask --app app:create_app create-user employee
+```
+
+`create-user` попросит ввести и подтвердить пароль. Запомните имя `employee` и выбранный пароль: они нужны для входа. Для учётной записи администратора можно отдельно выполнить `create-user --role admin admin` с тем же префиксом команды Python и Flask. Команда `init-db` безопасна и для ранее созданной базы: она добавляет недостающие поля `category`, `role` и `archived_at`.
+
+### 5. Запустите приложение и войдите
+
+**Windows PowerShell:**
+
+```powershell
+.\.venv\Scripts\python.exe -m flask --app app:create_app run
+```
+
+**macOS/Linux:**
+
+```sh
+.venv/bin/python -m flask --app app:create_app run
+```
+
+Откройте в браузере [http://127.0.0.1:5000](http://127.0.0.1:5000) и войдите с созданными именем пользователя и паролем. После входа откроется список товаров. Первый список пустой: добавьте товар через **«+ Жаңа тауар»**, откройте его карточку, измените остаток или отправьте его в архив. Для остановки сервера нажмите **Ctrl+C** в терминале.
+
+### Повторный запуск, данные и проверка
+
+При следующем запуске откройте терминал в папке проекта, задайте `KSM_SECRET_KEY` и повторите только команду из шага 5. База данных находится в `instance/kaspi-store-manager.sqlite3` и сохраняется между запусками. Папка `instance/` не попадает в Git; сохраните её отдельно перед удалением проекта или переносом на другой компьютер. Повторно создавать пользователя не нужно. После обновления проекта выполните `init-db` ещё раз для миграции схемы.
+
+Для проверки проекта запустите тесты:
+
+```powershell
+# Windows PowerShell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+```sh
+# macOS/Linux
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+Если появляется сообщение `Set KSM_SECRET_KEY`, повторите шаг 3 в том же окне терминала. Если порт 5000 занят, остановите прежний запуск через **Ctrl+C** или добавьте `--port 5001` к команде запуска и откройте `http://127.0.0.1:5001`. Встроенный сервер Flask предназначен для локальной разработки; для публичного размещения потребуется отдельная настройка HTTPS и рабочего сервера, а также решение по хранению данных.
+
 ## Жұмыс кеңістігіне сілтемелер
 
 - [GitHub Project](https://github.com/users/Ybuuc/projects/1)
