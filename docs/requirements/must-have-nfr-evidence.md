@@ -14,6 +14,6 @@
 | NFR-11: полная копия ежедневно, хранение 30 дней | Частично проверено | `backup-db` создаёт согласованную SQLite-копию; `test_backup_command_creates_restorable_snapshot` проверяет целостность и содержимое. Расписание, внешний носитель и 30-дневное хранение зависят от выбранной рабочей среды. |
 | NFR-17: дубли SKU = 0 | Пройдено локально | Уникальный индекс `products_sku_ci`; `test_create_edit_search_and_inventory_audit` и `test_add_product_command` отклоняют дубли. |
 
-CI для последней функциональной поставки: [Application tests](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/41243480241) и [Security scans](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/41243480261) прошли. После добавления `backup-db` проверку CI нужно подтвердить отдельно.
+CI для функциональной поставки: [Application tests](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/41243480241) и [Security scans](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/41243480261) прошли. Для версии с `backup-db` также прошли [Application tests](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/41243763014) и [Security scans](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/41243762991).
 
 **Вывод:** критерий M3 о регистрации результатов выполнен как фиксация фактического состояния; требования NFR-01, NFR-02, NFR-08 и NFR-11 ещё не подтверждены полностью. M3 нельзя закрыть до этих проверок.
