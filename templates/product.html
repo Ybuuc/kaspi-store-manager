@@ -4,7 +4,9 @@
 <a href="{{ url_for('products') }}">← Тауарлар тізімі</a>
 <section class="panel"><h1>{{ product['name'] }}</h1>
   <dl><dt>SKU</dt><dd>{{ product['sku'] }}</dd>
+  <dt>Санат</dt><dd>{{ product['category'] }}</dd>
   <dt>Бағасы</dt><dd>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</dd>
   <dt>Қойма қалдығы</dt><dd>{{ product['stock'] }}</dd></dl>
+  <p><a href="{{ url_for('product_edit', product_id=product['id']) }}">Тауарды өзгерту</a> · <a href="{{ url_for('product_stock', product_id=product['id']) }}">Қалдықты өзгерту</a></p>
 </section>
 {% endblock %}

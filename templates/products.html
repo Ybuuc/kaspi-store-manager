@@ -2,6 +2,12 @@
 {% block title %}Тауарлар · Kaspi Store Manager{% endblock %}
 {% block content %}
 <h1>Тауарлар</h1>
+<p><a href="{{ url_for('product_new') }}">+ Жаңа тауар</a></p>
+<form method="get" action="{{ url_for('products') }}" class="search">
+  <label for="q">Атауы бойынша іздеу</label>
+  <input id="q" name="q" value="{{ query }}" placeholder="Тауар атауы">
+  <button type="submit">Іздеу</button>
+</form>
 {% if products %}
 <div class="table-wrap"><table>
   <thead><tr><th>Атауы</th><th>SKU</th><th>Бағасы</th><th>Қойма қалдығы</th></tr></thead>
@@ -10,5 +16,5 @@
     <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{{ product['stock'] }}</td>
   </tr>{% endfor %}</tbody>
 </table></div>
-{% else %}<p class="empty">Әзірге тауарлар жоқ.</p>{% endif %}
+{% else %}<p class="empty">{% if query %}Сұрауға сәйкес тауар табылмады.{% else %}Әзірге тауарлар жоқ.{% endif %}</p>{% endif %}
 {% endblock %}
