@@ -34,7 +34,7 @@ class AppTests(unittest.TestCase):
 
     def test_login_validation_and_protected_pages(self):
         for path in ("/orders", "/products", "/products/1", "/products/new", "/products/1/edit",
-                     "/products/1/price", "/products/1/stock"):
+                     "/products/1/price", "/products/1/stock", "/products/1/threshold"):
             response = self.client.get(path)
             self.assertEqual(response.status_code, 302)
             self.assertTrue(response.headers["Location"].endswith("/login"))
@@ -205,6 +205,41 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.client.get("/products/1/price").status_code, 409)
         self.assertEqual(self.client.post("/products/1/price", data={"price": "1500", "csrf_token": token}).status_code, 409)
 
+    def test_per_product_low_stock_threshold_recalculates_warning(self):
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("INSERT INTO products (name, sku, price_cents, stock) VALUES (?, ?, ?, ?)",
+                       ("Шай", "TEA-1", 100, 2))
+            db.execute("INSERT INTO products (name, sku, price_cents, stock) VALUES (?, ?, ?, ?)",
+                       ("Кофе", "COFFEE-1", 200, 1))
+        self.assertEqual(self.client.post("/products/1/threshold", data={"threshold": "5"}).status_code, 302)
+        self.login()
+        token = self.token()
+        self.assertNotIn("<span class=\"warning\">", self.client.get("/products").get_data(as_text=True))
+        for invalid in ("-1", "1.5", "abc"):
+            self.assertEqual(self.client.post("/products/1/threshold", data={"threshold": invalid, "csrf_token": token}).status_code, 400)
+        self.assertEqual(self.client.post("/products/1/threshold", data={"threshold": "5", "csrf_token": "bad"}).status_code, 400)
+        self.assertEqual(self.client.post("/products/999/threshold", data={"threshold": "5", "csrf_token": token}).status_code, 404)
+        self.assertEqual(self.client.post("/products/1/threshold", data={"threshold": "5", "csrf_token": token}).status_code, 302)
+        self.assertIn("<span class=\"warning\">Төмен қалдық</span>", self.client.get("/products").get_data(as_text=True))
+        self.assertIn("Төмен қалдық: тауар саны", self.client.get("/products/1").get_data(as_text=True))
+        self.assertNotIn("Төмен қалдық: тауар саны", self.client.get("/products/2").get_data(as_text=True))
+        self.assertEqual(self.client.post("/products/1/threshold", data={"threshold": "2", "csrf_token": token}).status_code, 302)
+        self.assertNotIn("<span class=\"warning\">", self.client.get("/products").get_data(as_text=True))
+        self.assertEqual(self.client.post("/products/1/stock", data={"stock": "1", "csrf_token": token}).status_code, 302)
+        self.assertIn("Төмен қалдық: тауар саны", self.client.get("/products/1").get_data(as_text=True))
+        self.assertEqual(self.client.post("/products/1/threshold", data={"threshold": "", "csrf_token": token}).status_code, 302)
+        self.assertNotIn("<span class=\"warning\">", self.client.get("/products").get_data(as_text=True))
+        self.assertEqual(self.client.post("/products/1/threshold", data={"threshold": "", "csrf_token": token}).status_code, 302)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertIsNone(db.execute("SELECT low_stock_threshold FROM products WHERE id = 1").fetchone()[0])
+            entries = db.execute("SELECT old_value, new_value, actor_id, occurred_at FROM audit_log WHERE action = 'threshold' ORDER BY id").fetchall()
+        self.assertEqual([entry[:3] for entry in entries], [(None, "5", 1), ("5", "2", 1), ("2", "unset", 1)])
+        self.assertTrue(all(entry[3] for entry in entries))
+        self.client.post("/products/1/archive", data={"csrf_token": token})
+        self.assertEqual(self.client.get("/products/1/threshold").status_code, 409)
+        self.assertEqual(self.client.post("/products/1/threshold", data={"threshold": "5", "csrf_token": token}).status_code, 409)
+        self.assertNotIn("Төмен қалдық: тауар саны", self.client.get("/products/1").get_data(as_text=True))
+
     def test_10000_product_search_under_one_second(self):
         with closing(sqlite3.connect(self.database)) as db, db:
             db.executemany(
@@ -280,6 +315,7 @@ class AppTests(unittest.TestCase):
             db.execute("DROP INDEX products_sku_ci")
             db.execute("ALTER TABLE products DROP COLUMN category")
             db.execute("ALTER TABLE products DROP COLUMN archived_at")
+            db.execute("ALTER TABLE products DROP COLUMN low_stock_threshold")
             db.execute("ALTER TABLE users DROP COLUMN role")
         result = self.app.test_cli_runner().invoke(args=["init-db"])
         self.assertEqual(result.exit_code, 0, result.output)
@@ -288,6 +324,7 @@ class AppTests(unittest.TestCase):
             user_columns = [row[1] for row in db.execute("PRAGMA table_info(users)")]
         self.assertIn("category", columns)
         self.assertIn("archived_at", columns)
+        self.assertIn("low_stock_threshold", columns)
         self.assertIn("role", user_columns)
         with closing(sqlite3.connect(self.database)) as db:
             self.assertIsNotNone(db.execute("SELECT name FROM sqlite_master WHERE name = 'orders'").fetchone())

@@ -10,10 +10,11 @@
 </form>
 {% if products %}
 <div class="table-wrap"><table>
-  <thead><tr><th>Атауы</th><th>SKU</th><th>Бағасы</th><th>Қойма қалдығы</th></tr></thead>
+  <thead><tr><th>Атауы</th><th>SKU</th><th>Бағасы</th><th>Қойма қалдығы</th><th>Ескерту</th></tr></thead>
   <tbody>{% for product in products %}<tr>
     <td><a href="{{ url_for('product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></td>
     <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{{ product['stock'] }}</td>
+    <td>{% if product['low_stock_threshold'] is not none and product['stock'] < product['low_stock_threshold'] %}<span class="warning">Төмен қалдық</span>{% else %}—{% endif %}</td>
   </tr>{% endfor %}</tbody>
 </table></div>
 {% else %}<p class="empty">{% if query %}Сұрауға сәйкес тауар табылмады.{% else %}Әзірге тауарлар жоқ.{% endif %}</p>{% endif %}
