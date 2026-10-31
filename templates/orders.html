@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Тапсырыстар · Kaspi Store Manager{% endblock %}
+{% block content %}
+<h1>Тапсырыстар</h1>
+<p>Kaspi интеграциясы әлі қосылмаған. Бұл бетте әзірге оқу деректері көрсетіледі.</p>
+<form method="get" action="{{ url_for('orders') }}" class="search">
+  <label for="status">Статус бойынша сүзгі</label>
+  <input id="status" name="status" value="{{ status }}" placeholder="Статус">
+  <button type="submit">Сүзу</button>
+  {% if status %}<a href="{{ url_for('orders') }}">Тазарту</a>{% endif %}
+</form>
+{% if orders %}
+<div class="table-wrap"><table>
+  <thead><tr><th>ID</th><th>Күні</th><th>Сомасы</th><th>Статус</th><th>Дерек</th></tr></thead>
+  <tbody>{% for order in orders %}<tr>
+    <td>{{ order['id'] }}</td><td>{{ order['ordered_on'] }}</td>
+    <td>{{ '%.2f'|format(order['amount_cents'] / 100) }} ₸</td>
+    <td>{{ order['status'] }}</td><td>{{ 'Оқу дерегі' if order['source'] == 'demo' else 'Kaspi' }}</td>
+  </tr>{% endfor %}</tbody>
+</table></div>
+{% else %}<p class="empty">{% if status %}Осы статус бойынша тапсырыс табылмады.{% else %}Әзірге тапсырыстар жоқ.{% endif %}</p>{% endif %}
+{% endblock %}

@@ -33,7 +33,7 @@ class AppTests(unittest.TestCase):
             return session["csrf_token"]
 
     def test_login_validation_and_protected_pages(self):
-        for path in ("/products", "/products/1", "/products/new", "/products/1/edit",
+        for path in ("/orders", "/products", "/products/1", "/products/new", "/products/1/edit",
                      "/products/1/price", "/products/1/stock"):
             response = self.client.get(path)
             self.assertEqual(response.status_code, 302)
@@ -99,6 +99,46 @@ class AppTests(unittest.TestCase):
         self.assertEqual(actor[0], "system")
         duplicate = runner.invoke(args=["add-product", "Other", "TEA-1", "5.00", "1"])
         self.assertNotEqual(duplicate.exit_code, 0)
+
+    def test_demo_orders_list_filter_and_empty_states(self):
+        self.assertEqual(self.client.get("/orders").status_code, 302)
+        self.login()
+        self.assertIn("Әзірге тапсырыстар жоқ", self.client.get("/orders").get_data(as_text=True))
+        runner = self.app.test_cli_runner()
+        for ordered_on, amount, status in (
+            ("2026-01-15", "2500.00", "Жаңа"),
+            ("2026-01-16", "1200.50", "Орындалды"),
+        ):
+            result = runner.invoke(args=["add-demo-order", ordered_on, amount, status])
+            self.assertEqual(result.exit_code, 0, result.output)
+        page = self.client.get("/orders").get_data(as_text=True)
+        for value in ("2026-01-15", "2026-01-16", "2500.00", "1200.50", "Жаңа",
+                      "Орындалды", "Оқу дерегі", ">1<", ">2<"):
+            self.assertIn(value, page)
+        self.assertLess(page.index("2026-01-16"), page.index("2026-01-15"))
+        filtered = self.client.get("/orders?status=Жаңа").get_data(as_text=True)
+        self.assertIn("2500.00", filtered)
+        self.assertNotIn("1200.50", filtered)
+        self.assertIn("тапсырыс табылмады", self.client.get("/orders?status=Басқа").get_data(as_text=True))
+        self.assertIn("тапсырыс табылмады", self.client.get("/orders?status=' OR 1=1 --").get_data(as_text=True))
+        with closing(sqlite3.connect(self.database)) as db:
+            rows = db.execute("SELECT ordered_on, amount_cents, status, source FROM orders ORDER BY id").fetchall()
+        self.assertEqual(rows, [("2026-01-15", 250000, "Жаңа", "demo"),
+                                ("2026-01-16", 120050, "Орындалды", "demo")])
+
+    def test_demo_order_command_rejects_invalid_data(self):
+        runner = self.app.test_cli_runner()
+        for args in (
+            ["2026-02-30", "100.00", "Жаңа"],
+            ["2026-1-5", "100.00", "Жаңа"],
+            ["2026-01-15", "0", "Жаңа"],
+            ["2026-01-15", "12.345", "Жаңа"],
+            ["2026-01-15", "100.00", "   "],
+        ):
+            result = runner.invoke(args=["add-demo-order", *args])
+            self.assertNotEqual(result.exit_code, 0)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM orders").fetchone()[0], 0)
 
     def test_create_edit_search_and_inventory_audit(self):
         self.login()
@@ -236,6 +276,7 @@ class AppTests(unittest.TestCase):
     def test_existing_database_migrates_category_and_archive(self):
         with closing(sqlite3.connect(self.database)) as db, db:
             db.execute("DROP TABLE audit_log")
+            db.execute("DROP TABLE orders")
             db.execute("DROP INDEX products_sku_ci")
             db.execute("ALTER TABLE products DROP COLUMN category")
             db.execute("ALTER TABLE products DROP COLUMN archived_at")
@@ -248,6 +289,8 @@ class AppTests(unittest.TestCase):
         self.assertIn("category", columns)
         self.assertIn("archived_at", columns)
         self.assertIn("role", user_columns)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertIsNotNone(db.execute("SELECT name FROM sqlite_master WHERE name = 'orders'").fetchone())
 
     def test_admin_authorization_is_server_side(self):
         self.assertEqual(self.client.get("/admin").status_code, 302)
