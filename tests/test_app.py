@@ -149,11 +149,65 @@ class AppTests(unittest.TestCase):
         self.assertLess(elapsed, 1.0)
         print(f"10000-product case-insensitive search in Flask test client: {elapsed:.3f} s")
 
-    def test_existing_database_migrates_category(self):
+    def test_archive_restore_and_audit(self):
+        self.login()
+        token = self.token()
+        self.client.post("/products/new", data={
+            "name": "Шай", "sku": "TEA-1", "category": "Сусын",
+            "price": "1250.50", "stock": "3", "csrf_token": token,
+        })
+        self.assertIn("TEA-1", self.client.get("/products").get_data(as_text=True))
+        self.assertEqual(self.client.post("/products/1/archive", data={"csrf_token": token}).status_code, 302)
+        self.assertNotIn("TEA-1", self.client.get("/products").get_data(as_text=True))
+        self.assertNotIn("TEA-1", self.client.get("/products?q=Шай").get_data(as_text=True))
+        self.assertIn("TEA-1", self.client.get("/products/archive").get_data(as_text=True))
+        self.assertIn("Архивтен қайтару", self.client.get("/products/1").get_data(as_text=True))
+        self.assertEqual(self.client.get("/products/1/edit").status_code, 409)
+        self.assertEqual(self.client.post("/products/1/stock", data={"stock": "4", "csrf_token": token}).status_code, 409)
+        self.assertEqual(self.client.post("/products/1/archive", data={"csrf_token": token}).status_code, 409)
+        with closing(sqlite3.connect(self.database)) as db:
+            archived_at = db.execute("SELECT archived_at FROM products WHERE id = 1").fetchone()[0]
+        self.assertTrue(archived_at)
+        self.assertEqual(self.client.post("/products/1/restore", data={"csrf_token": token}).status_code, 302)
+        self.assertIn("TEA-1", self.client.get("/products").get_data(as_text=True))
+        self.assertNotIn("TEA-1", self.client.get("/products/archive").get_data(as_text=True))
+        self.assertEqual(self.client.post("/products/1/restore", data={"csrf_token": token}).status_code, 409)
+        with closing(sqlite3.connect(self.database)) as db:
+            entries = db.execute(
+                "SELECT action, old_value, new_value, actor_id, occurred_at FROM audit_log ORDER BY id"
+            ).fetchall()
+            restored_at = db.execute("SELECT archived_at FROM products WHERE id = 1").fetchone()[0]
+        self.assertIsNone(restored_at)
+        self.assertEqual([entry[0] for entry in entries], ["create", "archive", "restore"])
+        self.assertEqual(entries[1][1:4], (None, archived_at, 1))
+        self.assertEqual(entries[2][1:4], (archived_at, "active", 1))
+        self.assertTrue(all(entry[4] for entry in entries))
+
+    def test_archive_requires_login_and_csrf(self):
+        with closing(sqlite3.connect(self.database)) as db, db:
+            db.execute("INSERT INTO products (name, sku, price_cents, stock) VALUES (?, ?, ?, ?)",
+                       ("Шай", "TEA-1", 125050, 0))
+        self.assertEqual(self.client.get("/products/archive").status_code, 302)
+        self.assertEqual(self.client.post("/products/1/archive").status_code, 302)
+        self.assertEqual(self.client.post("/products/1/restore").status_code, 302)
+        self.login()
+        self.assertEqual(self.client.post("/products/1/archive", data={"csrf_token": "bad"}).status_code, 400)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertIsNone(db.execute("SELECT archived_at FROM products WHERE id = 1").fetchone()[0])
+        token = self.token()
+        self.client.post("/products/1/archive", data={"csrf_token": token})
+        self.assertEqual(self.client.post("/products/1/restore", data={"csrf_token": "bad"}).status_code, 400)
+        self.assertEqual(self.client.post("/products/999/archive", data={"csrf_token": token}).status_code, 404)
+        self.assertEqual(self.client.post("/products/999/restore", data={"csrf_token": token}).status_code, 404)
+        with closing(sqlite3.connect(self.database)) as db:
+            self.assertIsNotNone(db.execute("SELECT archived_at FROM products WHERE id = 1").fetchone()[0])
+
+    def test_existing_database_migrates_category_and_archive(self):
         with closing(sqlite3.connect(self.database)) as db, db:
             db.execute("DROP TABLE audit_log")
             db.execute("DROP INDEX products_sku_ci")
             db.execute("ALTER TABLE products DROP COLUMN category")
+            db.execute("ALTER TABLE products DROP COLUMN archived_at")
             db.execute("ALTER TABLE users DROP COLUMN role")
         result = self.app.test_cli_runner().invoke(args=["init-db"])
         self.assertEqual(result.exit_code, 0, result.output)
@@ -161,6 +215,7 @@ class AppTests(unittest.TestCase):
             columns = [row[1] for row in db.execute("PRAGMA table_info(products)")]
             user_columns = [row[1] for row in db.execute("PRAGMA table_info(users)")]
         self.assertIn("category", columns)
+        self.assertIn("archived_at", columns)
         self.assertIn("role", user_columns)
 
     def test_admin_authorization_is_server_side(self):

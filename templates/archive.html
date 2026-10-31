@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Тауарлар архиві · Kaspi Store Manager{% endblock %}
+{% block content %}
+<h1>Тауарлар архиві</h1>
+<p><a href="{{ url_for('products') }}">← Тауарлар тізімі</a></p>
+{% if products %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Атауы</th><th>SKU</th><th>Бағасы</th><th>Қойма қалдығы</th><th>Әрекет</th></tr></thead>
+  <tbody>{% for product in products %}<tr>
+    <td><a href="{{ url_for('product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></td>
+    <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{{ product['stock'] }}</td>
+    <td><form action="{{ url_for('product_archive_restore', product_id=product['id']) }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit">Қайтару</button>
+    </form></td>
+  </tr>{% endfor %}</tbody>
+</table></div>
+{% else %}<p class="empty">Архивте тауарлар жоқ.</p>{% endif %}
+{% endblock %}

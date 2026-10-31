@@ -89,7 +89,8 @@ def create_app(test_config=None):
                 name TEXT NOT NULL CHECK(length(trim(name)) > 0),
                 sku TEXT NOT NULL UNIQUE,
                 price_cents INTEGER NOT NULL CHECK(price_cents > 0),
-                stock INTEGER NOT NULL CHECK(stock >= 0)
+                stock INTEGER NOT NULL CHECK(stock >= 0),
+                archived_at TEXT
             );
             CREATE TABLE IF NOT EXISTS audit_log (
                 id INTEGER PRIMARY KEY,
@@ -104,6 +105,8 @@ def create_app(test_config=None):
         columns = {row["name"] for row in db().execute("PRAGMA table_info(products)")}
         if "category" not in columns:
             db().execute("ALTER TABLE products ADD COLUMN category TEXT NOT NULL DEFAULT 'Жалпы'")
+        if "archived_at" not in columns:
+            db().execute("ALTER TABLE products ADD COLUMN archived_at TEXT")
         user_columns = {row["name"] for row in db().execute("PRAGMA table_info(users)")}
         if "role" not in user_columns:
             db().execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'employee'")
@@ -245,7 +248,7 @@ def create_app(test_config=None):
 
     def product_by_id(product_id):
         product = db().execute(
-            "SELECT id, name, sku, category, price_cents, stock FROM products WHERE id = ?",
+            "SELECT id, name, sku, category, price_cents, stock, archived_at FROM products WHERE id = ?",
             (product_id,),
         ).fetchone()
         if product is None:
@@ -271,17 +274,55 @@ def create_app(test_config=None):
     def products():
         query = request.args.get("q", "").strip()
         rows = db().execute(
-            "SELECT id, name, sku, category, price_cents, stock FROM products ORDER BY name, id"
+            "SELECT id, name, sku, category, price_cents, stock FROM products "
+            "WHERE archived_at IS NULL ORDER BY name, id"
         ).fetchall()
         if query:
             needle = query.casefold()
             rows = [row for row in rows if needle in row["name"].casefold()]
         return render_template("products.html", products=rows, query=query)
 
+    @app.get("/products/archive")
+    @login_required
+    def product_archive():
+        rows = db().execute(
+            "SELECT id, name, sku, category, price_cents, stock FROM products "
+            "WHERE archived_at IS NOT NULL ORDER BY name, id"
+        ).fetchall()
+        return render_template("archive.html", products=rows)
+
     @app.get("/products/<int:product_id>")
     @login_required
     def product_detail(product_id):
         return render_template("product.html", product=product_by_id(product_id))
+
+    @app.post("/products/<int:product_id>/archive")
+    @login_required
+    def product_archive_add(product_id):
+        check_csrf()
+        product = product_by_id(product_id)
+        if product["archived_at"] is not None:
+            abort(409, description="Тауар архивте тұр.")
+        db().execute(
+            "UPDATE products SET archived_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?",
+            (product_id,),
+        )
+        archived_at = db().execute("SELECT archived_at FROM products WHERE id = ?", (product_id,)).fetchone()[0]
+        audit(product_id, "archive", None, archived_at)
+        db().commit()
+        return redirect(url_for("product_archive"))
+
+    @app.post("/products/<int:product_id>/restore")
+    @login_required
+    def product_archive_restore(product_id):
+        check_csrf()
+        product = product_by_id(product_id)
+        if product["archived_at"] is None:
+            abort(409, description="Тауар архивте жоқ.")
+        db().execute("UPDATE products SET archived_at = NULL WHERE id = ?", (product_id,))
+        audit(product_id, "restore", product["archived_at"], "active")
+        db().commit()
+        return redirect(url_for("product_detail", product_id=product_id))
 
     @app.route("/products/new", methods=["GET", "POST"])
     @login_required
@@ -310,6 +351,8 @@ def create_app(test_config=None):
     @login_required
     def product_edit(product_id):
         product = product_by_id(product_id)
+        if product["archived_at"] is not None:
+            abort(409, description="Алдымен тауарды архивтен қайтарыңыз.")
         error = None
         if request.method == "POST":
             check_csrf()
@@ -335,6 +378,8 @@ def create_app(test_config=None):
     @login_required
     def product_stock(product_id):
         product = product_by_id(product_id)
+        if product["archived_at"] is not None:
+            abort(409, description="Алдымен тауарды архивтен қайтарыңыз.")
         error = None
         if request.method == "POST":
             check_csrf()
