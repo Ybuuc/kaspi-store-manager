@@ -93,6 +93,9 @@ class AppTests(unittest.TestCase):
         self.assertEqual(result.exit_code, 0, result.output)
         self.login()
         self.assertIn("TEA-1", self.client.get("/products").get_data(as_text=True))
+        with closing(sqlite3.connect(self.database)) as db:
+            actor = db.execute("SELECT users.username FROM audit_log JOIN users ON users.id = audit_log.actor_id WHERE audit_log.action = 'create'").fetchone()
+        self.assertEqual(actor[0], "system")
         duplicate = runner.invoke(args=["add-product", "Other", "TEA-1", "5.00", "1"])
         self.assertNotEqual(duplicate.exit_code, 0)
 

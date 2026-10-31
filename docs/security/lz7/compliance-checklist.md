@@ -60,6 +60,7 @@
 | `users.username` | Қызметкерді тану және кіру | Локал SQLite `instance/` | Тек сервер; әкімші панелі тек санын көрсетеді | Нақты hosting, сақтау мерзімі, құқықтық негіз |
 | `users.password_hash` | Құпиясөзді тексеру | Сол SQLite; scrypt salt/hash | Тек сервер | Сақтау/жою мерзімі және backup саясаты |
 | `users.role` | Серверлік access control | Сол SQLite | Тек сервер | Рөл өзгерісін басқару US-17-де |
+| `users.username = system` | CLI арқылы жасалған өнімге техникалық орындаушы белгілеу | Сол SQLite | Интерактивті login бұғатталған | Backup және audit retention саясаты |
 | `users.failed_attempts`, `locked_until` | Бес қате әрекеттен кейін 15 минуттық блок | Сол SQLite | Тек сервер | Аккаунт жойылғандағы жою тәртібі |
 | `audit_log.actor_id`, `occurred_at` | Өнім/қалдық өзгерісін кім, қашан жасағанын тіркеу | Сол SQLite | Тек сервер | Audit retention және әкімшілік қарау саясаты |
 

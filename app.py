@@ -121,7 +121,7 @@ def create_app(test_config=None):
     @click.option("--role", type=click.Choice(["employee", "admin"]), default="employee")
     def create_user_command(username, password, role):
         init_db()
-        if not username.strip() or not password:
+        if not username.strip() or username.strip().casefold() == "system" or not password:
             raise click.ClickException("Username and password are required")
         try:
             db().execute("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
@@ -145,10 +145,18 @@ def create_app(test_config=None):
         if not name.strip() or not sku.strip() or stock < 0:
             raise click.ClickException("Provide name, SKU and nonnegative stock")
         try:
-            db().execute("INSERT INTO products (name, sku, price_cents, stock) VALUES (?, ?, ?, ?)",
-                         (name.strip(), sku.strip(), cents, stock))
+            db().execute("INSERT OR IGNORE INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+                         ("system", hash_password(secrets.token_urlsafe(32)), "employee"))
+            system_id = db().execute("SELECT id FROM users WHERE username = 'system'").fetchone()[0]
+            cursor = db().execute("INSERT INTO products (name, sku, price_cents, stock) VALUES (?, ?, ?, ?)",
+                                  (name.strip(), sku.strip(), cents, stock))
+            db().execute(
+                "INSERT INTO audit_log (product_id, actor_id, action, old_value, new_value) VALUES (?, ?, ?, ?, ?)",
+                (cursor.lastrowid, system_id, "create", None, f"{name.strip()}|{sku.strip()}|Жалпы|{cents}|{stock}"),
+            )
             db().commit()
         except sqlite3.IntegrityError as exc:
+            db().rollback()
             raise click.ClickException("SKU already exists or product data is invalid") from exc
         click.echo("Product added")
 
@@ -178,7 +186,9 @@ def create_app(test_config=None):
             else:
                 user = db().execute("SELECT id, password_hash, failed_attempts, locked_until FROM users WHERE username = ?",
                                     (username,)).fetchone()
-                if user is not None and user["locked_until"] > int(time.time()):
+                if username.casefold() == "system":
+                    error = "Логин немесе құпиясөз қате."
+                elif user is not None and user["locked_until"] > int(time.time()):
                     error = "Кіру уақытша бұғатталған. 15 минуттан кейін қайталап көріңіз."
                 elif user is None or not verify_password(password, user["password_hash"]):
                     if user is not None:
