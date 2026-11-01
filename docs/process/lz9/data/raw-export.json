@@ -1,0 +1,1887 @@
+{
+  "exported_at": "2026-11-01 10:24:17 UTC",
+  "source": "GitHub REST issue timelines (timestamps and event IDs) combined with visible GitHub Project #1 status transitions; accelerated closeout",
+  "project_title": "Kaspi Store Manager Development",
+  "items": [
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 1,
+        "title": "[TASK] GitHub жұмыс кеңістігін баптау",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/1",
+        "createdAt": "2026-09-20T17:47:05Z",
+        "closedAt": "2026-09-20T18:10:51Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-09-20T17:47:07Z",
+              "sourceEventId": 31488139714
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T17:47:08Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 31488139235
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T17:48:15Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 31488164718
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T18:11:13Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 31488711728
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 2,
+        "title": "[DOCS] Жеткізу моделін ADR-001 құжатында бекіту",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/2",
+        "createdAt": "2026-09-20T17:50:30Z",
+        "closedAt": "2026-09-20T18:08:34Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-09-20T17:50:32Z",
+              "sourceEventId": 31488218165
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T17:50:33Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 31488218749
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T17:53:35Z",
+              "previousStatus": "Backlog",
+              "status": "Ready",
+              "sourceEventId": 31488286763
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T18:09:29Z",
+              "previousStatus": "Ready",
+              "status": "Done",
+              "sourceEventId": 31488672104
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 3,
+        "title": "[TASK] MVP талаптарын анықтау",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/3",
+        "createdAt": "2026-09-20T17:51:18Z",
+        "closedAt": "2026-10-31T19:50:57Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-09-20T17:51:20Z",
+              "sourceEventId": 31488235579
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T17:51:20Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 31488236339
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T17:53:36Z",
+              "previousStatus": "Backlog",
+              "status": "Ready",
+              "sourceEventId": 31488287791
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-22T11:32:17Z",
+              "previousStatus": "Ready",
+              "status": "Backlog",
+              "sourceEventId": 31595565210
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-22T11:45:28Z",
+              "previousStatus": "Backlog",
+              "status": "Ready",
+              "sourceEventId": 31596313838
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-22T11:45:32Z",
+              "previousStatus": "Ready",
+              "status": "Done",
+              "sourceEventId": 31596318218
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-22T11:45:33Z",
+              "previousStatus": "Done",
+              "status": "Backlog",
+              "sourceEventId": 31596319213
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:47:14Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794646647
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:52:41Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34794868510
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 4,
+        "title": "US-03 — Жаңа тауар қосу",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/4",
+        "createdAt": "2026-09-20T17:51:39Z",
+        "closedAt": "2026-10-31T19:50:58Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-09-20T17:51:40Z",
+              "sourceEventId": 31488242812
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T17:51:41Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 31488243005
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:51:44Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34794830514
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 5,
+        "title": "US-07 — Қойма қалдығын көру",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/5",
+        "createdAt": "2026-09-20T17:51:55Z",
+        "closedAt": "2026-10-31T19:50:59Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-09-20T17:51:56Z",
+              "sourceEventId": 31488248938
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T17:51:58Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 31488249569
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:12:30Z",
+              "previousStatus": "Backlog",
+              "status": "Ready",
+              "sourceEventId": 34793133056
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:47:15Z",
+              "previousStatus": "Ready",
+              "status": "In Progress",
+              "sourceEventId": 34794646901
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:52:20Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34794855070
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 6,
+        "title": "US-13 — Тапсырыстар тізімін көру",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/6",
+        "createdAt": "2026-09-20T17:52:15Z",
+        "closedAt": "2026-10-31T20:45:31Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-09-20T17:52:16Z",
+              "sourceEventId": 31488257000
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-09-20T17:52:18Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 31488257547
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:42:55Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34796929636
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:44:54Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34797008807
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:45:50Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34797046260
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 7,
+        "title": "US-01 — Жүйеге кіру",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/7",
+        "createdAt": "2026-10-06T06:45:22Z",
+        "closedAt": "2026-10-31T19:35:20Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:45:24Z",
+              "sourceEventId": 32689164617
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:44:39Z",
+              "previousStatus": "Done",
+              "status": "Ready",
+              "sourceEventId": 34366176512
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:45:04Z",
+              "previousStatus": "Ready",
+              "status": "In Progress",
+              "sourceEventId": 34366210246
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:32:20Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34794020184
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:36:04Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34794179860
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 8,
+        "title": "US-02 — Тауарлар тізімін көру",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/8",
+        "createdAt": "2026-10-06T06:45:24Z",
+        "closedAt": "2026-10-31T19:35:21Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:45:27Z",
+              "sourceEventId": 32689165087
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T06:45:27Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32655900104
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:44:57Z",
+              "previousStatus": "Review",
+              "status": "Backlog",
+              "sourceEventId": 34366200568
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:45:07Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34366216410
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:46:14Z",
+              "previousStatus": "In Progress",
+              "status": "Ready",
+              "sourceEventId": 34366309728
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:46:16Z",
+              "previousStatus": "Ready",
+              "status": "Backlog",
+              "sourceEventId": 34366311632
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:30:59Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34793962697
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:32:41Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34794035965
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:36:20Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34794191487
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 9,
+        "title": "US-04 — Тауар ақпаратын өзгерту",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/9",
+        "createdAt": "2026-10-06T06:45:26Z",
+        "closedAt": "2026-10-31T19:51:01Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:45:27Z",
+              "sourceEventId": 32608035743
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:47:14Z",
+              "previousStatus": "Ready",
+              "status": "In Progress",
+              "sourceEventId": 34794647481
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:52:15Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34794851130
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 10,
+        "title": "US-05 — Тауар карточкасын көру",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/10",
+        "createdAt": "2026-10-06T06:45:28Z",
+        "closedAt": "2026-10-31T19:51:02Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:45:29Z",
+              "sourceEventId": 32608037575
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:47:14Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794646329
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:52:25Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34794857975
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 11,
+        "title": "US-06 — Тауарды атауы бойынша іздеу",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/11",
+        "createdAt": "2026-10-06T06:45:30Z",
+        "closedAt": "2026-10-31T19:51:03Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:45:32Z",
+              "sourceEventId": 32650616545
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:47:14Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794646466
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:52:31Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34794862124
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 12,
+        "title": "US-08 — Қойма қалдығын өзгерту",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/12",
+        "createdAt": "2026-10-06T06:45:32Z",
+        "closedAt": "2026-10-31T19:51:04Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:45:34Z",
+              "sourceEventId": 32689169392
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T06:45:34Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32641609585
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:47:14Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794646166
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:52:37Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34794865217
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 13,
+        "title": "US-09 — Төмен қалдық туралы ескерту",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/13",
+        "createdAt": "2026-10-06T06:45:57Z",
+        "closedAt": "2026-10-31T20:54:18Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:45:59Z",
+              "sourceEventId": 32689180417
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:52:37Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34797317944
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:55:32Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34797438405
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 14,
+        "title": "US-10 — Тауарды архивке жіберу",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/14",
+        "createdAt": "2026-10-06T06:45:59Z",
+        "closedAt": "2026-10-31T20:05:04Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:46:02Z",
+              "sourceEventId": 32608209310
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:02:44Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34795294405
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:04:17Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34795367606
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:05:32Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34795423495
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 15,
+        "title": "US-11 — Тауар бағасын өзгерту",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/15",
+        "createdAt": "2026-10-06T06:46:01Z",
+        "closedAt": "2026-10-31T20:41:43Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:46:03Z",
+              "sourceEventId": 32650672145
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T06:46:04Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32641613083
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:39:13Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34796779529
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:41:05Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34796853657
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:42:05Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34796894302
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 16,
+        "title": "US-12 — Баға өзгерістерінің тарихын көру",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/16",
+        "createdAt": "2026-10-06T06:46:03Z",
+        "closedAt": "2026-10-31T21:21:24Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:46:05Z",
+              "sourceEventId": 32853826653
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T06:46:07Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32641613267
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:20:45Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34798518159
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:21:55Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34798563743
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 17,
+        "title": "US-14 — Тапсырыс статусын өзгерту",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/17",
+        "createdAt": "2026-10-06T06:46:06Z",
+        "closedAt": "2026-10-31T21:25:37Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:46:09Z",
+              "sourceEventId": 32608214058
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:24:57Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34798685850
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:25:49Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34798719761
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 18,
+        "title": "US-15 — Қойма бойынша есепті көру",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/18",
+        "createdAt": "2026-10-06T06:46:09Z",
+        "closedAt": "2026-10-31T21:16:46Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:46:11Z",
+              "sourceEventId": 32608215701
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:15:53Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34798324438
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:17:36Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34798393291
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 19,
+        "title": "US-16 — Сату статистикасын көру",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/19",
+        "createdAt": "2026-10-06T06:46:11Z",
+        "closedAt": "2026-10-31T21:21:25Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:46:14Z",
+              "sourceEventId": 32853834176
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:20:44Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34798517781
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:22:04Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34798569348
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 20,
+        "title": "US-17 — Қызметкерлер рөлдерін басқару",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/20",
+        "createdAt": "2026-10-06T06:46:13Z",
+        "closedAt": "2026-10-31T21:16:47Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:46:14Z",
+              "sourceEventId": 32853835180
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:15:54Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34798324077
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:18:13Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34798418845
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 21,
+        "title": "US-18 — Маңызды өзгерістер журналын көру",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/21",
+        "createdAt": "2026-10-06T06:46:15Z",
+        "closedAt": "2026-10-31T21:21:27Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T06:46:16Z",
+              "sourceEventId": 32689189866
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T06:46:18Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32641614584
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:20:45Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34798518696
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:22:13Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34798575613
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 22,
+        "title": "DEP-01 — GitHub repository және Issues қолжетімділігі",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/22",
+        "createdAt": "2026-10-06T07:50:33Z",
+        "closedAt": "2026-10-06T07:51:12Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T07:50:36Z",
+              "sourceEventId": 32863014127
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T07:50:38Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32993933800
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:00:20Z",
+              "previousStatus": "Backlog",
+              "status": "Done",
+              "sourceEventId": 34797637243
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Backlog"
+      },
+      "content": {
+        "number": 23,
+        "title": "DEP-02 — Kaspi API қолжетімділігі және интеграция шарты",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/23",
+        "createdAt": "2026-10-06T07:50:35Z",
+        "closedAt": null,
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T07:50:37Z",
+              "sourceEventId": 32700843242
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Backlog"
+      },
+      "content": {
+        "number": 24,
+        "title": "DEP-03 — PostgreSQL / DB hosting ортасының қолжетімділігі",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/24",
+        "createdAt": "2026-10-06T07:50:37Z",
+        "closedAt": null,
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T07:50:39Z",
+              "sourceEventId": 32863051065
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T07:50:41Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32658524472
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 25,
+        "title": "DEP-04 — Low-stock threshold мәнін бекіту",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/25",
+        "createdAt": "2026-10-06T07:50:38Z",
+        "closedAt": "2026-10-31T20:47:26Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T07:50:41Z",
+              "sourceEventId": 32700845790
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T07:50:42Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32993934497
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:56:03Z",
+              "previousStatus": "Backlog",
+              "status": "Done",
+              "sourceEventId": 34797460532
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 26,
+        "title": "DEP-05 — Order Status workflow келісімі",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/26",
+        "createdAt": "2026-10-06T07:50:42Z",
+        "closedAt": "2026-10-31T21:22:24Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T07:50:44Z",
+              "sourceEventId": 32655033136
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T07:50:46Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32665765265
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:22:46Z",
+              "previousStatus": "Backlog",
+              "status": "Done",
+              "sourceEventId": 34798599472
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 27,
+        "title": "M1 — MVP Core Ready",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/27",
+        "createdAt": "2026-10-06T07:51:14Z",
+        "closedAt": "2026-10-31T19:51:06Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T07:51:16Z",
+              "sourceEventId": 32700878334
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:47:14Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794646364
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:59:37Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34797608231
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 28,
+        "title": "M2 — Operations Ready",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/28",
+        "createdAt": "2026-10-06T07:51:16Z",
+        "closedAt": "2026-10-31T20:54:46Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T07:51:18Z",
+              "sourceEventId": 32655044783
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T07:51:19Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32993980786
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:56:33Z",
+              "previousStatus": "Backlog",
+              "status": "Done",
+              "sourceEventId": 34797482088
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Backlog"
+      },
+      "content": {
+        "number": 29,
+        "title": "M3 — Semester Release",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/29",
+        "createdAt": "2026-10-06T07:51:18Z",
+        "closedAt": null,
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-06T07:51:20Z",
+              "sourceEventId": 32655045677
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-06T07:51:21Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 32993981167
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:30:19Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34798890666
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:22:59Z",
+              "previousStatus": "In Progress",
+              "status": "Backlog",
+              "sourceEventId": 34825795333
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 30,
+        "title": "SEC-01: Қауіпсіздік скандарын CI-ге қосу (Trivy + gitleaks)",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/30",
+        "createdAt": "2026-10-13T11:33:16Z",
+        "closedAt": "2026-10-31T19:51:07Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-13T11:33:19Z",
+              "sourceEventId": 33280480639
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-13T11:33:20Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 33251378050
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:47:15Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794646697
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:59:51Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34797616635
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 31,
+        "title": "SEC-02: Аутентификация мен RBAC үшін теріс тесттер қосу",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/31",
+        "createdAt": "2026-10-13T11:33:21Z",
+        "closedAt": "2026-10-31T19:51:08Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-13T11:33:27Z",
+              "sourceEventId": 33261520818
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:47:15Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794647275
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T20:59:59Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34797622787
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Backlog"
+      },
+      "content": {
+        "number": 32,
+        "title": "PRIV-03: Жеке деректер картасы мен сақтау саясатын бекіту",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/32",
+        "createdAt": "2026-10-13T11:33:28Z",
+        "closedAt": null,
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-13T11:33:30Z",
+              "sourceEventId": 33399759450
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-13T11:33:31Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 33282111867
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 34,
+        "title": "US-01.1 — Login form validation",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/34",
+        "createdAt": "2026-10-27T12:21:27Z",
+        "closedAt": "2026-10-31T19:35:23Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-27T12:21:29Z",
+              "sourceEventId": 34364213203
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:21:31Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 34364215630
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:44:09Z",
+              "previousStatus": "Backlog",
+              "status": "Ready",
+              "sourceEventId": 34366134272
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:44:36Z",
+              "previousStatus": "Ready",
+              "status": "Backlog",
+              "sourceEventId": 34366172198
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:34:50Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794128746
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:57:24Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34799971838
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:57:34Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34799979154
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 35,
+        "title": "US-01.2 — Valid and invalid login",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/35",
+        "createdAt": "2026-10-27T12:23:54Z",
+        "closedAt": "2026-10-31T19:35:24Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-27T12:23:56Z",
+              "sourceEventId": 34364420719
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:23:58Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 34364422756
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:34:50Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794128554
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:59:58Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34800079190
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T09:54:05Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34824688337
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 36,
+        "title": "US-01.3 — Protect authenticated pages",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/36",
+        "createdAt": "2026-10-27T12:24:27Z",
+        "closedAt": "2026-10-31T19:35:26Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-27T12:24:29Z",
+              "sourceEventId": 34364473155
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:24:31Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 34364470115
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:34:51Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794128770
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T09:54:23Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34824700847
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T09:54:53Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34824721222
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 37,
+        "title": "US-02.1 — Display product list fields",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/37",
+        "createdAt": "2026-10-27T12:24:53Z",
+        "closedAt": "2026-10-31T19:35:27Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-27T12:24:56Z",
+              "sourceEventId": 34364503352
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:24:58Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 34364507575
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:34:50Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794128701
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T09:54:28Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34824703746
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T09:54:58Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34824724125
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 38,
+        "title": "US-02.2 — Empty state and list performance",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/38",
+        "createdAt": "2026-10-27T12:25:22Z",
+        "closedAt": "2026-10-31T19:35:28Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-27T12:25:25Z",
+              "sourceEventId": 34364544065
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:25:26Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 34364547528
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:34:49Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794127916
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:00:10Z",
+              "previousStatus": "In Progress",
+              "status": "Done",
+              "sourceEventId": 34797629826
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 39,
+        "title": "US-02.3 — Open product details from list",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/39",
+        "createdAt": "2026-10-27T12:26:43Z",
+        "closedAt": "2026-10-31T19:35:30Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-27T12:26:45Z",
+              "sourceEventId": 34364659064
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-27T12:26:46Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 34364660263
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T19:34:51Z",
+              "previousStatus": "Backlog",
+              "status": "In Progress",
+              "sourceEventId": 34794129352
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T09:54:35Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34824708248
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T09:54:48Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34824716775
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 55,
+        "title": "S2-02 — Проверить учебный сценарий сквозным проходом",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/55",
+        "createdAt": "2026-10-31T21:48:22Z",
+        "closedAt": "2026-11-01T10:21:02Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-31T21:48:25Z",
+              "sourceEventId": 34799603282
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:48:25Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 34799604352
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:14:55Z",
+              "previousStatus": "Backlog",
+              "status": "Ready",
+              "sourceEventId": 34825487896
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:15:02Z",
+              "previousStatus": "Ready",
+              "status": "In Progress",
+              "sourceEventId": 34825491879
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:20:51Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34825713809
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:20:58Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34825717703
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 56,
+        "title": "S2-01 — Проверить запуск ИС из чистой копии",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/56",
+        "createdAt": "2026-10-31T21:48:27Z",
+        "closedAt": "2026-11-01T10:14:36Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-31T21:48:30Z",
+              "sourceEventId": 34799607798
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:48:32Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 34799609047
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:09:07Z",
+              "previousStatus": "Backlog",
+              "status": "Ready",
+              "sourceEventId": 34825272858
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:09:18Z",
+              "previousStatus": "Ready",
+              "status": "In Progress",
+              "sourceEventId": 34825279180
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:14:25Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34825469359
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:14:31Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34825474099
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": {
+        "name": "Done"
+      },
+      "content": {
+        "number": 57,
+        "title": "S2-03 — Проверить инструкцию показа и ссылки",
+        "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/57",
+        "createdAt": "2026-10-31T21:48:32Z",
+        "closedAt": "2026-11-01T10:23:37Z",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false
+          },
+          "nodes": [
+            {
+              "__typename": "AddedToProjectV2Event",
+              "createdAt": "2026-10-31T21:48:34Z",
+              "sourceEventId": 34799610450
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-10-31T21:48:35Z",
+              "previousStatus": null,
+              "status": "Backlog",
+              "sourceEventId": 34799612060
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:21:30Z",
+              "previousStatus": "Backlog",
+              "status": "Ready",
+              "sourceEventId": 34825739184
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:21:36Z",
+              "previousStatus": "Ready",
+              "status": "In Progress",
+              "sourceEventId": 34825742949
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:23:23Z",
+              "previousStatus": "In Progress",
+              "status": "Review",
+              "sourceEventId": 34825810934
+            },
+            {
+              "__typename": "ProjectV2ItemStatusChangedEvent",
+              "createdAt": "2026-11-01T10:23:31Z",
+              "previousStatus": "Review",
+              "status": "Done",
+              "sourceEventId": 34825815201
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

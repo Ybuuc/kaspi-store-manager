@@ -276,11 +276,19 @@ def sprint_metrics(items, start, end, now, limits):
                 cts.append(ct)
             done_items.append({"number": it["number"], "title": it["title"], "started": s, "done": d, "ct": ct})
 
-    # CFD: күн сайынғы кумулятивті санақ (күн соңына түсірілім)
+    # CFD: күн соңындағы немесе қысқа интервалда әр оқиғадан кейінгі түсірілім.
     days, cum, bands = [], [], []
-    day = start
-    while day < end and day < now:
-        snap = min(day + timedelta(days=1), now)
+    if end - start < timedelta(days=1):
+        snapshots = sorted({start, horizon} | {
+            ts for it in items for ts, _ in it["events"] if start < ts < horizon
+        }) if horizon > start else []
+    else:
+        snapshots = []
+        day = start
+        while day < horizon:
+            snapshots.append(min(day + timedelta(days=1), horizon))
+            day += timedelta(days=1)
+    for snap in snapshots:
         counts = [0] * len(COLUMNS)
         for it in items:
             m = status_index_at(it, snap)
@@ -288,10 +296,9 @@ def sprint_metrics(items, start, end, now, limits):
                 for k in range(m + 1):
                     counts[k] += 1
         band = [counts[k] - (counts[k + 1] if k + 1 < len(COLUMNS) else 0) for k in range(len(COLUMNS))]
-        days.append(day.date().isoformat())
+        days.append(snap.astimezone(start.tzinfo).isoformat(timespec="seconds") if end - start < timedelta(days=1) else (snap - timedelta(microseconds=1)).astimezone(start.tzinfo).date().isoformat())
         cum.append(counts)
         bands.append(band)
-        day += timedelta(days=1)
 
     avg_wip = {c: mean([b[COLUMNS.index(c)] for b in bands]) for c in COLUMNS} if bands else {c: None for c in COLUMNS}
 
@@ -301,12 +308,14 @@ def sprint_metrics(items, start, end, now, limits):
         vals = [dwell(it, now)[c] for it in items if done_at(it) and start <= done_at(it) < end]
         avg_dwell[c] = mean(vals)
 
-    # Тар орынға үміткер: WIP/лимит қатынасы ең жоғары баған
+    # Күн соңындағы WIP нөл болса, внутридневной пик оқиға уақытынан алынады.
+    peak_by_column = {c: peak_wip(items, start, horizon, c) for c in ("Ready", "In Progress", "Review")}
+    use_peak = all((avg_wip[c] or 0) == 0 for c in ("Ready", "In Progress", "Review"))
     cand, best = None, -1
     for c in ("Ready", "In Progress", "Review"):
         if avg_wip[c] is None or c not in limits:
             continue
-        ratio = avg_wip[c] / limits[c]
+        ratio = (peak_by_column[c] if use_peak else avg_wip[c]) / limits[c]
         key = (ratio, avg_dwell[c] or 0)
         if cand is None or key > best:
             cand, best = c, key
@@ -329,10 +338,11 @@ def sprint_metrics(items, start, end, now, limits):
         "cfd_cum": cum,
         "cfd_bands": bands,
         "avg_wip": avg_wip,
-        "peak_wip": {c: peak_wip(items, start, horizon, c) for c in ("Ready", "In Progress", "Review")},
+        "peak_wip": peak_by_column,
         "avg_dwell": avg_dwell,
         "bottleneck": cand,
         "bottleneck_ratio": best[0] if cand else None,
+        "bottleneck_basis": "peak WIP/лимит" if use_peak else "орташа WIP снимков CFD/лимит",
         "warnings": warnings,
     }
 
@@ -352,8 +362,13 @@ def plot_cfd(m, path, title):
     series = [[b[COLUMNS.index(c)] for b in m["cfd_bands"]] for c in order]
     fig, ax = plt.subplots(figsize=(8, 4.2))
     ax.stackplot(range(len(m["cfd_days"])), series, labels=order)
-    ax.set_xticks(range(len(m["cfd_days"])))
-    ax.set_xticklabels([d[5:] for d in m["cfd_days"]], rotation=45, ha="right")
+    count = len(m["cfd_days"])
+    ticks = list(range(0, count, max(1, math.ceil(count / 7))))
+    if ticks[-1] != count - 1:
+        ticks.append(count - 1)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels([m["cfd_days"][i][11:19] if "T" in m["cfd_days"][i] else m["cfd_days"][i][5:]
+                        for i in ticks], rotation=45, ha="right")
     ax.set_ylabel("Элемент саны (кумулятивті)")
     ax.set_title(title)
     ax.legend(loc="upper left", fontsize=8)
@@ -374,7 +389,7 @@ def write_outputs(items, m1, m2, limits, out_dir, raw_path, raw_meta):
             for d in m["done_items"]:
                 w.writerow([d["number"], d["title"], label,
                             d["started"].isoformat() if d["started"] else "",
-                            d["done"].isoformat(), fmt(d["ct"], 2) if d["ct"] is not None else ""])
+                            d["done"].isoformat(), fmt(d["ct"], 4) if d["ct"] is not None else ""])
     for label, m in (("1", m1), ("2", m2)):
         with open(out_dir / f"cfd-sprint{label}.csv", "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
@@ -409,12 +424,12 @@ def write_outputs(items, m1, m2, limits, out_dir, raw_path, raw_meta):
     L.append("| Метрика | Спринт 1 | Спринт 2 | Δ (С2 − С1) |")
     L.append("|---|---:|---:|---:|")
     L.append(f"| Throughput (Done саны) | {m1['throughput']} | {m2['throughput']} | {m2['throughput'] - m1['throughput']:+d} |")
-    L.append(f"| Cycle time, орташа (күн) | {fmt(m1['ct_mean'])} | {fmt(m2['ct_mean'])} | {delta(m1['ct_mean'], m2['ct_mean'])} |")
-    L.append(f"| Cycle time, медиана (күн) | {fmt(m1['ct_median'])} | {fmt(m2['ct_median'])} | {delta(m1['ct_median'], m2['ct_median'])} |")
-    L.append(f"| Cycle time, p85 (күн) | {fmt(m1['ct_p85'])} | {fmt(m2['ct_p85'])} | {delta(m1['ct_p85'], m2['ct_p85'])} |")
+    L.append(f"| Cycle time, орташа (күн) | {fmt(m1['ct_mean'], 4)} | {fmt(m2['ct_mean'], 4)} | {delta(m1['ct_mean'], m2['ct_mean'], 4)} |")
+    L.append(f"| Cycle time, медиана (күн) | {fmt(m1['ct_median'], 4)} | {fmt(m2['ct_median'], 4)} | {delta(m1['ct_median'], m2['ct_median'], 4)} |")
+    L.append(f"| Cycle time, p85 (күн) | {fmt(m1['ct_p85'], 4)} | {fmt(m2['ct_p85'], 4)} | {delta(m1['ct_p85'], m2['ct_p85'], 4)} |")
     L.append(f"| Cycle time үшін элемент саны (n) | {m1['ct_n']} | {m2['ct_n']} | |")
     for c in ("Ready", "In Progress", "Review"):
-        L.append(f"| Орташа күнделікті WIP: {c} (лимит {limits.get(c, '—')}) | {fmt(m1['avg_wip'][c], 2)} | {fmt(m2['avg_wip'][c], 2)} | {delta(m1['avg_wip'][c], m2['avg_wip'][c], 2)} |")
+        L.append(f"| Орташа WIP снимков CFD: {c} (лимит {limits.get(c, '—')}) | {fmt(m1['avg_wip'][c], 2)} | {fmt(m2['avg_wip'][c], 2)} | {delta(m1['avg_wip'][c], m2['avg_wip'][c], 2)} |")
     for c in ("Ready", "In Progress", "Review"):
         L.append(f"| Ең жоғары бірмезгілдегі WIP: {c} | {m1['peak_wip'][c]} | {m2['peak_wip'][c]} | {m2['peak_wip'][c] - m1['peak_wip'][c]:+d} |")
     for c in ("Ready", "In Progress", "Review"):
@@ -429,7 +444,7 @@ def write_outputs(items, m1, m2, limits, out_dir, raw_path, raw_meta):
             L.append("| Issue | Атауы | Cycle time (күн) |")
             L.append("|---|---|---:|")
             for d in m["done_items"]:
-                L.append(f"| #{d['number']} | {d['title']} | {fmt(d['ct'], 2)} |")
+                L.append(f"| #{d['number']} | {d['title']} | {fmt(d['ct'], 4)} |")
         else:
             L.append("_Бұл спринтте Done болған элемент жоқ._")
         L.append("")
@@ -438,7 +453,7 @@ def write_outputs(items, m1, m2, limits, out_dir, raw_path, raw_meta):
         L.append(f"CFD деректері: `cfd-sprint{label}.csv`.")
         if m["bottleneck"]:
             L.append(f"\nТар орынға үміткер: **{m['bottleneck']}** "
-                     f"(орташа WIP/лимит = {m['bottleneck_ratio']:.2f}). Бұл — формулалық үміткер; "
+                     f"({m['bottleneck_basis']} = {m['bottleneck_ratio']:.2f}). Бұл — формулалық үміткер; "
                      "түпкілікті қорытындыны CFD жолақтарын қарап ретроспективада растаңыз.")
         for w in m["warnings"]:
             L.append(f"\n⚠ {w}")
@@ -540,8 +555,8 @@ def main():
     ap.add_argument("--project", type=int, default=1, help="GitHub Project нөмірі (…/projects/1)")
     ap.add_argument("--data", default=str(here / "data"))
     ap.add_argument("--out", default=str(here / "reports"))
-    ap.add_argument("--s1", default=DEFAULT_S1, help="Спринт 1: YYYY-MM-DD:YYYY-MM-DD (шекаралар қоса)")
-    ap.add_argument("--s2", default=DEFAULT_S2, help="Спринт 2: YYYY-MM-DD:YYYY-MM-DD")
+    ap.add_argument("--s1", default=DEFAULT_S1, help="Спринт 1: YYYY-MM-DD:YYYY-MM-DD немесе ISO-басы..ISO-соңы")
+    ap.add_argument("--s2", default=DEFAULT_S2, help="Спринт 2: YYYY-MM-DD:YYYY-MM-DD немесе ISO-басы..ISO-соңы")
     ap.add_argument("--tz-offset", type=int, default=5, help="Сағат белдеуі, UTC+N (Қазақстан: 5)")
     ap.add_argument("--limits", default=None, help='мысалы "Ready=4,In Progress=2,Review=2"')
     args = ap.parse_args()
