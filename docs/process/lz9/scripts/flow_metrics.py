@@ -114,9 +114,17 @@ def parse_limits(s):
 
 
 def parse_window(spec, tz):
-    a, b = spec.split(":")
-    start = datetime.fromisoformat(a).replace(tzinfo=tz)
-    end = datetime.fromisoformat(b).replace(tzinfo=tz) + timedelta(days=1)  # эксклюзивті
+    if ".." in spec:
+        a, b = spec.split("..", 1)
+        start, end = datetime.fromisoformat(a), datetime.fromisoformat(b)
+        start = start.replace(tzinfo=tz) if start.tzinfo is None else start
+        end = end.replace(tzinfo=tz) if end.tzinfo is None else end
+    else:
+        a, b = spec.split(":", 1)
+        start = datetime.fromisoformat(a).replace(tzinfo=tz)
+        end = datetime.fromisoformat(b).replace(tzinfo=tz) + timedelta(days=1)
+    if end <= start:
+        raise ValueError(f"Спринт аралығы жарамсыз: {spec}")
     return start, end
 
 
@@ -242,6 +250,16 @@ def dwell(item, now):
     return d
 
 
+def peak_wip(items, start, end, column):
+    """Highest concurrent card count, including transitions within a day."""
+    if end <= start:
+        return 0
+    instants = {start}
+    for item in items:
+        instants.update(ts for ts, _ in item["events"] if start <= ts < end)
+    return max((sum(status_at(item, t) == column for item in items) for t in sorted(instants)), default=0)
+
+
 # --------------------------------------------------------------------------- metrics
 def sprint_metrics(items, start, end, now, limits):
     horizon = min(end, now)
@@ -298,7 +316,8 @@ def sprint_metrics(items, start, end, now, limits):
         warnings.append("Спринт әлі аяқталмаған — метрикалар жартылай.")
     return {
         "start": start.date().isoformat(),
-        "end": (end - timedelta(days=1)).date().isoformat(),
+        "end": (end - timedelta(days=1)).date().isoformat() if end.time() == datetime.min.time() else end.date().isoformat(),
+        "period": f"{start.isoformat(timespec='seconds')} … {end.isoformat(timespec='seconds')} (соңы есепке кірмейді)",
         "complete": complete,
         "throughput": len(done_items),
         "ct_n": len(cts),
@@ -310,6 +329,7 @@ def sprint_metrics(items, start, end, now, limits):
         "cfd_cum": cum,
         "cfd_bands": bands,
         "avg_wip": avg_wip,
+        "peak_wip": {c: peak_wip(items, start, horizon, c) for c in ("Ready", "In Progress", "Review")},
         "avg_dwell": avg_dwell,
         "bottleneck": cand,
         "bottleneck_ratio": best[0] if cand else None,
@@ -380,7 +400,7 @@ def write_outputs(items, m1, m2, limits, out_dir, raw_path, raw_meta):
     L.append(f"- Шикі экспорт: `data/raw-export.json`, SHA-256: `{sha}`")
     L.append(f"- Метрикаға алынған task-issue: {len(items)}; тақтадағы барлық issue: {len(raw_meta['items'])}")
     L.append("- Parent US, dependency және milestone карточкалары throughput, cycle time, CFD және WIP есебінен шығарылды; олар task-issue емес.")
-    L.append(f"- Спринт 1: {m1['start']} … {m1['end']}; Спринт 2: {m2['start']} … {m2['end']}")
+    L.append(f"- Спринт 1: {m1['period']}; Спринт 2: {m2['period']}")
     L.append(f"- WIP-лимиттер: " + ", ".join(f"{k} ≤ {v}" for k, v in limits.items()))
     L.append("- Анықтамалар: cycle time = In Progress бағанына алғаш кіруден Done-ға дейінгі күнтізбелік күн; "
              "throughput = спринт ішінде Done болған элемент саны; p85 = nearest-rank әдісі.\n")
@@ -396,13 +416,15 @@ def write_outputs(items, m1, m2, limits, out_dir, raw_path, raw_meta):
     for c in ("Ready", "In Progress", "Review"):
         L.append(f"| Орташа күнделікті WIP: {c} (лимит {limits.get(c, '—')}) | {fmt(m1['avg_wip'][c], 2)} | {fmt(m2['avg_wip'][c], 2)} | {delta(m1['avg_wip'][c], m2['avg_wip'][c], 2)} |")
     for c in ("Ready", "In Progress", "Review"):
+        L.append(f"| Ең жоғары бірмезгілдегі WIP: {c} | {m1['peak_wip'][c]} | {m2['peak_wip'][c]} | {m2['peak_wip'][c] - m1['peak_wip'][c]:+d} |")
+    for c in ("Ready", "In Progress", "Review"):
         L.append(f"| Баған ішіндегі орташа уақыт: {c} (күн) | {fmt(m1['avg_dwell'][c])} | {fmt(m2['avg_dwell'][c])} | {delta(m1['avg_dwell'][c], m2['avg_dwell'][c])} |")
     L.append(f"| Тар орынға үміткер (WIP/лимит ең жоғары) | {m1['bottleneck'] or '—'} | {m2['bottleneck'] or '—'} | |")
     L.append("")
 
     for label, m, png in (("1", m1, png1), ("2", m2, png2)):
         L.append(f"## {2 + int(label)}. Спринт {label} — толығырақ\n")
-        L.append(f"Кезең: {m['start']} … {m['end']}. Аяқталған элементтер:\n")
+        L.append(f"Кезең: {m['period']}. Аяқталған элементтер:\n")
         if m["done_items"]:
             L.append("| Issue | Атауы | Cycle time (күн) |")
             L.append("|---|---|---:|")
@@ -489,6 +511,10 @@ def cmd_selftest(args):
     reopened = {"events": [(parse_ts("2026-10-27T00:00:00Z"), "Done"),
                             (parse_ts("2026-10-28T00:00:00Z"), "Backlog")]}
     assert status_index_at(reopened, parse_ts("2026-10-29T00:00:00Z")) == 0
+    assert m1["peak_wip"]["In Progress"] >= 1
+    short_start, short_end = parse_window("2026-10-27T00:00+05:00..2026-11-01T15:00+05:00", timezone(timedelta(hours=5)))
+    assert short_start.isoformat() == "2026-10-27T00:00:00+05:00"
+    assert short_end.isoformat() == "2026-11-01T15:00:00+05:00"
     approx = lambda a, b: abs(a - b) < 1e-9
     assert m1["throughput"] == 2 and m2["throughput"] == 2, (m1["throughput"], m2["throughput"])
     assert approx(m1["ct_mean"], 3.5) and approx(m1["ct_p85"], 5.0) and approx(m1["ct_median"], 3.5)
