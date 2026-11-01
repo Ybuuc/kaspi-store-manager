@@ -17,6 +17,7 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 import math
 import subprocess
 import sys
@@ -190,6 +191,19 @@ def build_items(raw):
     return items, skipped
 
 
+def is_task_issue(item):
+    """Only actionable task cards belong in LZ9 flow metrics.
+
+    Parent stories, dependencies and milestones may be displayed on the board,
+    but the workflow explicitly excludes them from WIP and throughput.
+    """
+    title = item["title"].strip()
+    return bool(
+        title.startswith(("[TASK]", "[DOCS]", "SEC-", "PRIV-", "S2-"))
+        or re.match(r"^US-\d+\.\d+\b", title)
+    )
+
+
 def status_at(item, t):
     s = None
     for ts, st in item["events"]:
@@ -200,13 +214,9 @@ def status_at(item, t):
     return s
 
 
-def max_index_reached(item, t):
-    idx = None
-    for ts, st in item["events"]:
-        if ts <= t:
-            i = COLUMNS.index(st)
-            idx = i if idx is None else max(idx, i)
-    return idx
+def status_index_at(item, t):
+    current = status_at(item, t)
+    return COLUMNS.index(current) if current is not None else None
 
 
 def started_at(item):
@@ -255,7 +265,7 @@ def sprint_metrics(items, start, end, now, limits):
         snap = min(day + timedelta(days=1), now)
         counts = [0] * len(COLUMNS)
         for it in items:
-            m = max_index_reached(it, snap)
+            m = status_index_at(it, snap)
             if m is not None:
                 for k in range(m + 1):
                     counts[k] += 1
@@ -368,7 +378,8 @@ def write_outputs(items, m1, m2, limits, out_dir, raw_path, raw_meta):
     L.append(f"- Көз: {raw_meta.get('source')} (тақта: «{raw_meta.get('project_title')}»)")
     L.append(f"- Экспорт уақыты: {raw_meta.get('exported_at')}")
     L.append(f"- Шикі экспорт: `data/raw-export.json`, SHA-256: `{sha}`")
-    L.append(f"- Тақтада issue-элементтер: {len(items)}")
+    L.append(f"- Метрикаға алынған task-issue: {len(items)}; тақтадағы барлық issue: {len(raw_meta['items'])}")
+    L.append("- Parent US, dependency және milestone карточкалары throughput, cycle time, CFD және WIP есебінен шығарылды; олар task-issue емес.")
     L.append(f"- Спринт 1: {m1['start']} … {m1['end']}; Спринт 2: {m2['start']} … {m2['end']}")
     L.append(f"- WIP-лимиттер: " + ", ".join(f"{k} ≤ {v}" for k, v in limits.items()))
     L.append("- Анықтамалар: cycle time = In Progress бағанына алғаш кіруден Done-ға дейінгі күнтізбелік күн; "
@@ -427,7 +438,8 @@ def run_report(raw, args, now=None):
     tz = timezone(timedelta(hours=args.tz_offset))
     now = now or datetime.now(timezone.utc)
     limits = parse_limits(args.limits)
-    items, skipped = build_items(raw)
+    all_items, skipped = build_items(raw)
+    items = [item for item in all_items if is_task_issue(item)]
     if skipped:
         print(f"Ескерту: {skipped} элемент (draft/PR) өткізілді — оларда timeline жоқ.", file=sys.stderr)
     s1 = parse_window(args.s1, tz)
@@ -455,7 +467,7 @@ def cmd_selftest(args):
     def chg(t, a, b): return {"__typename": "ProjectV2ItemStatusChangedEvent", "createdAt": t, "previousStatus": a, "status": b}
     def item(n, cur, evs, t0="2026-10-26T05:00:00Z"):
         return {"status": {"name": cur},
-                "content": {"number": n, "title": f"T{n}", "url": "", "createdAt": t0, "closedAt": None,
+                "content": {"number": n, "title": f"[TASK] T{n}", "url": "", "createdAt": t0, "closedAt": None,
                             "timelineItems": {"pageInfo": {"hasNextPage": False}, "nodes": [add(t0)] + evs}}}
     raw = {"exported_at": "selftest", "source": "SYNTHETIC", "project_title": "selftest", "items": [
         item(1, "Done", [chg("2026-10-27T05:00:00Z", "Backlog", "Ready"), chg("2026-10-27T09:00:00Z", "Ready", "In Progress"),
@@ -471,6 +483,12 @@ def cmd_selftest(args):
     ns = argparse.Namespace(tz_offset=5, limits=None, s1=DEFAULT_S1, s2=DEFAULT_S2)
     now = datetime(2026, 11, 10, tzinfo=timezone.utc)
     items, m1, m2, limits = run_report(raw, ns, now)
+    assert is_task_issue({"title": "US-02.1 — Display product list fields"})
+    assert not is_task_issue({"title": "US-02 — Тауарлар тізімін көру"})
+    assert not is_task_issue({"title": "M3 — Semester Release"})
+    reopened = {"events": [(parse_ts("2026-10-27T00:00:00Z"), "Done"),
+                            (parse_ts("2026-10-28T00:00:00Z"), "Backlog")]}
+    assert status_index_at(reopened, parse_ts("2026-10-29T00:00:00Z")) == 0
     approx = lambda a, b: abs(a - b) < 1e-9
     assert m1["throughput"] == 2 and m2["throughput"] == 2, (m1["throughput"], m2["throughput"])
     assert approx(m1["ct_mean"], 3.5) and approx(m1["ct_p85"], 5.0) and approx(m1["ct_median"], 3.5)
