@@ -39,10 +39,12 @@ class GitHub:
             page += 1
 
 
-def export(repo, output, days, end=None):
+def export(repo, output, days, end=None, start=None):
     api = GitHub(repo)
     end = stamp(end) if end else datetime.now(timezone.utc)
-    start = end - timedelta(days=days)
+    start = stamp(start) if start else end - timedelta(days=days)
+    if start.tzinfo is None or end.tzinfo is None or start >= end:
+        raise ValueError("Window must have timezone-aware start < end")
     metadata = api.get("")
     deployments = api.pages("/deployments?environment=production")
     for deployment in deployments:
@@ -198,6 +200,7 @@ def main():
     parser.add_argument("--repo", default="Ybuuc/kaspi-store-manager")
     parser.add_argument("--days", type=int, default=90)
     parser.add_argument("--end", help="Exclusive UTC boundary, ISO 8601")
+    parser.add_argument("--start", help="Inclusive boundary, ISO 8601; overrides --days")
     parser.add_argument("--source", type=Path, default=Path("docs/ci-cd/lz10/data/github.json"))
     parser.add_argument("--incidents", type=Path, default=Path("docs/ci-cd/lz10/data/incidents.json"))
     parser.add_argument("--output", type=Path, default=Path("docs/ci-cd/lz10/reports"))
@@ -205,7 +208,7 @@ def main():
     if args.command == "export":
         if args.days <= 0:
             parser.error("--days must be positive")
-        export(args.repo, args.source, args.days, args.end)
+        export(args.repo, args.source, args.days, args.end, args.start)
     else:
         report(args.source, args.incidents, args.output)
 
