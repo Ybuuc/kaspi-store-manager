@@ -1,0 +1,7 @@
+{
+  "complete": false,
+  "start": "2026-08-05T00:00:00+00:00",
+  "end": "2026-11-03T00:00:00+00:00",
+  "incidents": [],
+  "note": "No verified production incident register. Do not infer zero failures from an empty issue search. Future entries: issue_number and deployment_id; both must refer to real GitHub records."
+}

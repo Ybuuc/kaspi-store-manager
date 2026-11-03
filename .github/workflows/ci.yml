@@ -1,0 +1,85 @@
+name: CI
+on:
+  push:
+    branches: [main, lz10-ci-dora]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install ruff==0.17.3
+      - run: ruff check .
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.lock
+      - run: python -m unittest discover -s tests -v
+
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan locked production dependencies
+        run: |
+          mkdir -p scan
+          cp requirements.lock scan/requirements.txt
+          docker run --rm -v "$PWD/scan:/scan" aquasec/trivy:0.69.3 fs \
+            --scanners vuln --severity HIGH,CRITICAL --exit-code 1 \
+            --format json --output /scan/trivy.json /scan
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-scan
+          path: scan/trivy.json
+          if-no-files-found: error
+
+  build:
+    needs: [lint, test, dependencies]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python tools/build_release.py
+      - name: Verify clean release bundle
+        run: |
+          python -m zipfile -e dist/*.zip /tmp/ksm-release
+          python -m pip install -r /tmp/ksm-release/requirements.lock
+          cd /tmp/ksm-release
+          python - <<'PY'
+          from app import create_app
+          app = create_app({'TESTING': True, 'SECRET_KEY': 'build-smoke-only'})
+          result = app.test_cli_runner().invoke(args=['init-db'])
+          assert result.exit_code == 0, result.output
+          assert app.test_client().get('/login').status_code == 200
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kaspi-store-manager-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 30
