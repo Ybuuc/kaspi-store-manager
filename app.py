@@ -658,6 +658,10 @@ def create_app(test_config=None):
         """, ((page - 1) * 50,)).fetchall()
         return render_template("audit_report.html", entries=rows, page=page, has_next=page * 50 < total)
 
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}, 200
+
     return app
 
 
