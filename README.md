@@ -189,8 +189,7 @@ mkdir -p ../ksm-backups
 
 ## ЛЗ 9 — екі спринтті симуляциялау
 - [Жұмыс процесі, DoR/DoD, спринт жоспары, ретро, метрика скрипті](docs/process/lz9/README.md)
-# ЛЗ 10: CI/CD и DORA
+## ЛЗ 10: CI/CD и DORA
 
 Пайплайн, дашборд на реальной истории GitHub, правила ревью и план релиза:
 [docs/ci-cd/lz10](docs/ci-cd/lz10/README.md).
-
