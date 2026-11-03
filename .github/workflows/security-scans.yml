@@ -22,12 +22,12 @@ jobs:
       - name: Resolve Python dependencies for vulnerability scan
         run: |
           python3 -m venv .scan-venv
-          .scan-venv/bin/python -m pip install -r requirements.txt
+          .scan-venv/bin/python -m pip install -r requirements.lock
           mkdir -p scan
           .scan-venv/bin/python -m pip freeze > scan/requirements.txt
       - name: Run Trivy filesystem scan
         run: |
-          docker run --rm -v "$PWD:/work" aquasec/trivy:latest fs \
+          docker run --rm -v "$PWD:/work" aquasec/trivy:0.69.3 fs \
             --scanners vuln,misconfig,secret \
             --skip-dirs /work/.scan-venv \
             --severity HIGH,CRITICAL \

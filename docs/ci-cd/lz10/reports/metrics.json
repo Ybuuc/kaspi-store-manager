@@ -1,0 +1,38 @@
+{
+  "repository": "Ybuuc/kaspi-store-manager",
+  "start": "2026-08-05T00:00:00+00:00",
+  "end": "2026-11-03T00:00:00+00:00",
+  "metrics": {
+    "df": {
+      "value": 0.0,
+      "level": "Low"
+    },
+    "lt": {
+      "value": null,
+      "level": "Недостаточно данных"
+    },
+    "cfr": {
+      "value": null,
+      "level": "Недостаточно данных"
+    },
+    "mttr": {
+      "value": null,
+      "level": "Недостаточно данных"
+    }
+  },
+  "evidence": {
+    "production_deployments": 0,
+    "lead_time_samples": 0,
+    "deployments_without_baseline": [],
+    "incident_coverage_complete": false,
+    "failed_deployments": 0,
+    "recovered_incidents": 0,
+    "unresolved_incidents": 0,
+    "merged_prs": 20,
+    "pr_cycle_hours_median": 0.01611111111111111,
+    "commits": 55,
+    "ci_runs": 115,
+    "ci_successes": 112,
+    "releases": 0
+  }
+}

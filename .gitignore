@@ -5,3 +5,5 @@ trivy-report.txt
 __pycache__/
 *.pyc
 instance/
+dist/
+.ruff_cache/
