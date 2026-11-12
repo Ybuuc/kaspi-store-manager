@@ -18,10 +18,14 @@ $env:KSM_SECRET_KEY = Get-KsmDemoSecret -CreateIfMissing
 try {
     $ready = $false
     for ($n = 0; $n -lt 30; $n++) {
-        & $docker.Source info --format "{{.ServerVersion}}" 2>$null | Out-Null
-        if ($LASTEXITCODE -eq 0) {
-            $ready = $true
-            break
+        try {
+            & $docker.Source info --format "{{.ServerVersion}}" 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                $ready = $true
+                break
+            }
+        } catch {
+            # Docker Desktop may still be starting after Windows logon.
         }
         Start-Sleep -Seconds 5
     }
