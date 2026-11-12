@@ -62,21 +62,17 @@ def main():
                 modal.locator("#webhook-url").fill("http://alert-sink:8765/alert")
                 modal.locator("#webhook-http-method").select_option("post")
                 modal.locator("#webhook-request-body").select_option("json")
+                # Kuma may render an optional headers field as required when enabled.
+                extra_headers = modal.locator("#additionalHeaders")
+                if extra_headers.is_visible():
+                    extra_headers.fill("{}")
                 modal.locator("input.form-check-input").first.check()
                 modal.get_by_role("button", name="Save").click()
-                page.wait_for_timeout(1800)
-                invalid = modal.locator(":invalid").evaluate_all(
-                    "(nodes) => nodes.map(el => ({id: el.id, name: el.name, type: el.type, value: el.value}))"
-                )
-                toasts = page.locator(".toast, [role=alert]").all_inner_texts()
-                print("Kuma notification save diagnostics: invalid fields", invalid, "toast", toasts)
-                if page.locator(".modal.show").count():
-                    page.screenshot(path=str(EVIDENCE_DIR / "kuma-notification-debug.png"),
-                                    full_page=True)
+                expect(page.locator(".modal.show")).to_have_count(0, timeout=30000)
                 evidence["checks"]["webhook_notification_configured"] = True
 
                 page.goto(KUMA_URL + "/add", wait_until="domcontentloaded", timeout=45000)
-                alert_checkbox = page.locator('input[id^="notification"]')
+                alert_checkbox = page.locator('input[type="checkbox"][id^="notification"]')
                 expect(alert_checkbox.first).to_be_visible(timeout=30000)
                 alert_checkbox.first.check()
                 page.get_by_test_id("monitor-type-select").select_option("http")
