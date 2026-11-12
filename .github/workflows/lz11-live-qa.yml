@@ -68,14 +68,13 @@ jobs:
           bru run --env local --reporter-json ../../../reports/lz11/bruno.json --reporter-junit ../../../reports/lz11/bruno.xml
       - name: k6 bounded load smoke (5 VUs, 15 seconds)
         run: |
-          docker run --rm --network host -e KSM_BASE_URL=http://127.0.0.1:5000 -e KSM_USER=employee -e KSM_PASSWORD="$KSM_UAT_PASSWORD" -e KSM_VUS=5 -e KSM_DURATION=15s -v "$PWD:/work" -w /work grafana/k6:latest run --summary-export=/work/reports/lz11/k6-summary.json /work/tests/lz11/load/read_catalog.js
+          docker run --rm --user "$(id -u):$(id -g)" --network host -e KSM_BASE_URL=http://127.0.0.1:5000 -e KSM_USER=employee -e KSM_PASSWORD="$KSM_UAT_PASSWORD" -e KSM_VUS=5 -e KSM_DURATION=15s -v "$PWD:/work" -w /work grafana/k6:latest run --summary-export=/work/reports/lz11/k6-summary.json /work/tests/lz11/load/read_catalog.js
       - name: Uptime Kuma synthetic UP/DOWN/UP drill
         env:
           KUMA_URL: http://127.0.0.1:3001
           KUMA_ADMIN_USER: lz11-ci
           KSM_MONITOR_URL: http://app:5000/login
         run: |
-          python -m pip install uptime-kuma-api2==2.10.0
           python tests/lz11/monitor_drill.py
       - name: Upload evidence
         if: always()
