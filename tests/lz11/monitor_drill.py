@@ -54,7 +54,8 @@ def main():
                 # Configure an internal webhook notification before the monitor.
                 # The receiver has no public port and only stores synthetic events.
                 page.goto(KUMA_URL + "/settings/notifications", wait_until="domcontentloaded", timeout=45000)
-                page.get_by_role("button", name="Setup Notification").click()
+                # Use the stable section selector; Kuma may localize its button caption.
+                page.locator(".notification-list button.btn-primary").click(timeout=45000)
                 modal = page.locator(".modal.show")
                 modal.locator("#notification-type").select_option("webhook")
                 modal.locator("#notification-name").fill("CI local alert sink")
