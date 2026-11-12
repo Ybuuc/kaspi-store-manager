@@ -30,3 +30,11 @@
 ## Завершённая практика на GitHub runner — 12.11.2026
 
 [Успешный live QA workflow](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43280650094) проверил Flask + Kuma в Docker, Playwright, Bruno, k6 (5 VU, 15 с, 80/80 checks) и искусственную недоступность с восстановлением UP → DOWN → UP. [9 файлов-доказательств](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43280650094/artifacts/13973270776) доступны как артефакт выполнения (до 26.11.2026); числа и ограничения сохранены в [verification.md](verification.md). **UAT другой командой не проводился** — [#67](https://github.com/Ybuuc/kaspi-store-manager/issues/67).
+
+## Дополнительная техническая проверка до независимой UAT
+
+- [37/37 pytest PASS (10 technical UAT-preflight)](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43290236331), контроль функциональных путей, **без участия стороннего заказчика**.
+- [200 VU × 30с — p95 каталога 22,4 мс, 5440/5440 checks](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43289082394); предыдущая версия не прошла и была исправлена в [#69](https://github.com/Ybuuc/kaspi-store-manager/issues/69).
+- [15-минутный backup-worker + offline restore в другом файле SQLite](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43290704502): профиль Docker готов; только первый запуск подтверждён, не 30 дней работы.
+- [Pre-release CI-gate](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43290958703) и [изолированная тренировка отката к предыдущей сборке](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43291242294) — успешно.
+- **Стоп-фактор окончательного отчёта:** [UAT #67](https://github.com/Ybuuc/kaspi-store-manager/issues/67). Требуются независимые участники, дата, фактические результаты 10 сценариев и подписанный протокол. Пока не получать/не считать приемку завершенной.

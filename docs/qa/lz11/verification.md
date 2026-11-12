@@ -1,10 +1,10 @@
 # ЛЗ11 — журнал проверок (12.11.2026)
 
-**Репозиторий:** `Ybuuc/kaspi-store-manager`. **Ветка:** `lz11-qa-uat-postmortem`. **Контрольный коммит с кодом/тестами и hardening:** `150e648df38d612805087890eae64d768a681e7f`.
+**Репозиторий:** `Ybuuc/kaspi-store-manager`. **Ветка:** `lz11-qa-uat-postmortem`. **Контрольная практика:** изолированные GitHub Actions, все изменения в PR #68; артефакты ограничены сроком хранения CI.
 
 | Проверка | Реальный статус | Подтверждение |
 |---|---|---|
-| pytest: исходный unittest suite + 4 интеграционных теста ЛЗ11 | **PASS: 27 тестов за 4,44 с** | [Job log / run #43274333617](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43274333617) |
+| pytest: 23 исходных + 4 integration + 10 технических UAT-preflight | **PASS: 37/37 за 6,26 с** | [Run #43290236331](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43290236331); это не независимая приемка |
 | Повторный pytest после non-root Dockerfile | **PASS** | [Run #43274923730](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43274923730) |
 | Исходный `Application tests` | **PASS** | [Run #43274923670](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43274923670) |
 | Trivy + Gitleaks | **PASS** после добавления непривилегированного `USER ksm` | [Run #43274923600](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43274923600) |
@@ -14,12 +14,16 @@
 | k6, 5 VU × 15 секунд на синтетическом локальном стенде | **PASS: 80/80 checks; p95 /products = 6,2 мс; 0% HTTP ошибок (75 запросов каталога)** | [Run #43280650094](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43280650094); `k6-summary.json` |
 | Uptime Kuma: монитор `http://app:5000/login` (интервал 20 с, только CI) | **PASS: UP → DOWN → UP**, отключение приложения контролируемое | [Run #43280650094](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43280650094); `uptime-kuma-drill.json`, 3 скриншота статусов |
 | Отчёты всех инструментов и скриншоты | **9 файлов в ZIP**, retention 14 дней; без паролей | [Live QA evidence](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43280650094/artifacts/13973270776) |
-| Нагрузочный NFR-01 (200 пользователей, p95≤800 мс) | **NOT VERIFIED**: 5 VU smoke не заменяет 200 VU | [NFR](../../requirements/NFR.md) |
-| Постоянный мониторинг локального ПК и оповещения | **NOT DEPLOYED**: CI-стенд одноразовый; ручной стенд по runbook отдельно | [Issue #64](https://github.com/Ybuuc/kaspi-store-manager/issues/64) |
-| Независимый UAT с другой командой и подписанный протокол | **NOT RUN**: участники, дата и подпись не представлены | [Issue #67](https://github.com/Ybuuc/kaspi-store-manager/issues/67) |
+| Нагрузочный NFR-01 (200 VU × 30 с, 100 синтетических SKU) | **PASS после оптимизации: p95 каталога = 22,4 мс; 5440/5440 checks; 0% ошибок**, Gunicorn 2×16 threads | [Run #43289082394](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43289082394); до оптимизации 1,6 с [run #43288545717](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43288545717) |
+| Мониторинг и доставка уведомлений локального ПК | **PARTIAL**: цикл Kuma UP→DOWN→UP пройден, но канал уведомлений пока проверяется; постоянный ПК-стенд не развёрнут | [Issue #64](https://github.com/Ybuuc/kaspi-store-manager/issues/64) |
+
+| Backup worker (отдельный том и интервал 15 минут, retention 30 дней) | **PASS: запуск и первая копия с restore / integrity**, длительная работа пока не подтверждена | [Run #43290704502](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43290704502); профиль `scheduled-backups` |
+| Pre-release gate с 37 тестами и smoke-проверкой собранного пакета | **PASS**, build зависит от unit/integration, lint и dependency scan | [CI run #43290958703](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43290958703) |
+| Откат реальной предыдущей учебной сборки при инъекции HTTP 503 | **PASS: rollback кода = 0,255 с; отдельный DB restore = 0,251 с; новые заказы не потеряны при откате кода** | [Run #43291242294](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43291242294); `release-rollback.json` |
+| Независимая UAT с заказчиком другой команды | **NOT RUN** — подписи, представитель и дата отсутствуют | [Issue #67](https://github.com/Ybuuc/kaspi-store-manager/issues/67) |
 
 **История исправления:** на commit `3307570` Trivy завершился с ошибкой; в Dockerfile отсутствовала директива переключения на non-root пользователя. Изменён Dockerfile в `150e648`; повторный security workflow завершился успешно. Не делать выводов о production-безопасности только из зеленого CI.
 
-**Что можно считать выполненным в ЛЗ11:** технический запуск Docker и Uptime Kuma с фактическим мониторинговым циклом, реальный браузерный тест и HTTP-контракты, ограниченная нагрузка k6; всё подтверждено в одноразовом CI-сценарии. **Что нельзя считать выполненным:** UAT, принятый другой командой, эксплуатация на постоянном стенде и целевой 200-VU NFR.
+**Что можно считать выполненным в ЛЗ11:** запуск Docker/Uptime Kuma, Playwright, Bruno, k6 на 5 и 200 VU (после оптимизации), отдельный restore SQLite, тест фонового backup-worker, выпуск с обязательным pytest gate, проверенный release rollback. **Что нельзя считать выполненным:** UAT, принятый другой командой; непрерывная эксплуатация на компьютере пользователя, реальный внешний/offsite backup и 30-дневный цикл хранения.
 
 **Принцип:** GitHub Actions подтверждают выполнение только указанных команд. Не считать тесты приемки и эксплуатационные проверки пройденными, пока не записаны отдельные фактические результаты.
