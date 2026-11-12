@@ -1,6 +1,7 @@
 """Manual Playwright UAT smoke: requires a running isolated demo and test credentials."""
 
 import os
+from pathlib import Path
 
 import pytest
 
@@ -23,6 +24,11 @@ def test_employee_login_and_admin_forbidden():
             page.locator('button[type="submit"]').click()
             page.wait_for_url("**/products")
             assert page.get_by_role("heading", name="Тауарлар").is_visible()
+            evidence = os.environ.get("KSM_EVIDENCE_DIR")
+            if evidence:
+                directory = Path(evidence)
+                directory.mkdir(parents=True, exist_ok=True)
+                page.screenshot(path=str(directory / "playwright-catalog.png"), full_page=True)
             forbidden = page.goto(f"{url.rstrip('/')}/admin")
             assert forbidden is not None and forbidden.status == 403
         finally:

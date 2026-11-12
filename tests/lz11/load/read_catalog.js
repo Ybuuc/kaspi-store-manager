@@ -12,6 +12,8 @@ if (!USER || !PASSWORD) {
 let authenticated = null;  // k6 isolates global state per VU
 
 export const options = {
+  // Persist each VU session cookie across iterations; k6 resets it by default.
+  noCookiesReset: true,
   vus: Number(__ENV.KSM_VUS || 5),
   duration: __ENV.KSM_DURATION || '30s',
   thresholds: {
