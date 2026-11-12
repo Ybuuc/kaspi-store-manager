@@ -1,4 +1,4 @@
-name: LZ11 pytest integration
+name: LZ11 pytest integration and internal UAT preflight
 
 on:
   pull_request:
@@ -22,4 +22,4 @@ jobs:
           python -m pip install -r requirements.lock
           python -m pip install pytest==8.4.2
       - name: Run existing unittest tests via pytest and new LZ11 integration smoke
-        run: python -m pytest -q tests/test_app.py tests/lz11/test_contract.py
+        run: python -m pytest -q tests/test_app.py tests/lz11/test_contract.py tests/lz11/test_uat_preflight.py
