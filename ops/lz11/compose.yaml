@@ -35,6 +35,38 @@ services:
       app:
         condition: service_healthy
 
+  backup-worker:
+    # Start explicitly with: docker compose --profile scheduled-backups up -d --build
+    profiles: [scheduled-backups]
+    build:
+      context: ../..
+      dockerfile: ops/lz11/Dockerfile
+    restart: unless-stopped
+    command: ["sh", "-c", "while true; do python /app/ops/lz11/backup_rotate.py; sleep 900; done"]
+    environment:
+      KSM_BACKUP_DIR: /app/backups
+    volumes:
+      - ksm_demo_instance:/app/instance:ro
+      - ksm_demo_backups:/app/backups
+    depends_on:
+      app:
+        condition: service_healthy
+
+  alert-sink:
+    # Only used to verify local notification delivery in disposable CI.
+    profiles: [ci-alerts]
+    build:
+      context: ../..
+      dockerfile: ops/lz11/Dockerfile
+    command: ["python", "/app/ops/lz11/alert_sink.py"]
+    environment:
+      KSM_ALERT_LOG: /app/alerts/notifications.jsonl
+    volumes:
+      - ksm_demo_alerts:/app/alerts
+    # No host port: reachable only on the Compose network.
+
 volumes:
   ksm_demo_instance:
   kuma_demo_data:
+  ksm_demo_backups:
+  ksm_demo_alerts:
