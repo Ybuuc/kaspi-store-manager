@@ -136,6 +136,15 @@ jobs:
           print(json.dumps(record))
           PY
 
+      - name: Exercise real old-release rollback after injected HTTP 503
+        if: steps.boot.outcome == 'success'
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          python3 -m pip install -r requirements.lock
+          python3 tools/rollback_drill.py \
+            --work-dir "$RUNNER_TEMP/lz11-release-rollback" \
+            --report "$PWD/reports/lz11/release-rollback.json"
+
       - name: Upload factual evidence even if NFR-01 fails
         if: always()
         uses: actions/upload-artifact@v4
