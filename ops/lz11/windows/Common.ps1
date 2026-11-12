@@ -41,7 +41,10 @@ function Get-KsmDemoSecret {
 }
 
 function Invoke-KsmCommand {
-    param([string]$Executable, [string[]]$Arguments)
+    param(
+        [Parameter(Mandatory=$true)][string]$Executable,
+        [Parameter(Mandatory=$true)][string[]]$Arguments
+    )
     & $Executable @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw ("{0} failed with exit code {1}" -f $Executable, $LASTEXITCODE)

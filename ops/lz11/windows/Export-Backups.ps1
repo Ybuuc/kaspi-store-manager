@@ -28,7 +28,7 @@ New-Item -ItemType Directory -Path $temp -Force | Out-Null
 $env:KSM_SECRET_KEY = Get-KsmDemoSecret
 try {
     # Export only the dedicated backup volume: never copy the live SQLite file.
-    Invoke-KsmCommand "docker" @("compose", "-f", $compose, "--profile", "scheduled-backups",
+    Invoke-KsmCommand -Executable "docker" -Arguments @("compose", "-f", $compose, "--profile", "scheduled-backups",
         "cp", "backup-worker:/app/backups/.", $temp)
     $copies = @(Get-ChildItem -LiteralPath $temp -File -Filter "ksm-daily-*.sqlite3")
     if ($copies.Count -eq 0) { throw "No completed SQLite backups found in the dedicated Docker volume." }
@@ -37,16 +37,16 @@ try {
     }
 
     # copy never deletes cloud objects; immutable refuses silently overwriting a changed snapshot.
-    Invoke-KsmCommand "rclone" @("copy", $temp, $Remote, "--include",
+    Invoke-KsmCommand -Executable "rclone" -Arguments @("copy", $temp, $Remote, "--include",
         "ksm-daily-*.sqlite3", "--immutable", "--transfers", "2", "--checkers", "4")
     # One-way check accepts older backup files already present in the cloud.
-    Invoke-KsmCommand "rclone" @("check", $temp, $Remote, "--include",
+    Invoke-KsmCommand -Executable "rclone" -Arguments @("check", $temp, $Remote, "--include",
         "ksm-daily-*.sqlite3", "--one-way")
 
     # Strong end-to-end offsite restore: download a backup and compare full SHA256.
     $latest = $copies | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
     $retrieved = Join-Path $temp ("restored-" + $latest.Name)
-    Invoke-KsmCommand "rclone" @("copyto", ($Remote.TrimEnd("/") + "/" + $latest.Name), $retrieved)
+    Invoke-KsmCommand -Executable "rclone" -Arguments @("copyto", ($Remote.TrimEnd("/") + "/" + $latest.Name), $retrieved)
     $a = (Get-FileHash -LiteralPath $latest.FullName -Algorithm SHA256).Hash
     $b = (Get-FileHash -LiteralPath $retrieved -Algorithm SHA256).Hash
     if ($a -ne $b) { throw "Downloaded Drive backup differs from original SHA256." }

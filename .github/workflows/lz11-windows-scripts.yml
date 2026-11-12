@@ -38,3 +38,17 @@ jobs:
           & .\ops\lz11\windows\Export-Backups.ps1 -ValidateOnly
           & .\ops\lz11\windows\Install-OffsiteTask.ps1 -ValidateOnly
           Write-Host "Static Windows setup verification PASS"
+      - name: Verify PowerShell helper argument forwarding and native errors
+        run: |
+          . .\ops\lz11\windows\Common.ps1
+          $output = @(Invoke-KsmCommand -Executable 'cmd.exe' -Arguments @('/d', '/c', 'echo', 'KSM_ARGS_OK'))
+          if (($output -join ' ') -notmatch 'KSM_ARGS_OK') { throw 'Argument forwarding failed' }
+          $caught = $false
+          try {
+            Invoke-KsmCommand -Executable 'cmd.exe' -Arguments @('/d', '/c', 'exit', '7')
+          } catch {
+            if ($_.Exception.Message -match 'exit code 7') { $caught = $true }
+          }
+          if (-not $caught) { throw 'Native exit status not checked' }
+          $source = (Get-Content ops/lz11/windows/Start-LZ11.ps1 -Raw) + (Get-Content ops/lz11/windows/Export-Backups.ps1 -Raw)
+          if ($source -match 'Invoke-KsmCommand\s+"(docker|rclone)"\s+@\(') { throw 'Positional array-splat calls are forbidden' }
