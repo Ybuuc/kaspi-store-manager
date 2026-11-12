@@ -38,3 +38,7 @@
 - [15-минутный backup-worker + offline restore в другом файле SQLite](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43290704502): профиль Docker готов; только первый запуск подтверждён, не 30 дней работы.
 - [Pre-release CI-gate](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43290958703) и [изолированная тренировка отката к предыдущей сборке](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43291242294) — успешно.
 - **Стоп-фактор окончательного отчёта:** [UAT #67](https://github.com/Ybuuc/kaspi-store-manager/issues/67). Требуются независимые участники, дата, фактические результаты 10 сценариев и подписанный протокол. Пока не получать/не считать приемку завершенной.
+
+## Дополнительная проверка сигналов мониторинга
+
+[GitHub Actions #43293030085](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43293030085) — **PASS**: монитор Uptime Kuma с интервалом **60 с** показал UP → DOWN → UP при контролируемой остановке Docker app; до отдельного внутреннего контейнера `alert-sink` были реально доставлены webhook-события DOWN и UP. [Архив доказательств](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43293030085/artifacts/13977488012) содержит журнал `kuma-webhook-events.json`, `uptime-kuma-drill.json`, скриншоты. **Это только CI; на компьютере пользователя постоянный мониторинг не развёрнут.**
