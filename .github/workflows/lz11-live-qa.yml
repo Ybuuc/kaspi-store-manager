@@ -47,6 +47,19 @@ jobs:
                       raise RuntimeError(f'{label} unavailable: {last_error}')
                   time.sleep(3)
           PY
+      - name: Verify Docker auto-seeded catalog, orders and archive
+        run: |
+          docker compose -f ops/lz11/compose.yaml exec -T app python - <<'PY'
+          import sqlite3
+          db = sqlite3.connect('/app/instance/kaspi-store-manager.sqlite3')
+          assert db.execute('SELECT COUNT(*) FROM products').fetchone()[0] == 32
+          assert db.execute('SELECT COUNT(*) FROM orders').fetchone()[0] == 36
+          assert db.execute('SELECT COUNT(*) FROM products WHERE archived_at IS NOT NULL').fetchone()[0] == 2
+          assert db.execute("SELECT COUNT(*) FROM demo_seed_state WHERE fixture_id='lz11-demo-v1'").fetchone()[0] == 1
+          assert db.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
+          print('Docker synthetic seed: 32 products, 36 orders, 2 archived PASS')
+          db.close()
+          PY
       - name: Prepare synthetic employee and evidence directory
         run: |
           docker compose -f ops/lz11/compose.yaml exec -T app python -m flask --app app:create_app init-db

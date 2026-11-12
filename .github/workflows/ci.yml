@@ -34,8 +34,8 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: python -m pip install -r requirements.lock pytest==8.4.2
-      - name: Release gate — all 37 tests including UAT technical preflight
-        run: python -m pytest -q tests/test_app.py tests/lz11/test_contract.py tests/lz11/test_uat_preflight.py
+      - name: Release gate — full test suite including synthetic seed and UAT preflight
+        run: python -m pytest -q tests/test_app.py tests/lz11/test_contract.py tests/lz11/test_uat_preflight.py tests/lz11/test_demo_seed.py
 
   dependencies:
     runs-on: ubuntu-latest
@@ -77,6 +77,11 @@ jobs:
           app = create_app({'TESTING': True, 'SECRET_KEY': 'build-smoke-only'})
           result = app.test_cli_runner().invoke(args=['init-db'])
           assert result.exit_code == 0, result.output
+          seeded = app.test_cli_runner().invoke(args=['seed-demo'])
+          assert seeded.exit_code == 0, seeded.output
+          with sqlite3.connect(app.config['DATABASE']) as db:
+              assert db.execute('SELECT COUNT(*) FROM products').fetchone()[0] == 32
+              assert db.execute('SELECT COUNT(*) FROM orders').fetchone()[0] == 36
           client = app.test_client()
           assert client.get('/login').status_code == 200
           assert client.get('/products').status_code == 302
