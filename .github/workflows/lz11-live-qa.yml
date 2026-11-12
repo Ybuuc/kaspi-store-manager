@@ -1,0 +1,97 @@
+name: LZ11 live demo QA (Docker, Playwright, Bruno, k6, Kuma)
+on:
+  pull_request:
+  push:
+    branches: [lz11-qa-uat-postmortem]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate temporary secrets
+        run: |
+          python - <<'PY'
+          import os, secrets
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as out:
+              for key in ('KSM_SECRET_KEY','KSM_UAT_PASSWORD','KUMA_ADMIN_PASSWORD'):
+                  value=secrets.token_urlsafe(32)
+                  print(f'::add-mask::{value}')
+                  out.write(f'{key}={value}\n')
+          PY
+      - name: Build and start isolated demo
+        run: |
+          docker compose -f ops/lz11/compose.yaml config -q
+          docker compose -f ops/lz11/compose.yaml up -d --build
+          python - <<'PY'
+          import time, urllib.request
+          for label,url in [('Flask','http://127.0.0.1:5000/login'),('Kuma','http://127.0.0.1:3001/')]:
+              deadline=time.monotonic()+210
+              while True:
+                  try:
+                      with urllib.request.urlopen(url,timeout=5) as response:
+                          if response.status==200:
+                              print(label,'HTTP 200')
+                              break
+                  except Exception as exc:
+                      last_error=str(exc)
+                  if time.monotonic()>deadline:
+                      raise RuntimeError(f'{label} unavailable: {last_error}')
+                  time.sleep(3)
+          PY
+      - name: Prepare synthetic employee and evidence directory
+        run: |
+          docker compose -f ops/lz11/compose.yaml exec -T app python -m flask --app app:create_app init-db
+          printf '%s\n%s\n' "$KSM_UAT_PASSWORD" "$KSM_UAT_PASSWORD" | docker compose -f ops/lz11/compose.yaml exec -T app python -m flask --app app:create_app create-user employee
+          mkdir -p reports/lz11
+      - name: Playwright real browser test
+        env:
+          KSM_BASE_URL: http://127.0.0.1:5000
+          KSM_UAT_USER: employee
+          KSM_EVIDENCE_DIR: reports/lz11
+        run: |
+          python -m pip install pytest==8.4.2 playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          python -m pytest -q tests/lz11/test_browser.py --junitxml=reports/lz11/playwright.xml
+      - name: Bruno HTTP contract tests
+        run: |
+          npm install -g @usebruno/cli@4.3.0
+          cd tests/lz11/bruno
+          bru run --env local --reporter-json ../../../reports/lz11/bruno.json --reporter-junit ../../../reports/lz11/bruno.xml
+      - name: k6 bounded load smoke (5 VUs, 15 seconds)
+        run: |
+          docker run --rm --network host -e KSM_BASE_URL=http://127.0.0.1:5000 -e KSM_USER=employee -e KSM_PASSWORD="$KSM_UAT_PASSWORD" -e KSM_VUS=5 -e KSM_DURATION=15s -v "$PWD:/work" -w /work grafana/k6:latest run --summary-export=/work/reports/lz11/k6-summary.json /work/tests/lz11/load/read_catalog.js
+      - name: Uptime Kuma synthetic UP/DOWN/UP drill
+        env:
+          KUMA_URL: http://127.0.0.1:3001
+          KUMA_ADMIN_USER: lz11-ci
+          KSM_MONITOR_URL: http://app:5000/login
+        run: |
+          python -m pip install uptime-kuma-api2==2.10.0
+          python tests/lz11/monitor_drill.py
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lz11-live-qa-evidence
+          path: reports/lz11/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Diagnostic logs (no credentials)
+        if: failure()
+        run: |
+          docker compose -f ops/lz11/compose.yaml ps || true
+          docker compose -f ops/lz11/compose.yaml logs --tail=100 app || true
+          docker compose -f ops/lz11/compose.yaml logs --tail=50 uptime-kuma || true
+      - name: Stop isolated containers
+        if: always()
+        run: docker compose -f ops/lz11/compose.yaml down || true
