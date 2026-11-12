@@ -50,5 +50,9 @@ jobs:
             if ($_.Exception.Message -match 'exit code 7') { $caught = $true }
           }
           if (-not $caught) { throw 'Native exit status not checked' }
+          # GitHub's Windows PowerShell wrapper checks LASTEXITCODE when the script ends.
+          # We intentionally ran a failing child process above; reset its sticky value.
+          $global:LASTEXITCODE = 0
+          Write-Host 'PASS: native command forwards arguments and reports exit code 7'
           $source = (Get-Content ops/lz11/windows/Start-LZ11.ps1 -Raw) + (Get-Content ops/lz11/windows/Export-Backups.ps1 -Raw)
           if ($source -match 'Invoke-KsmCommand\s+"(docker|rclone)"\s+@\(') { throw 'Positional array-splat calls are forbidden' }
