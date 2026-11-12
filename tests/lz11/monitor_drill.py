@@ -66,7 +66,8 @@ def main():
                 extra_headers = modal.locator("#additionalHeaders")
                 if extra_headers.is_visible():
                     extra_headers.fill("{}")
-                modal.locator("input.form-check-input").first.check()
+                # Do not enable "Additional Headers": that reveals an empty required textarea.
+                # The notification is attached to the monitor after saving.
                 modal.get_by_role("button", name="Save").click()
                 expect(page.locator(".modal.show")).to_have_count(0, timeout=30000)
                 evidence["checks"]["webhook_notification_configured"] = True
