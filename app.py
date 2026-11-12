@@ -1,6 +1,7 @@
 """Small, runnable MVP for employee access and the product catalogue."""
 
 import hashlib
+import json
 import hmac
 import os
 import secrets
@@ -147,6 +148,129 @@ def create_app(test_config=None):
     def init_db_command():
         init_db()
         click.echo("Database initialized")
+
+    @app.cli.command("seed-demo")
+    def seed_demo_command():
+        """Load the versioned fictional catalog once; never overwrite user edits."""
+        init_db()
+        fixture = Path(__file__).resolve().parent / "demo" / "lz11_seed.json"
+        try:
+            dataset = json.loads(fixture.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise click.ClickException(f"Demo fixture unavailable or invalid: {exc}") from exc
+
+        if dataset.get("fixture_id") != "lz11-demo-v1":
+            raise click.ClickException("Unsupported demo fixture revision")
+
+        connection = db()
+        connection.execute(
+            "CREATE TABLE IF NOT EXISTS demo_seed_state "
+            "(fixture_id TEXT PRIMARY KEY, seeded_at TEXT NOT NULL "
+            "DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')))"
+        )
+        connection.commit()
+        if connection.execute(
+            "SELECT 1 FROM demo_seed_state WHERE fixture_id = ?",
+            (dataset["fixture_id"],),
+        ).fetchone():
+            click.echo("Demo fixture already installed; existing changes preserved")
+            return
+
+        try:
+            # Start a single atomic write. If an SKU conflicts, nothing is added.
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "INSERT OR IGNORE INTO users (username, password_hash, role) "
+                "VALUES (?, ?, 'employee')",
+                ("system", hash_password(secrets.token_urlsafe(48))),
+            )
+            actor = connection.execute(
+                "SELECT id FROM users WHERE username = 'system'"
+            ).fetchone()[0]
+            for item in dataset["products"]:
+                name, sku = item["name"], item["sku"]
+                category = item["category"]
+                final_price = price_cents(item["price"])
+                initial_price = price_cents(item.get("previous_price", item["price"]))
+                final_stock = int(item["stock"])
+                initial_stock = int(item.get("previous_stock", final_stock))
+                threshold = item.get("low_stock_threshold")
+                if min(final_stock, initial_stock) < 0:
+                    raise ValueError("Stock cannot be negative")
+                if threshold is not None and (not isinstance(threshold, int) or threshold < 0):
+                    raise ValueError("Invalid demo stock threshold")
+                cursor = connection.execute(
+                    "INSERT INTO products "
+                    "(name, sku, category, price_cents, stock, low_stock_threshold) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    (name, sku, category, initial_price, initial_stock, threshold),
+                )
+                product_id = cursor.lastrowid
+                connection.execute(
+                    "INSERT INTO audit_log "
+                    "(product_id, actor_id, action, old_value, new_value) "
+                    "VALUES (?, ?, 'create', NULL, ?)",
+                    (product_id, actor,
+                     f"{name}|{sku}|{category}|{initial_price}|{initial_stock}"),
+                )
+                if initial_price != final_price:
+                    connection.execute(
+                        "UPDATE products SET price_cents = ? WHERE id = ?",
+                        (final_price, product_id),
+                    )
+                    connection.execute(
+                        "INSERT INTO audit_log "
+                        "(product_id, actor_id, action, old_value, new_value) "
+                        "VALUES (?, ?, 'price', ?, ?)",
+                        (product_id, actor, str(initial_price), str(final_price)),
+                    )
+                if initial_stock != final_stock:
+                    connection.execute(
+                        "UPDATE products SET stock = ? WHERE id = ?",
+                        (final_stock, product_id),
+                    )
+                    connection.execute(
+                        "INSERT INTO audit_log "
+                        "(product_id, actor_id, action, old_value, new_value) "
+                        "VALUES (?, ?, 'stock', ?, ?)",
+                        (product_id, actor, str(initial_stock), str(final_stock)),
+                    )
+                if item.get("archived", False):
+                    archived_at = "2026-11-12T09:00:00.000Z"
+                    connection.execute(
+                        "UPDATE products SET archived_at = ? WHERE id = ?",
+                        (archived_at, product_id),
+                    )
+                    connection.execute(
+                        "INSERT INTO audit_log "
+                        "(product_id, actor_id, action, old_value, new_value) "
+                        "VALUES (?, ?, 'archive', NULL, ?)",
+                        (product_id, actor, archived_at),
+                    )
+            for item in dataset["orders"]:
+                ordered_on = item["ordered_on"]
+                if date.fromisoformat(ordered_on).isoformat() != ordered_on:
+                    raise ValueError("Invalid demo order date")
+                status = item["status"]
+                if status not in ORDER_TRANSITIONS:
+                    raise ValueError("Invalid demo order status")
+                connection.execute(
+                    "INSERT INTO orders (ordered_on, amount_cents, status, source) "
+                    "VALUES (?, ?, ?, 'demo')",
+                    (ordered_on, price_cents(item["amount"]), status),
+                )
+            connection.execute(
+                "INSERT INTO demo_seed_state(fixture_id) VALUES (?)",
+                (dataset["fixture_id"],),
+            )
+            connection.commit()
+        except (sqlite3.Error, ValueError, TypeError, KeyError) as exc:
+            connection.rollback()
+            raise click.ClickException(f"Demo seeding aborted without partial data: {exc}") from exc
+        click.echo(
+            f"Demo fixture installed: {len(dataset['products'])} products, "
+            f"{len(dataset['orders'])} synthetic orders"
+        )
 
     @app.cli.command("backup-db")
     @click.argument("output_dir", type=click.Path(file_okay=False, path_type=Path))

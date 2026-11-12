@@ -1,0 +1,460 @@
+{
+  "fixture_id": "lz11-demo-v1",
+  "description": "Тек оқу үшін жасалған синтетикалық деректер; нақты Kaspi API тапсырыстары емес.",
+  "products": [
+    {
+      "name": "Сымсыз құлаққап Bluetooth",
+      "sku": "DEMO-AUD-001",
+      "category": "Электроника",
+      "price": "13990.00",
+      "stock": 18,
+      "low_stock_threshold": 5,
+      "previous_price": "12990.00"
+    },
+    {
+      "name": "Телефонға арналған қуаттағыш 20W",
+      "sku": "DEMO-ACC-002",
+      "category": "Электроника",
+      "price": "7490.00",
+      "stock": 4,
+      "low_stock_threshold": 6,
+      "previous_stock": 5
+    },
+    {
+      "name": "USB-C кабелі 1 м",
+      "sku": "DEMO-ACC-003",
+      "category": "Электроника",
+      "price": "2390.00",
+      "stock": 38,
+      "low_stock_threshold": 8
+    },
+    {
+      "name": "Қорғаныш әйнек 6.5 дюйм",
+      "sku": "DEMO-ACC-004",
+      "category": "Электроника",
+      "price": "1790.00",
+      "stock": 0,
+      "low_stock_threshold": 4,
+      "previous_stock": 2
+    },
+    {
+      "name": "Сымсыз тінтуір",
+      "sku": "DEMO-PC-005",
+      "category": "Электроника",
+      "price": "7490.00",
+      "stock": 11,
+      "low_stock_threshold": 5,
+      "previous_price": "6990.00"
+    },
+    {
+      "name": "Пернетақта қазақ/орыс",
+      "sku": "DEMO-PC-006",
+      "category": "Электроника",
+      "price": "9990.00",
+      "stock": 7,
+      "low_stock_threshold": 4
+    },
+    {
+      "name": "32 ГБ USB флеш-жад",
+      "sku": "DEMO-PC-007",
+      "category": "Электроника",
+      "price": "4990.00",
+      "stock": 19,
+      "low_stock_threshold": 5
+    },
+    {
+      "name": "Ноутбукке арналған сөмке",
+      "sku": "DEMO-PC-008",
+      "category": "Аксессуарлар",
+      "price": "11990.00",
+      "stock": 3,
+      "low_stock_threshold": 5,
+      "previous_stock": 5
+    },
+    {
+      "name": "Шәйнек электрлік 1.7 л",
+      "sku": "DEMO-HOM-009",
+      "category": "Үйге арналған",
+      "price": "19990.00",
+      "stock": 16,
+      "low_stock_threshold": 4,
+      "previous_price": "18990.00"
+    },
+    {
+      "name": "Термокружка 450 мл",
+      "sku": "DEMO-HOM-010",
+      "category": "Үйге арналған",
+      "price": "5490.00",
+      "stock": 27,
+      "low_stock_threshold": 6
+    },
+    {
+      "name": "Су бөтелкесі 750 мл",
+      "sku": "DEMO-HOM-011",
+      "category": "Үйге арналған",
+      "price": "3290.00",
+      "stock": 12,
+      "low_stock_threshold": 5
+    },
+    {
+      "name": "Үстел шамы LED",
+      "sku": "DEMO-HOM-012",
+      "category": "Үйге арналған",
+      "price": "8990.00",
+      "stock": 1,
+      "low_stock_threshold": 3,
+      "previous_stock": 3
+    },
+    {
+      "name": "Ыдыс жинағы 6 дана",
+      "sku": "DEMO-HOM-013",
+      "category": "Үйге арналған",
+      "price": "16490.00",
+      "stock": 9,
+      "low_stock_threshold": 4
+    },
+    {
+      "name": "Ас үйге арналған таразы",
+      "sku": "DEMO-HOM-014",
+      "category": "Үйге арналған",
+      "price": "7990.00",
+      "stock": 15,
+      "low_stock_threshold": 5
+    },
+    {
+      "name": "Дәптер A5 96 бет",
+      "sku": "DEMO-STA-015",
+      "category": "Кеңсе",
+      "price": "890.00",
+      "stock": 45,
+      "low_stock_threshold": 10
+    },
+    {
+      "name": "Қалам жиынтығы 10 дана",
+      "sku": "DEMO-STA-016",
+      "category": "Кеңсе",
+      "price": "1490.00",
+      "stock": 60,
+      "low_stock_threshold": 10
+    },
+    {
+      "name": "Маркер жинағы 6 түс",
+      "sku": "DEMO-STA-017",
+      "category": "Кеңсе",
+      "price": "2490.00",
+      "stock": 5,
+      "low_stock_threshold": 7,
+      "previous_stock": 7
+    },
+    {
+      "name": "Жоспарлағыш күнделік",
+      "sku": "DEMO-STA-018",
+      "category": "Кеңсе",
+      "price": "4290.00",
+      "stock": 21,
+      "low_stock_threshold": 5,
+      "previous_price": "3990.00"
+    },
+    {
+      "name": "Рюкзак қалалық 20 л",
+      "sku": "DEMO-BAG-019",
+      "category": "Аксессуарлар",
+      "price": "15990.00",
+      "stock": 8,
+      "low_stock_threshold": 4
+    },
+    {
+      "name": "Қолшатыр ықшам",
+      "sku": "DEMO-BAG-020",
+      "category": "Аксессуарлар",
+      "price": "6490.00",
+      "stock": 2,
+      "low_stock_threshold": 4,
+      "previous_stock": 4
+    },
+    {
+      "name": "Футболка базалық M",
+      "sku": "DEMO-CLO-021",
+      "category": "Киім",
+      "price": "5990.00",
+      "stock": 22,
+      "low_stock_threshold": 5
+    },
+    {
+      "name": "Кепка спорттық",
+      "sku": "DEMO-CLO-022",
+      "category": "Киім",
+      "price": "4990.00",
+      "stock": 13,
+      "low_stock_threshold": 5,
+      "previous_price": "4590.00"
+    },
+    {
+      "name": "Спорттық шұлық 3 жұп",
+      "sku": "DEMO-CLO-023",
+      "category": "Киім",
+      "price": "2690.00",
+      "stock": 14,
+      "low_stock_threshold": 5
+    },
+    {
+      "name": "Йога кілемшесі 6 мм",
+      "sku": "DEMO-SPT-024",
+      "category": "Спорт",
+      "price": "12990.00",
+      "stock": 6,
+      "low_stock_threshold": 3
+    },
+    {
+      "name": "Гантель 2 кг",
+      "sku": "DEMO-SPT-025",
+      "category": "Спорт",
+      "price": "6990.00",
+      "stock": 0,
+      "low_stock_threshold": 2,
+      "previous_stock": 2
+    },
+    {
+      "name": "Секіртпе реттелетін",
+      "sku": "DEMO-SPT-026",
+      "category": "Спорт",
+      "price": "2990.00",
+      "stock": 20,
+      "low_stock_threshold": 5
+    },
+    {
+      "name": "Бет күтіміне арналған сүлгі",
+      "sku": "DEMO-CARE-027",
+      "category": "Күтім",
+      "price": "1990.00",
+      "stock": 33,
+      "low_stock_threshold": 8
+    },
+    {
+      "name": "Сұйық сабын 500 мл",
+      "sku": "DEMO-CARE-028",
+      "category": "Күтім",
+      "price": "2290.00",
+      "stock": 28,
+      "low_stock_threshold": 8
+    },
+    {
+      "name": "Шампунь 400 мл",
+      "sku": "DEMO-CARE-029",
+      "category": "Күтім",
+      "price": "3490.00",
+      "stock": 10,
+      "low_stock_threshold": 5,
+      "previous_price": "3290.00"
+    },
+    {
+      "name": "Шаш тарағы",
+      "sku": "DEMO-CARE-030",
+      "category": "Күтім",
+      "price": "1390.00",
+      "stock": 7,
+      "low_stock_threshold": 5,
+      "previous_stock": 9
+    },
+    {
+      "name": "Архивтік телефон қабы",
+      "sku": "DEMO-ARCH-031",
+      "category": "Аксессуарлар",
+      "price": "990.00",
+      "stock": 2,
+      "low_stock_threshold": 4,
+      "archived": true
+    },
+    {
+      "name": "Архивтік дәптер жинағы",
+      "sku": "DEMO-ARCH-032",
+      "category": "Кеңсе",
+      "price": "1290.00",
+      "stock": 6,
+      "low_stock_threshold": 3,
+      "archived": true
+    }
+  ],
+  "orders": [
+    {
+      "ordered_on": "2026-11-03",
+      "amount": "15990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-03",
+      "amount": "7490.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-03",
+      "amount": "12990.00",
+      "status": "Бас тартылды"
+    },
+    {
+      "ordered_on": "2026-11-03",
+      "amount": "4990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-04",
+      "amount": "6490.00",
+      "status": "Жаңа"
+    },
+    {
+      "ordered_on": "2026-11-04",
+      "amount": "2390.00",
+      "status": "Өңделуде"
+    },
+    {
+      "ordered_on": "2026-11-04",
+      "amount": "5490.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-05",
+      "amount": "18990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-05",
+      "amount": "3290.00",
+      "status": "Бас тартылды"
+    },
+    {
+      "ordered_on": "2026-11-05",
+      "amount": "8990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-06",
+      "amount": "9990.00",
+      "status": "Жаңа"
+    },
+    {
+      "ordered_on": "2026-11-06",
+      "amount": "13990.00",
+      "status": "Өңделуде"
+    },
+    {
+      "ordered_on": "2026-11-06",
+      "amount": "2690.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-06",
+      "amount": "16490.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-07",
+      "amount": "5990.00",
+      "status": "Бас тартылды"
+    },
+    {
+      "ordered_on": "2026-11-07",
+      "amount": "2990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-07",
+      "amount": "2290.00",
+      "status": "Жаңа"
+    },
+    {
+      "ordered_on": "2026-11-08",
+      "amount": "3490.00",
+      "status": "Өңделуде"
+    },
+    {
+      "ordered_on": "2026-11-08",
+      "amount": "1290.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-08",
+      "amount": "10990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-09",
+      "amount": "12990.00",
+      "status": "Бас тартылды"
+    },
+    {
+      "ordered_on": "2026-11-09",
+      "amount": "4290.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-09",
+      "amount": "1790.00",
+      "status": "Жаңа"
+    },
+    {
+      "ordered_on": "2026-11-10",
+      "amount": "1490.00",
+      "status": "Өңделуде"
+    },
+    {
+      "ordered_on": "2026-11-10",
+      "amount": "3990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-10",
+      "amount": "6990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-10",
+      "amount": "4590.00",
+      "status": "Бас тартылды"
+    },
+    {
+      "ordered_on": "2026-11-11",
+      "amount": "2490.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-11",
+      "amount": "1990.00",
+      "status": "Жаңа"
+    },
+    {
+      "ordered_on": "2026-11-11",
+      "amount": "7990.00",
+      "status": "Өңделуде"
+    },
+    {
+      "ordered_on": "2026-11-12",
+      "amount": "11990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-12",
+      "amount": "8990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-12",
+      "amount": "7490.00",
+      "status": "Бас тартылды"
+    },
+    {
+      "ordered_on": "2026-11-13",
+      "amount": "9990.00",
+      "status": "Орындалды"
+    },
+    {
+      "ordered_on": "2026-11-13",
+      "amount": "15990.00",
+      "status": "Жаңа"
+    },
+    {
+      "ordered_on": "2026-11-13",
+      "amount": "5490.00",
+      "status": "Өңделуде"
+    }
+  ]
+}

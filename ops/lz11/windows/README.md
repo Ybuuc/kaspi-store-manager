@@ -88,3 +88,21 @@ Get-Content "$env:LOCALAPPDATA\KaspiStoreManagerLZ11\start-last.log" -Tail 60
 ```
 
 **Обновите свою локальную копию из GitHub**: исправлен способ вызова аргументов у общего PowerShell helper `Invoke-KsmCommand`; прежняя статическая CI-проверка не покрывала его вызов с реальными аргументами Docker/rclone. Не публикуйте пароли и полный журнал без проверки секретов.
+
+## Учебные данные после клонирования
+
+Файл `demo/lz11_seed.json` переносится в Docker-образ через `ops/lz11/Dockerfile`. Когда запускается `START_LZ11.cmd`, приложение устанавливает **32 искусственных товара и 36 заказов** при первом запуске текущего Docker volume. На следующих стартах ваши изменения сохраняются. Учётные записи и пароли не записаны в GitHub.
+
+На уже установленном стенде из `ksm-lz11-fixed` выполните `git pull`, затем повторно запустите `START_LZ11.cmd`. Администратора создавать заново не нужно, данные `admin` сохраняются в Docker volume.
+
+Наличие базы и количество строк можно проверить, не раскрывая пароли:
+
+```powershell
+cd "$HOME\ksm-lz11-fixed"
+. .\ops\lz11\windows\Common.ps1
+$env:KSM_SECRET_KEY = Get-KsmDemoSecret
+docker compose -f ops/lz11/compose.yaml exec app python -c "import sqlite3; c=sqlite3.connect('/app/instance/kaspi-store-manager.sqlite3'); print('products:',c.execute('SELECT count(*) FROM products').fetchone()[0]); print('orders:',c.execute('SELECT count(*) FROM orders').fetchone()[0]); c.close()"
+Remove-Item Env:KSM_SECRET_KEY
+```
+
+**Не удаляйте Docker volumes**, чтобы не потерять созданного администратора и пользовательские изменения.
