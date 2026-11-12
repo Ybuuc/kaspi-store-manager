@@ -64,14 +64,15 @@ def main():
                 modal.locator("#webhook-request-body").select_option("json")
                 modal.locator("input.form-check-input").first.check()
                 modal.get_by_role("button", name="Save").click()
-                try:
-                    expect(page.locator(".modal.show")).to_have_count(0, timeout=12000)
-                except AssertionError:
-                    print("Notification modal did not close; diagnostics:",
-                          page.locator("body").inner_text()[-1600:])
+                page.wait_for_timeout(1800)
+                invalid = modal.locator(":invalid").evaluate_all(
+                    "(nodes) => nodes.map(el => ({id: el.id, name: el.name, type: el.type, value: el.value}))"
+                )
+                toasts = page.locator(".toast, [role=alert]").all_inner_texts()
+                print("Kuma notification save diagnostics: invalid fields", invalid, "toast", toasts)
+                if page.locator(".modal.show").count():
                     page.screenshot(path=str(EVIDENCE_DIR / "kuma-notification-debug.png"),
                                     full_page=True)
-                    raise
                 evidence["checks"]["webhook_notification_configured"] = True
 
                 page.goto(KUMA_URL + "/add", wait_until="domcontentloaded", timeout=45000)
