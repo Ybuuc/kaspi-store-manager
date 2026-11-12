@@ -57,7 +57,7 @@ def main():
                 page.get_by_test_id("url-input").fill(MONITOR_URL)
                 page.locator("#interval").fill("20")
                 page.get_by_test_id("save-button").click()
-                page.wait_for_url(re.compile(r".*/dashboard/\\d+$"), timeout=60000)
+                page.wait_for_url(re.compile(r".*/dashboard/\d+$"), timeout=60000)
                 evidence["monitor_detail_url_path"] = "/" + page.url.split(KUMA_URL + "/", 1)[-1]
                 status = page.get_by_test_id("monitor-status")
 
