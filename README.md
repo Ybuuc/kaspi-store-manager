@@ -193,3 +193,7 @@ mkdir -p ../ksm-backups
 
 Пайплайн, дашборд на реальной истории GitHub, правила ревью и план релиза:
 [docs/ci-cd/lz10](docs/ci-cd/lz10/README.md).
+
+## ЛЗ 11 — тестирование, UAT, postmortem и runbook
+- [Материалы ЛЗ 11: план, UAT, postmortem, runbook и проверки](docs/qa/lz11/README.md)
+- [Черновик PR #68 для ревью и запуска приемки](https://github.com/Ybuuc/kaspi-store-manager/pull/68)

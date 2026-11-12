@@ -15,7 +15,14 @@
 
 ## Восстановление (5–15 минут для учебной цели, не обещанный SLA)
 1. Если проблема только в процессе приложения, перезапустить **только app**: `docker compose -f ops/lz11/compose.yaml restart app`.
-2. Если откат кода необходим: остановить стенд, записать текущий commit и сделать **согласованный** backup SQLite с помощью `python -m flask --app app:create_app backup-db <существующий внешний каталог>`. В Docker volume копию переносить наружу после проверки; команды backup и пути согласовать заранее.
+2. Если откат кода необходим: записать текущий commit, создать каталог для снимков **в Docker volume** и сделать согласованную SQLite-копию командой приложения (можно при работающем app):
+   ```powershell
+   docker compose -f ops/lz11/compose.yaml exec app mkdir -p /app/instance/backups
+   docker compose -f ops/lz11/compose.yaml exec app python -m flask --app app:create_app backup-db /app/instance/backups
+   New-Item -ItemType Directory -Force -Path ..\\ksm-backups
+   docker compose -f ops/lz11/compose.yaml cp app:/app/instance/backups/. ../ksm-backups
+   ```
+   Проверить имя и целостность созданного файла; хранить копии **вне репозитория**. Команда backup-db требует предварительно существующий каталог, не использовать `docker compose down -v`.
 3. Вернуться к заранее проверенному commit/release **через отдельную рабочую копию** и выполнить `docker compose ... up -d --build`. Не откатывать БД автоматически вместе с кодом: в ней могли появиться новые операции.
 4. Если есть признаки SQLite corruption: остановить app, скопировать текущий файл БД как артефакт в безопасное место, восстановить последний **проверенный** backup в отдельной копии, выполнить `PRAGMA integrity_check`. Перед переключением сравнить заказы после времени backup (RPO), решение согласовать с владельцем данных. Не заменять базу «вслепую».
 5. Smoke: `/login`=200, анонимный `/products`→302 на login, вход test employee, каталог→200, `/orders`→200; admin-путь под Employee→403. Зафиксировать продолжительность обнаружения/восстановления и точные timestamps.

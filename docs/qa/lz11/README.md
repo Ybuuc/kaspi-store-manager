@@ -19,3 +19,9 @@
 - [#67 — Независимая UAT-сессия](https://github.com/Ybuuc/kaspi-store-manager/issues/67), срок организации 19.11.2026.
 
 **Важно:** наличие файлов, issue и автоматических проверок не равно подписанной приемке. Не следует заполнять результаты за другую команду или считать учебный отказ реальным производственным инцидентом.
+
+## Подтвержденные автоматические проверки — 12.11.2026
+- [pytest CI: 27 passed](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43274333617) — 23 исходных + 4 новых теста.
+- [Application tests: success](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43274923670).
+- [Trivy + Gitleaks security scans: success после запуска контейнера от непривилегированного пользователя](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43274923600).
+- [Полная ведомость фактов и ограничений](verification.md).
