@@ -6,7 +6,7 @@
 |---|---|---|
 | Стратегия и матрица проверок | [test-plan.md](test-plan.md) | Подготовлено; результаты запуска отдельно |
 | 10 независимых UAT-сценариев | [uat-scenarios.md](uat-scenarios.md) | Готовы к исполнению |
-| Протокол UAT | [uat-protocol.md](uat-protocol.md) | **Не проведён**: ожидается другая команда |
+| [Памятка независимому заказчику](uat-facilitator.md) | [uat-facilitator.md](uat-facilitator.md) | Подготовлено приглашение; команда ещё не согласована |\n| Протокол UAT | [uat-protocol.md](uat-protocol.md) | **Не проведён**: ожидается другая команда |
 | Blameless postmortem | [postmortem.md](postmortem.md) | Учебный разбор **имитации** HTTP 503 от 03.11.2026 |
 | Runbook отказа демо-стенда | [runbook.md](runbook.md) | Подготовлено; ручной прогон на новом стенде ожидается |
 | Docker + Uptime Kuma | [../../../ops/lz11/compose.yaml](../../../ops/lz11/compose.yaml) | Конфигурация подготовлена; факт запуска пока не подтверждён |
@@ -25,3 +25,7 @@
 - [Application tests: success](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43274923670).
 - [Trivy + Gitleaks security scans: success после запуска контейнера от непривилегированного пользователя](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43274923600).
 - [Полная ведомость фактов и ограничений](verification.md).
+
+## Завершённая практика на GitHub runner — 12.11.2026
+
+[Успешный live QA workflow](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43280650094) проверил Flask + Kuma в Docker, Playwright, Bruno, k6 (5 VU, 15 с, 80/80 checks) и искусственную недоступность с восстановлением UP → DOWN → UP. [9 файлов-доказательств](https://github.com/Ybuuc/kaspi-store-manager/actions/runs/43280650094/artifacts/13973270776) доступны как артефакт выполнения (до 26.11.2026); числа и ограничения сохранены в [verification.md](verification.md). **UAT другой командой не проводился** — [#67](https://github.com/Ybuuc/kaspi-store-manager/issues/67).
