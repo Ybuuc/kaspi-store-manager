@@ -197,3 +197,7 @@ mkdir -p ../ksm-backups
 ## ЛЗ 11 — тестирование, UAT, postmortem и runbook
 - [Материалы ЛЗ 11: план, UAT, postmortem, runbook и проверки](docs/qa/lz11/README.md)
 - [Черновик PR #68 для ревью и запуска приемки](https://github.com/Ybuuc/kaspi-store-manager/pull/68)
+
+## ЛЗ №11 — запуск на Windows и резервирование вне компьютера
+
+[Инструкция и инструменты Windows + Docker Desktop + rclone + Google Drive](ops/lz11/windows/README.md). Для запуска через двойной клик: `ops/lz11/windows/START_LZ11.cmd`, затем `ops/lz11/windows/OFFSITE_LZ11.cmd`. Скрипты прошли лишь статическую проверку на Windows GitHub runner, **не запускались на компьютере владельца и не выполняли загрузку в его Google Drive**. Для независимой приёмки: [UAT-протокол](docs/qa/lz11/uat-protocol.md), [#67](https://github.com/Ybuuc/kaspi-store-manager/issues/67). Финальный Word-отчёт до независимой UAT не считать завершённым.
