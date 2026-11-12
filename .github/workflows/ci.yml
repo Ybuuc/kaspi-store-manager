@@ -72,11 +72,26 @@ jobs:
           python -m pip install -r /tmp/ksm-release/requirements.lock
           cd /tmp/ksm-release
           python - <<'PY'
-          from app import create_app
+          import sqlite3
+          from app import create_app, hash_password
           app = create_app({'TESTING': True, 'SECRET_KEY': 'build-smoke-only'})
           result = app.test_cli_runner().invoke(args=['init-db'])
           assert result.exit_code == 0, result.output
-          assert app.test_client().get('/login').status_code == 200
+          client = app.test_client()
+          assert client.get('/login').status_code == 200
+          assert client.get('/products').status_code == 302
+          with sqlite3.connect(app.config['DATABASE']) as db:
+              db.execute('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+                         ('release-employee', hash_password('synthetic-release-password'), 'employee'))
+          assert client.post('/login', data={
+              'username': 'release-employee',
+              'password': 'synthetic-release-password',
+          }).status_code == 302
+          assert client.get('/products').status_code == 200
+          assert client.get('/orders').status_code == 200
+          assert client.get('/admin').status_code == 403
+          assert client.get('/reports/sales').status_code == 403
+          print('Release smoke: login, catalog, orders and RBAC PASS')
           PY
       - uses: actions/upload-artifact@v4
         with:
