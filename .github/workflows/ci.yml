@@ -33,8 +33,9 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-      - run: python -m pip install -r requirements.lock
-      - run: python -m unittest discover -s tests -v
+      - run: python -m pip install -r requirements.lock pytest==8.4.2
+      - name: Release gate — all 37 tests including UAT technical preflight
+        run: python -m pytest -q tests/test_app.py tests/lz11/test_contract.py tests/lz11/test_uat_preflight.py
 
   dependencies:
     runs-on: ubuntu-latest

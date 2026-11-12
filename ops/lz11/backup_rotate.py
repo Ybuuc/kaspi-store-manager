@@ -63,7 +63,7 @@ def main():
     temp_output = DEST / f".{name}.pending"
 
     try:
-        with closing(sqlite3.connect(str(DB), timeout=30)) as source:
+        with closing(sqlite3.connect(f"file:{DB.as_posix()}?mode=ro", uri=True, timeout=30)) as source:
             source.execute("PRAGMA busy_timeout=30000")
             with closing(sqlite3.connect(str(temp_output))) as backup:
                 source.backup(backup, pages=100, sleep=0.05)

@@ -47,3 +47,15 @@ docker compose -f ops/lz11/compose.yaml exec app python -m flask --app app:creat
 docker compose -f ops/lz11/compose.yaml ps
 docker compose -f ops/lz11/compose.yaml down  # без -v, чтобы сохранить данные
 ```
+
+## Автоматические резервные копии в отдельный volume (учебное окружение)
+
+В `compose.yaml` есть дополнительный профиль `scheduled-backups`, выключенный по умолчанию. После создания учебной БД можно включить его из корня репозитория:
+
+```powershell
+docker compose -f ops/lz11/compose.yaml --profile scheduled-backups up -d --build
+# Проверка работы сервиса и логов:
+docker compose -f ops/lz11/compose.yaml logs --tail=30 backup-worker
+```
+
+Сервис каждые **900 секунд (15 минут)** выполняет согласованное SQLite online backup в отдельном именованном Docker volume `ksm_demo_backups`, восстанавливает снимок во временную БД для integrity/foreign-key и сверки контрольного отпечатка, затем удаляет собственные backup-файлы старше **30 суток**. На GitHub CI фактически проверяется старт и первая копия, но **не непрерывная 30-дневная работа**. Это не offsite backup: данные всё ещё на том же хосте. Для отказоустойчивости нужна дополнительная копия на внешний носитель или в Google Drive (например, rclone), и её фактическая проверка. Нельзя считать гарантированным RPO≤15 мин без измерения непрерывных циклов, задержек и восстановления после выключения компьютера. Никогда не применять `docker compose down -v` — это удалит БД и резервные копии.

@@ -61,6 +61,31 @@ jobs:
         run: |
           docker compose -f ops/lz11/compose.yaml exec -T app python /app/ops/lz11/backup_rotate.py | tee reports/lz11/backup-restore.json
 
+      - name: Verify separately scheduled 15-minute backup worker and persistent backup volume
+        if: steps.boot.outcome == 'success'
+        run: |
+          docker compose -f ops/lz11/compose.yaml --profile scheduled-backups up -d --build backup-worker
+          python3 - <<'PY'
+          import json,subprocess,time
+          cmd=["docker","compose","-f","ops/lz11/compose.yaml","exec","-T","backup-worker",
+               "python","-c",
+               "from pathlib import Path; print(len(list(Path('/app/backups').glob('ksm-daily-*.sqlite3'))))"]
+          deadline=time.monotonic()+45
+          while time.monotonic()<deadline:
+              proc=subprocess.run(cmd,capture_output=True,text=True)
+              if proc.returncode==0 and proc.stdout.strip().isdigit() and int(proc.stdout.strip())>=1:
+                  proof={"status":"PASS","type":"separate named-volume scheduled-backup worker",
+                         "interval_seconds":900,"retention_days":30,
+                         "initial_backups":int(proc.stdout.strip())}
+                  with open("reports/lz11/backup-worker.json","w",encoding="utf-8") as out:
+                      json.dump(proof,out,indent=2)
+                  print(json.dumps(proof))
+                  break
+              time.sleep(2)
+          else:
+              raise RuntimeError("Scheduled backup worker did not create an initial backup")
+          PY
+
       - name: 200 virtual users for 30 seconds (NFR-01)
         id: nfr200
         if: steps.boot.outcome == 'success'
