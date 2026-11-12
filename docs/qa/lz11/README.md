@@ -6,7 +6,8 @@
 |---|---|---|
 | Стратегия и матрица проверок | [test-plan.md](test-plan.md) | Подготовлено; результаты запуска отдельно |
 | 10 независимых UAT-сценариев | [uat-scenarios.md](uat-scenarios.md) | Готовы к исполнению |
-| [Памятка независимому заказчику](uat-facilitator.md) | [uat-facilitator.md](uat-facilitator.md) | Подготовлено приглашение; команда ещё не согласована |\n| Протокол UAT | [uat-protocol.md](uat-protocol.md) | **Не проведён**: ожидается другая команда |
+| [Памятка независимому заказчику](uat-facilitator.md) | [uat-facilitator.md](uat-facilitator.md) | Подготовлено приглашение; команда ещё не согласована |
+| Протокол UAT | [uat-protocol.md](uat-protocol.md) | **Не проведён**: ожидается другая команда |
 | Blameless postmortem | [postmortem.md](postmortem.md) | Учебный разбор **имитации** HTTP 503 от 03.11.2026 |
 | Runbook отказа демо-стенда | [runbook.md](runbook.md) | Подготовлено; ручной прогон на новом стенде ожидается |
 | Docker + Uptime Kuma | [../../../ops/lz11/compose.yaml](../../../ops/lz11/compose.yaml) | Конфигурация подготовлена; факт запуска пока не подтверждён |
