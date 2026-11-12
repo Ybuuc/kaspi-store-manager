@@ -1,0 +1,38 @@
+# Teaching demo: localhost-only ports and isolated synthetic SQLite data.
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: ops/lz11/Dockerfile
+    restart: unless-stopped
+    environment:
+      KSM_SECRET_KEY: ${KSM_SECRET_KEY:?Set KSM_SECRET_KEY in the shell before starting}
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - ksm_demo_instance:/app/instance
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/login', timeout=3).read()"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - kuma_demo_data:/app/data
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  ksm_demo_instance:
+  kuma_demo_data:

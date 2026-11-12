@@ -1,0 +1,17 @@
+meta {
+  name: Unknown route responds 404
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/lz11-this-route-must-not-exist
+  body: none
+  auth: none
+}
+
+tests {
+  test("unknown route responds 404", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+}
