@@ -1,0 +1,40 @@
+name: LZ11 Windows offsite script static validation
+
+on:
+  push:
+    branches: [lz11-qa-uat-postmortem]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-script-validation:
+    runs-on: windows-2022
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+      - name: PowerShell syntax parser on all local setup files
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @(Get-ChildItem ops/lz11/windows -Filter '*.ps1')
+          if ($files.Count -lt 4) { throw 'Expected four scripts' }
+          foreach ($file in $files) {
+            $tokens = $null
+            $parseErrors = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$parseErrors)
+            if ($parseErrors.Count -ne 0) {
+              throw ('Parse failed: ' + $file.Name + ': ' + ($parseErrors | Out-String))
+            }
+            Write-Host ('Parsed: ' + $file.Name)
+          }
+      - name: No-op smoke without Docker, rclone, registry or task changes
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & .\ops\lz11\windows\Start-LZ11.ps1 -ValidateOnly
+          & .\ops\lz11\windows\Export-Backups.ps1 -ValidateOnly
+          & .\ops\lz11\windows\Install-OffsiteTask.ps1 -ValidateOnly
+          Write-Host "Static Windows setup verification PASS"
