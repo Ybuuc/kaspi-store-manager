@@ -14,4 +14,4 @@ COPY static/ /app/static/
 RUN mkdir -p /app/instance /app/backups /app/alerts && chown -R ksm:ksm /app/instance /app/backups /app/alerts
 USER ksm
 EXPOSE 5000
-CMD ["sh", "-c", "python -m flask --app app:create_app init-db && python -m flask --app app:create_app seed-demo && exec gunicorn --bind 0.0.0.0:5000 --workers 2 --threads 16 --timeout 60 app:create_app()"]
+CMD ["sh", "-c", "python -m flask --app app:create_app init-db && python -m flask --app app:create_app seed-demo && exec gunicorn --bind 0.0.0.0:5000 --workers 2 --threads 16 --timeout 60 'app:create_app()'"]
