@@ -274,8 +274,11 @@ def create_app(test_config=None):
                         db().commit()
                     error = "Логин немесе құпиясөз қате."
                 else:
-                    db().execute("UPDATE users SET failed_attempts = 0, locked_until = 0 WHERE id = ?", (user["id"],))
-                    db().commit()
+                    # Avoid a needless SQLite write for every correct login. Reset
+                    # counters only after failed attempts/lockout have occurred.
+                    if user["failed_attempts"] or user["locked_until"]:
+                        db().execute("UPDATE users SET failed_attempts = 0, locked_until = 0 WHERE id = ?", (user["id"],))
+                        db().commit()
                     session.clear()
                     session["user_id"] = user["id"]
                     return redirect(url_for("products"))
