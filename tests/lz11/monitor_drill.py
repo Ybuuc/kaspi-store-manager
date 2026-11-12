@@ -42,8 +42,11 @@ def main():
         with UptimeKumaApi(os.environ.get("KUMA_URL", "http://127.0.0.1:3001"), timeout=25) as api:
             user = os.environ.get("KUMA_ADMIN_USER", "lz11-ci")
             password = os.environ["KUMA_ADMIN_PASSWORD"]
-            if api.need_setup():
-                api.setup(user, password)
+            # This is a new disposable CI volume: no existing admin to check.
+            # Kuma 2 emits 'setup' before it handles needSetup reliably.
+            result_setup = api.setup(user, password)
+            if result_setup.get('ok') is False:
+                raise RuntimeError('Kuma setup rejected initial administrator')
             api.login(user, password)
             result = api.add_monitor(type=MonitorType.HTTP,
                                      name="KSM login (CI synthetic)",

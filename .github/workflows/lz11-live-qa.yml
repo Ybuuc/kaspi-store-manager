@@ -1,8 +1,7 @@
 name: LZ11 live demo QA (Docker, Playwright, Bruno, k6, Kuma)
 on:
-  pull_request:
   push:
-    branches: [lz11-qa-uat-postmortem]
+    branches: [main, lz11-qa-uat-postmortem]
   workflow_dispatch:
 permissions:
   contents: read
