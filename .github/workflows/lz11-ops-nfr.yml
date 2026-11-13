@@ -126,12 +126,12 @@ jobs:
               raise RuntimeError("App did not recover")
           recovery=round(time.monotonic()-start,3)
           verified=subprocess.run(compose+["exec","-T","app","python","-c",
-              "import sqlite3; c=sqlite3.connect('/app/instance/kaspi-store-manager.sqlite3'); assert c.execute('select count(*) from products').fetchone()[0]==100; assert c.execute('pragma integrity_check').fetchone()[0]=='ok'; print('SQLite fixtures intact')"],
+              "import sqlite3; c=sqlite3.connect('/app/instance/kaspi-store-manager.sqlite3'); assert c.execute('select count(*) from products').fetchone()[0]==132; assert c.execute('pragma integrity_check').fetchone()[0]=='ok'; print('SQLite fixtures intact')"],
               check=True,capture_output=True,text=True)
           print(verified.stdout)
           record={"type":"synthetic runbook stop/start","status":"PASS",
                   "observed_app_down":True,"recovered_http_200":True,
-                  "sqlite_fixture_products":100,"recovery_seconds":recovery}
+                  "sqlite_fixture_products":132,"recovery_seconds":recovery}
           open("reports/lz11/rollback-drill.json","w",encoding="utf-8").write(json.dumps(record,indent=2))
           print(json.dumps(record))
           PY
