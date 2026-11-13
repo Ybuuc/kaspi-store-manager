@@ -36,7 +36,7 @@ if ($null -ne $existing -and -not $ReplaceExisting) {
 }
 $script = Join-Path $PSScriptRoot "Export-Backups.ps1"
 $psExe = Join-Path $PSHOME "powershell.exe"
-$arguments = ('-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{0}" -Remote "{1}"' -f $script, $Remote)
+$arguments = ('-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}" -Remote "{1}"' -f $script, $Remote)
 $action = New-ScheduledTaskAction -Execute $psExe -Argument $arguments
 $trigger = New-ScheduledTaskTrigger -Once -At ((Get-Date).AddMinutes(2)) -RepetitionInterval (New-TimeSpan -Minutes 15) -RepetitionDuration (New-TimeSpan -Days 3650)
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name

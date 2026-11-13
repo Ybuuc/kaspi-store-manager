@@ -106,3 +106,32 @@ Remove-Item Env:KSM_SECRET_KEY
 ```
 
 **Не удаляйте Docker volumes**, чтобы не потерять созданного администратора и пользовательские изменения.
+
+
+## Окна PowerShell при входе в Windows (исправление от 13.11.2026)
+
+В старой версии `KaspiStoreManagerLZ11.cmd` запускался из папки автозагрузки немедленно, до запуска Docker Desktop, и мог открывать консоль с `dockerDesktopLinuxEngine` ошибкой. Резервный экспорт запускал отдельное видимое окно PowerShell каждые 15 минут. Это **учебные сценарии проекта**, а не неизвестный системный процесс.
+
+Для исправления в существующем клоне:
+
+```powershell
+cd "$HOME\ksm-lz11-fixed"
+git pull --ff-only origin lz11-qa-uat-postmortem
+& .\ops\lz11\windows\Repair-Autostart.ps1
+```
+
+После этого пользовательская автозагрузка через `Startup\KaspiStoreManagerLZ11.cmd` переименовывается в `.cmd.disabled` (только после успешного создания нового задания). Вместо неё задача `KaspiStoreManagerLZ11-Start` запускается под текущим пользователем **с задержкой 1 минута**, скрытым PowerShell и ожиданием Docker Desktop. Если движок не готов, сценарий прекращается с записью в `start-last.log`, без всплывающего красного окна; данные Docker volumes не удаляются. `KaspiStoreManagerLZ11-OffsiteCopy` сохраняет имя и назначение Google Drive, получает скрытый режим `-WindowStyle Hidden` и новое расписание каждые 15 минут. Если Docker Desktop отсутствует или не работает, успешную копию не обещаем — проверяйте `LastTaskResult` и `last-offsite-check.json`.
+
+Проверить задания:
+
+```powershell
+Get-ScheduledTask -TaskName "KaspiStoreManagerLZ11*" | Select-Object TaskName,State
+Get-ScheduledTaskInfo -TaskName "KaspiStoreManagerLZ11-OffsiteCopy" | Format-List LastRunTime,LastTaskResult,NextRunTime
+Get-Content "$env:LOCALAPPDATA\KaspiStoreManagerLZ11\start-last.log" -Tail 30
+```
+
+**Отключить** логон-запуск, оставив базу и Google Drive без изменений:
+
+```powershell
+& .\ops\lz11\windows\Install-StartupTask.ps1 -Remove
+```

@@ -21,7 +21,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $files = @(Get-ChildItem ops/lz11/windows -Filter '*.ps1')
-          if ($files.Count -lt 4) { throw 'Expected four scripts' }
+          if ($files.Count -lt 6) { throw 'Expected six scripts' }
           foreach ($file in $files) {
             $tokens = $null
             $parseErrors = $null
@@ -37,6 +37,8 @@ jobs:
           & .\ops\lz11\windows\Start-LZ11.ps1 -ValidateOnly
           & .\ops\lz11\windows\Export-Backups.ps1 -ValidateOnly
           & .\ops\lz11\windows\Install-OffsiteTask.ps1 -ValidateOnly
+          & .\ops\lz11\windows\Install-StartupTask.ps1 -ValidateOnly
+          & .\ops\lz11\windows\Repair-Autostart.ps1 -ValidateOnly
           Write-Host "Static Windows setup verification PASS"
       - name: Verify PowerShell helper argument forwarding and native errors
         run: |
@@ -56,3 +58,21 @@ jobs:
           Write-Host 'PASS: native command forwards arguments and reports exit code 7'
           $source = (Get-Content ops/lz11/windows/Start-LZ11.ps1 -Raw) + (Get-Content ops/lz11/windows/Export-Backups.ps1 -Raw)
           if ($source -match 'Invoke-KsmCommand\s+"(docker|rclone)"\s+@\(') { throw 'Positional array-splat calls are forbidden' }
+
+      - name: Verify hidden scheduled launch and quiet daemon diagnostics
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $startup = Get-Content ops/lz11/windows/Install-StartupTask.ps1 -Raw
+          $offsite = Get-Content ops/lz11/windows/Install-OffsiteTask.ps1 -Raw
+          $script = Get-Content ops/lz11/windows/Start-LZ11.ps1 -Raw
+          foreach ($token in @('-AtLogOn','PT1M','-WindowStyle Hidden','-QuietStartup')) {
+            if ($startup -notlike "*$token*") { throw "Missing startup setting: $token" }
+          }
+          if ($offsite -notlike '*-WindowStyle Hidden*') { throw 'Offsite console is not hidden' }
+          if ($script -notlike '*CreateNoWindow = $true*') { throw 'Docker daemon probe may show console errors' }
+          if ($script -notlike '*-QuietStartup*' -and $script -notlike '*$QuietStartup*') { throw 'Quiet startup not present' }
+          $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+          $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
+          $trigger.Delay = 'PT1M'
+          if ($trigger.Delay -ne 'PT1M') { throw 'Cannot configure startup delay' }
+          Write-Host 'Hidden startup and offsite setup validation PASS; no actual task registered'

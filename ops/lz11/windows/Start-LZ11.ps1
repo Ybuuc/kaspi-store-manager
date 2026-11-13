@@ -1,6 +1,7 @@
 param(
     [switch]$InstallAutoStart,
-    [switch]$ValidateOnly
+    [switch]$ValidateOnly,
+    [switch]$QuietStartup
 )
 . (Join-Path $PSScriptRoot "Common.ps1")
 
@@ -25,20 +26,48 @@ try {
     }
     Write-Host "[2/6] Waiting for Docker Desktop engine..." -ForegroundColor Cyan
     $env:KSM_SECRET_KEY = Get-KsmDemoSecret -CreateIfMissing
+    # Avoid NativeCommandError/STDERR spam when Docker Desktop's named pipe
+    # is not created yet. Launch docker info without a visible console.
     $ready = $false
-    for ($n = 0; $n -lt 30; $n++) {
+    $desktop = Join-Path ${env:ProgramFiles} "Docker\Docker\Docker Desktop.exe"
+    if ($QuietStartup -and (Test-Path -LiteralPath $desktop) -and
+        -not (Get-Process -Name "Docker Desktop" -ErrorAction SilentlyContinue)) {
+        Write-Host "Docker Desktop is not running; opening it after sign-in."
         try {
-            & $docker.Source info --format "{{.ServerVersion}}" 2>$null | Out-Null
-            if ($LASTEXITCODE -eq 0) {
+            Start-Process -FilePath $desktop -WindowStyle Minimized | Out-Null
+        } catch {
+            Write-Host ("Docker Desktop launch was unsuccessful: " + $_.Exception.Message)
+        }
+    }
+    for ($n = 0; $n -lt 30; $n++) {
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = $docker.Source
+        $psi.Arguments = 'info --format "{{.ServerVersion}}"'
+        $psi.UseShellExecute = $false
+        $psi.CreateNoWindow = $true
+        $psi.RedirectStandardOutput = $true
+        $psi.RedirectStandardError = $true
+        $process = [System.Diagnostics.Process]::Start($psi)
+        try {
+            if ($process.WaitForExit(4500) -and $process.ExitCode -eq 0) {
                 $ready = $true
                 break
             }
-        } catch {
-            # Docker Desktop may still be starting after Windows logon.
+            if (-not $process.HasExited) {
+                $process.Kill()
+                $process.WaitForExit()
+            }
+        } finally {
+            $process.Dispose()
+        }
+        if ((($n + 1) % 6) -eq 0) {
+            Write-Host ("Docker Engine not ready; retry {0}/30" -f ($n + 1))
         }
         Start-Sleep -Seconds 5
     }
-    if (-not $ready) { throw "Docker Desktop engine is not ready. Open Docker Desktop and wait for Engine running." }
+    if (-not $ready) {
+        throw "Docker Desktop engine is not ready. Start Docker Desktop, then run START_LZ11.cmd manually."
+    }
 
     Write-Host "[3/6] Checking Compose..." -ForegroundColor Cyan
     Invoke-KsmCommand -Executable "docker" -Arguments @("compose", "-f", $compose, "config", "-q")
@@ -67,19 +96,14 @@ try {
     Write-Output "KUMA: http://127.0.0.1:3001 (configure one-time administrator and monitor)"
     Write-Output "Backup worker: first backup runs on startup, then every 900 seconds while Docker runs"
     if ($InstallAutoStart) {
-        # Explicit opt-in. Per-user Startup folder; no administrator access requested.
-        $startup = [Environment]::GetFolderPath("Startup")
-        if (-not (Test-Path $startup)) { throw "Current-user Startup directory not found" }
-        $launcher = Join-Path $startup "KaspiStoreManagerLZ11.cmd"
-        $script = Join-Path $PSScriptRoot "Start-LZ11.ps1"
-        $lines = @(
-            "@echo off",
-            ('powershell.exe -NoProfile -ExecutionPolicy Bypass -File "{0}"' -f $script)
-        )
-        [IO.File]::WriteAllLines($launcher, $lines, [Text.Encoding]::ASCII)
-        Write-Output ("Auto-start registered for current user: {0}" -f $launcher)
+        & (Join-Path $PSScriptRoot "Install-StartupTask.ps1") -ReplaceExisting
     }
 } catch {
+    if ($QuietStartup) {
+        Write-Host ("BACKGROUND START SKIPPED: " + $_.Exception.Message) -ForegroundColor Yellow
+        Write-Host ("Review: " + $logFile)
+        return
+    }
     Write-Host ("START FAILED: " + $_.Exception.Message) -ForegroundColor Red
     Write-Host ("Diagnostic log: " + $logFile) -ForegroundColor Yellow
     throw
