@@ -1,0 +1,72 @@
+# Teaching demo: localhost-only ports and isolated synthetic SQLite data.
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: ops/lz11/Dockerfile
+    restart: unless-stopped
+    environment:
+      KSM_SECRET_KEY: ${KSM_SECRET_KEY:?Set KSM_SECRET_KEY in the shell before starting}
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - ksm_demo_instance:/app/instance
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/login', timeout=3).read()"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    environment:
+      UPTIME_KUMA_DB_TYPE: sqlite
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - kuma_demo_data:/app/data
+    depends_on:
+      app:
+        condition: service_healthy
+
+  backup-worker:
+    # Start explicitly with: docker compose --profile scheduled-backups up -d --build
+    profiles: [scheduled-backups]
+    build:
+      context: ../..
+      dockerfile: ops/lz11/Dockerfile
+    restart: unless-stopped
+    command: ["sh", "-c", "while true; do python /app/ops/lz11/backup_rotate.py; sleep 900; done"]
+    environment:
+      KSM_BACKUP_DIR: /app/backups
+    volumes:
+      - ksm_demo_instance:/app/instance:ro
+      - ksm_demo_backups:/app/backups
+    depends_on:
+      app:
+        condition: service_healthy
+
+  alert-sink:
+    # Only used to verify local notification delivery in disposable CI.
+    profiles: [ci-alerts]
+    build:
+      context: ../..
+      dockerfile: ops/lz11/Dockerfile
+    command: ["python", "/app/ops/lz11/alert_sink.py"]
+    environment:
+      KSM_ALERT_LOG: /app/alerts/notifications.jsonl
+    volumes:
+      - ksm_demo_alerts:/app/alerts
+    # No host port: reachable only on the Compose network.
+
+volumes:
+  ksm_demo_instance:
+  kuma_demo_data:
+  ksm_demo_backups:
+  ksm_demo_alerts:

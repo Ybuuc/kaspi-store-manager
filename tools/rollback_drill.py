@@ -177,7 +177,9 @@ def drill(work, report):
               "restored_data_match_backup": True, "fixture_orders_before": len(initial["orders"]),
               "fixture_orders_after_code_rollback": len(expected["orders"]),
               "target_seconds": 900, "passed": code_seconds < 900 and restore_seconds < 900,
-              "limitations": ["Both versions use the same app.py; current release changes CI/docs/tools",
+              "limitations": [("Both versions share app.py; release changes are packaging/CI-only"
+                              if (previous / "app.py").read_bytes() == (candidate / "app.py").read_bytes()
+                              else "App versions differ; this rehearsal verifies package rollback only, not production compatibility"),
                               "Same local Python environment, not a separate production host",
                               "Automated smoke only; no 15-minute observation or manual acceptance",
                               "Database-restore scenario has no post-backup writes; lost-write reconciliation not rehearsed"],

@@ -1,0 +1,17 @@
+meta {
+  name: Public login responds 200
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/login
+  body: none
+  auth: none
+}
+
+tests {
+  test("login page responds 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

@@ -14,6 +14,7 @@ def build():
     files = [root / name for name in ("app.py", "requirements.txt", "requirements.lock", "README.md")]
     files += sorted((root / "templates").glob("*.html"))
     files += sorted((root / "static").glob("*.css"))
+    files.append(root / "demo" / "lz11_seed.json")
     manifest = {"commit": sha, "files": {
         p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files
     }}

@@ -1,0 +1,78 @@
+name: LZ11 Windows offsite script static validation
+
+on:
+  push:
+    branches: [lz11-qa-uat-postmortem]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-script-validation:
+    runs-on: windows-2022
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+      - name: PowerShell syntax parser on all local setup files
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @(Get-ChildItem ops/lz11/windows -Filter '*.ps1')
+          if ($files.Count -lt 6) { throw 'Expected six scripts' }
+          foreach ($file in $files) {
+            $tokens = $null
+            $parseErrors = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$parseErrors)
+            if ($parseErrors.Count -ne 0) {
+              throw ('Parse failed: ' + $file.Name + ': ' + ($parseErrors | Out-String))
+            }
+            Write-Host ('Parsed: ' + $file.Name)
+          }
+      - name: No-op smoke without Docker, rclone, registry or task changes
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & .\ops\lz11\windows\Start-LZ11.ps1 -ValidateOnly
+          & .\ops\lz11\windows\Export-Backups.ps1 -ValidateOnly
+          & .\ops\lz11\windows\Install-OffsiteTask.ps1 -ValidateOnly
+          & .\ops\lz11\windows\Install-StartupTask.ps1 -ValidateOnly
+          & .\ops\lz11\windows\Repair-Autostart.ps1 -ValidateOnly
+          Write-Host "Static Windows setup verification PASS"
+      - name: Verify PowerShell helper argument forwarding and native errors
+        run: |
+          . .\ops\lz11\windows\Common.ps1
+          $output = @(Invoke-KsmCommand -Executable 'cmd.exe' -Arguments @('/d', '/c', 'echo', 'KSM_ARGS_OK'))
+          if (($output -join ' ') -notmatch 'KSM_ARGS_OK') { throw 'Argument forwarding failed' }
+          $caught = $false
+          try {
+            Invoke-KsmCommand -Executable 'cmd.exe' -Arguments @('/d', '/c', 'exit', '7')
+          } catch {
+            if ($_.Exception.Message -match 'exit code 7') { $caught = $true }
+          }
+          if (-not $caught) { throw 'Native exit status not checked' }
+          # GitHub's Windows PowerShell wrapper checks LASTEXITCODE when the script ends.
+          # We intentionally ran a failing child process above; reset its sticky value.
+          $global:LASTEXITCODE = 0
+          Write-Host 'PASS: native command forwards arguments and reports exit code 7'
+          $source = (Get-Content ops/lz11/windows/Start-LZ11.ps1 -Raw) + (Get-Content ops/lz11/windows/Export-Backups.ps1 -Raw)
+          if ($source -match 'Invoke-KsmCommand\s+"(docker|rclone)"\s+@\(') { throw 'Positional array-splat calls are forbidden' }
+
+      - name: Verify hidden scheduled launch and quiet daemon diagnostics
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $startup = Get-Content ops/lz11/windows/Install-StartupTask.ps1 -Raw
+          $offsite = Get-Content ops/lz11/windows/Install-OffsiteTask.ps1 -Raw
+          $script = Get-Content ops/lz11/windows/Start-LZ11.ps1 -Raw
+          foreach ($token in @('-AtLogOn','PT1M','-WindowStyle Hidden','-QuietStartup')) {
+            if ($startup -notlike "*$token*") { throw "Missing startup setting: $token" }
+          }
+          if ($offsite -notlike '*-WindowStyle Hidden*') { throw 'Offsite console is not hidden' }
+          if ($script -notlike '*CreateNoWindow = $true*') { throw 'Docker daemon probe may show console errors' }
+          if ($script -notlike '*-QuietStartup*' -and $script -notlike '*$QuietStartup*') { throw 'Quiet startup not present' }
+          $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+          $trigger = New-ScheduledTaskTrigger -AtLogOn -User $identity
+          $trigger.Delay = 'PT1M'
+          if ($trigger.Delay -ne 'PT1M') { throw 'Cannot configure startup delay' }
+          Write-Host 'Hidden startup and offsite setup validation PASS; no actual task registered'
