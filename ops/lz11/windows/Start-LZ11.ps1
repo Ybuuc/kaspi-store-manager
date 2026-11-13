@@ -100,9 +100,10 @@ try {
     }
 } catch {
     if ($QuietStartup) {
-        Write-Host ("BACKGROUND START SKIPPED: " + $_.Exception.Message) -ForegroundColor Yellow
+        Write-Host ("BACKGROUND START FAILED: " + $_.Exception.Message) -ForegroundColor Yellow
         Write-Host ("Review: " + $logFile)
-        return
+        # A hidden task must still report failure to Task Scheduler.
+        throw
     }
     Write-Host ("START FAILED: " + $_.Exception.Message) -ForegroundColor Red
     Write-Host ("Diagnostic log: " + $logFile) -ForegroundColor Yellow
