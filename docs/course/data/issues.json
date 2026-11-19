@@ -1,0 +1,375 @@
+{
+  "source": "https://api.github.com/repos/Ybuuc/kaspi-store-manager/issues?state=all&per_page=100&page=1",
+  "collected_date": "2026-11-19",
+  "complete": true,
+  "issues": [
+    {
+      "number": 69,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/69",
+      "title": "[ЛЗ11][P1] NFR-01: p95 каталога 1,6 с при 200 VU (лимит 800 мс)",
+      "state": "closed",
+      "created_at": "2026-11-12T19:19:44Z",
+      "closed_at": "2026-11-12T19:22:59Z"
+    },
+    {
+      "number": 67,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/67",
+      "title": "[ЛЗ11][P1] Провести UAT с другой командой и подписать протокол",
+      "state": "open",
+      "created_at": "2026-11-12T17:48:54Z",
+      "closed_at": null
+    },
+    {
+      "number": 66,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/66",
+      "title": "[ЛЗ11][P1] Ввести pre-release smoke gate и сценарий отката для демо",
+      "state": "closed",
+      "created_at": "2026-11-12T17:48:52Z",
+      "closed_at": "2026-11-12T19:40:09Z"
+    },
+    {
+      "number": 65,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/65",
+      "title": "[ЛЗ11][P1] Автоматизировать резервные копии и тренировку восстановления SQLite",
+      "state": "closed",
+      "created_at": "2026-11-12T17:48:49Z",
+      "closed_at": "2026-11-13T00:47:14Z"
+    },
+    {
+      "number": 64,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/64",
+      "title": "[ЛЗ11][P1] Добавить проверку доступности демо и фиксацию alert-событий",
+      "state": "closed",
+      "created_at": "2026-11-12T17:48:47Z",
+      "closed_at": "2026-11-13T00:41:09Z"
+    },
+    {
+      "number": 57,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/57",
+      "title": "S2-03 — Проверить инструкцию показа и ссылки",
+      "state": "closed",
+      "created_at": "2026-10-31T21:48:32Z",
+      "closed_at": "2026-11-01T10:23:37Z"
+    },
+    {
+      "number": 56,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/56",
+      "title": "S2-01 — Проверить запуск ИС из чистой копии",
+      "state": "closed",
+      "created_at": "2026-10-31T21:48:27Z",
+      "closed_at": "2026-11-01T10:14:36Z"
+    },
+    {
+      "number": 55,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/55",
+      "title": "S2-02 — Проверить учебный сценарий сквозным проходом",
+      "state": "closed",
+      "created_at": "2026-10-31T21:48:22Z",
+      "closed_at": "2026-11-01T10:21:02Z"
+    },
+    {
+      "number": 39,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/39",
+      "title": "US-02.3 — Open product details from list",
+      "state": "closed",
+      "created_at": "2026-10-27T12:26:43Z",
+      "closed_at": "2026-10-31T19:35:30Z"
+    },
+    {
+      "number": 38,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/38",
+      "title": "US-02.2 — Empty state and list performance",
+      "state": "closed",
+      "created_at": "2026-10-27T12:25:22Z",
+      "closed_at": "2026-10-31T19:35:28Z"
+    },
+    {
+      "number": 37,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/37",
+      "title": "US-02.1 — Display product list fields",
+      "state": "closed",
+      "created_at": "2026-10-27T12:24:53Z",
+      "closed_at": "2026-10-31T19:35:27Z"
+    },
+    {
+      "number": 36,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/36",
+      "title": "US-01.3 — Protect authenticated pages",
+      "state": "closed",
+      "created_at": "2026-10-27T12:24:27Z",
+      "closed_at": "2026-10-31T19:35:26Z"
+    },
+    {
+      "number": 35,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/35",
+      "title": "US-01.2 — Valid and invalid login",
+      "state": "closed",
+      "created_at": "2026-10-27T12:23:54Z",
+      "closed_at": "2026-10-31T19:35:24Z"
+    },
+    {
+      "number": 34,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/34",
+      "title": "US-01.1 — Login form validation",
+      "state": "closed",
+      "created_at": "2026-10-27T12:21:27Z",
+      "closed_at": "2026-10-31T19:35:23Z"
+    },
+    {
+      "number": 32,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/32",
+      "title": "PRIV-03: Жеке деректер картасы мен сақтау саясатын бекіту",
+      "state": "open",
+      "created_at": "2026-10-13T11:33:28Z",
+      "closed_at": null
+    },
+    {
+      "number": 31,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/31",
+      "title": "SEC-02: Аутентификация мен RBAC үшін теріс тесттер қосу",
+      "state": "closed",
+      "created_at": "2026-10-13T11:33:21Z",
+      "closed_at": "2026-10-31T19:51:08Z"
+    },
+    {
+      "number": 30,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/30",
+      "title": "SEC-01: Қауіпсіздік скандарын CI-ге қосу (Trivy + gitleaks)",
+      "state": "closed",
+      "created_at": "2026-10-13T11:33:16Z",
+      "closed_at": "2026-10-31T19:51:07Z"
+    },
+    {
+      "number": 29,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/29",
+      "title": "M3 — Semester Release",
+      "state": "open",
+      "created_at": "2026-10-06T07:51:18Z",
+      "closed_at": null
+    },
+    {
+      "number": 28,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/28",
+      "title": "M2 — Operations Ready",
+      "state": "closed",
+      "created_at": "2026-10-06T07:51:16Z",
+      "closed_at": "2026-10-31T20:54:46Z"
+    },
+    {
+      "number": 27,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/27",
+      "title": "M1 — MVP Core Ready",
+      "state": "closed",
+      "created_at": "2026-10-06T07:51:14Z",
+      "closed_at": "2026-10-31T19:51:06Z"
+    },
+    {
+      "number": 26,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/26",
+      "title": "DEP-05 — Order Status workflow келісімі",
+      "state": "closed",
+      "created_at": "2026-10-06T07:50:42Z",
+      "closed_at": "2026-10-31T21:22:24Z"
+    },
+    {
+      "number": 25,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/25",
+      "title": "DEP-04 — Low-stock threshold мәнін бекіту",
+      "state": "closed",
+      "created_at": "2026-10-06T07:50:38Z",
+      "closed_at": "2026-10-31T20:47:26Z"
+    },
+    {
+      "number": 24,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/24",
+      "title": "DEP-03 — PostgreSQL / DB hosting ортасының қолжетімділігі",
+      "state": "open",
+      "created_at": "2026-10-06T07:50:37Z",
+      "closed_at": null
+    },
+    {
+      "number": 23,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/23",
+      "title": "DEP-02 — Kaspi API қолжетімділігі және интеграция шарты",
+      "state": "open",
+      "created_at": "2026-10-06T07:50:35Z",
+      "closed_at": null
+    },
+    {
+      "number": 22,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/22",
+      "title": "DEP-01 — GitHub repository және Issues қолжетімділігі",
+      "state": "closed",
+      "created_at": "2026-10-06T07:50:33Z",
+      "closed_at": "2026-10-06T07:51:12Z"
+    },
+    {
+      "number": 21,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/21",
+      "title": "US-18 — Маңызды өзгерістер журналын көру",
+      "state": "closed",
+      "created_at": "2026-10-06T06:46:15Z",
+      "closed_at": "2026-10-31T21:21:27Z"
+    },
+    {
+      "number": 20,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/20",
+      "title": "US-17 — Қызметкерлер рөлдерін басқару",
+      "state": "closed",
+      "created_at": "2026-10-06T06:46:13Z",
+      "closed_at": "2026-10-31T21:16:47Z"
+    },
+    {
+      "number": 19,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/19",
+      "title": "US-16 — Сату статистикасын көру",
+      "state": "closed",
+      "created_at": "2026-10-06T06:46:11Z",
+      "closed_at": "2026-10-31T21:21:25Z"
+    },
+    {
+      "number": 18,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/18",
+      "title": "US-15 — Қойма бойынша есепті көру",
+      "state": "closed",
+      "created_at": "2026-10-06T06:46:09Z",
+      "closed_at": "2026-10-31T21:16:46Z"
+    },
+    {
+      "number": 17,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/17",
+      "title": "US-14 — Тапсырыс статусын өзгерту",
+      "state": "closed",
+      "created_at": "2026-10-06T06:46:06Z",
+      "closed_at": "2026-10-31T21:25:37Z"
+    },
+    {
+      "number": 16,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/16",
+      "title": "US-12 — Баға өзгерістерінің тарихын көру",
+      "state": "closed",
+      "created_at": "2026-10-06T06:46:03Z",
+      "closed_at": "2026-10-31T21:21:24Z"
+    },
+    {
+      "number": 15,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/15",
+      "title": "US-11 — Тауар бағасын өзгерту",
+      "state": "closed",
+      "created_at": "2026-10-06T06:46:01Z",
+      "closed_at": "2026-10-31T20:41:43Z"
+    },
+    {
+      "number": 14,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/14",
+      "title": "US-10 — Тауарды архивке жіберу",
+      "state": "closed",
+      "created_at": "2026-10-06T06:45:59Z",
+      "closed_at": "2026-10-31T20:05:04Z"
+    },
+    {
+      "number": 13,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/13",
+      "title": "US-09 — Төмен қалдық туралы ескерту",
+      "state": "closed",
+      "created_at": "2026-10-06T06:45:57Z",
+      "closed_at": "2026-10-31T20:54:18Z"
+    },
+    {
+      "number": 12,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/12",
+      "title": "US-08 — Қойма қалдығын өзгерту",
+      "state": "closed",
+      "created_at": "2026-10-06T06:45:32Z",
+      "closed_at": "2026-10-31T19:51:04Z"
+    },
+    {
+      "number": 11,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/11",
+      "title": "US-06 — Тауарды атауы бойынша іздеу",
+      "state": "closed",
+      "created_at": "2026-10-06T06:45:30Z",
+      "closed_at": "2026-10-31T19:51:03Z"
+    },
+    {
+      "number": 10,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/10",
+      "title": "US-05 — Тауар карточкасын көру",
+      "state": "closed",
+      "created_at": "2026-10-06T06:45:28Z",
+      "closed_at": "2026-10-31T19:51:02Z"
+    },
+    {
+      "number": 9,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/9",
+      "title": "US-04 — Тауар ақпаратын өзгерту",
+      "state": "closed",
+      "created_at": "2026-10-06T06:45:26Z",
+      "closed_at": "2026-10-31T19:51:01Z"
+    },
+    {
+      "number": 8,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/8",
+      "title": "US-02 — Тауарлар тізімін көру",
+      "state": "closed",
+      "created_at": "2026-10-06T06:45:24Z",
+      "closed_at": "2026-10-31T19:35:21Z"
+    },
+    {
+      "number": 7,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/7",
+      "title": "US-01 — Жүйеге кіру",
+      "state": "closed",
+      "created_at": "2026-10-06T06:45:22Z",
+      "closed_at": "2026-10-31T19:35:20Z"
+    },
+    {
+      "number": 6,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/6",
+      "title": "US-13 — Тапсырыстар тізімін көру",
+      "state": "closed",
+      "created_at": "2026-09-20T17:52:15Z",
+      "closed_at": "2026-10-31T20:45:31Z"
+    },
+    {
+      "number": 5,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/5",
+      "title": "US-07 — Қойма қалдығын көру",
+      "state": "closed",
+      "created_at": "2026-09-20T17:51:55Z",
+      "closed_at": "2026-10-31T19:50:59Z"
+    },
+    {
+      "number": 4,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/4",
+      "title": "US-03 — Жаңа тауар қосу",
+      "state": "closed",
+      "created_at": "2026-09-20T17:51:39Z",
+      "closed_at": "2026-10-31T19:50:58Z"
+    },
+    {
+      "number": 3,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/3",
+      "title": "[TASK] MVP талаптарын анықтау",
+      "state": "closed",
+      "created_at": "2026-09-20T17:51:18Z",
+      "closed_at": "2026-10-31T19:50:57Z"
+    },
+    {
+      "number": 2,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/2",
+      "title": "[DOCS] Жеткізу моделін ADR-001 құжатында бекіту",
+      "state": "closed",
+      "created_at": "2026-09-20T17:50:30Z",
+      "closed_at": "2026-09-20T18:08:34Z"
+    },
+    {
+      "number": 1,
+      "url": "https://github.com/Ybuuc/kaspi-store-manager/issues/1",
+      "title": "[TASK] GitHub жұмыс кеңістігін баптау",
+      "state": "closed",
+      "created_at": "2026-09-20T17:47:05Z",
+      "closed_at": "2026-09-20T18:10:51Z"
+    }
+  ]
+}

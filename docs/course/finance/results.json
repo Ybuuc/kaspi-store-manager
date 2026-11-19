@@ -1,0 +1,50 @@
+{
+  "public_cloud": {
+    "initial_kzt": 160000,
+    "monthly_kzt": 17050,
+    "tco_36_kzt": 773800,
+    "budget_12_kzt": 364600,
+    "roi": 1.3261824760920133,
+    "roi_cost_plus30": 0.789371135455395,
+    "roi_effect_half": 0.16309123804600673,
+    "payback_months": 4.855842185128983,
+    "cost_user_month": 15191.666666666666,
+    "break_even_users": 4
+  },
+  "own_infrastructure": {
+    "initial_kzt": 310000,
+    "monthly_kzt": 6000,
+    "tco_36_kzt": 526000,
+    "budget_12_kzt": 382000,
+    "roi": 2.4220532319391634,
+    "roi_cost_plus30": 1.6323486399532028,
+    "roi_effect_half": 0.7110266159695817,
+    "payback_months": 7.045454545454546,
+    "cost_user_month": 15916.666666666666,
+    "break_even_users": 4
+  },
+  "open_stack_vps": {
+    "initial_kzt": 160000,
+    "monthly_kzt": 8894,
+    "tco_36_kzt": 480184,
+    "budget_12_kzt": 266728,
+    "roi": 2.7485630508305148,
+    "roi_cost_plus30": 1.8835100391003956,
+    "roi_effect_half": 0.8742815254152575,
+    "payback_months": 3.892375808884348,
+    "cost_user_month": 11113.666666666666,
+    "break_even_users": 3
+  },
+  "existing_laptop_demo": {
+    "initial_kzt": 160000,
+    "monthly_kzt": 6000,
+    "tco_36_kzt": 376000,
+    "budget_12_kzt": 232000,
+    "roi": 3.7872340425531914,
+    "roi_cost_plus30": 2.6824877250409167,
+    "roi_effect_half": 1.3936170212765957,
+    "payback_months": 3.6363636363636362,
+    "cost_user_month": 9666.666666666666,
+    "break_even_users": 3
+  }
+}

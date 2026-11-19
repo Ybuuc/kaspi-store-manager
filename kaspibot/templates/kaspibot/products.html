@@ -1,0 +1,275 @@
+{% extends "kaspibot/base.html" %}
+
+{% block content %}
+<form method="get" class="d-flex gap-2 mb-3"><label for="q">Поиск по названию / SKU</label><input class="form-control" style="max-width:400px" id="q" name="q" value="{{ request.args.get('q', '') }}"><button class="btn btn-primary">Найти</button></form>
+<a class="btn btn-outline-secondary" href="{{ url_for('management.product_new') }}">+ Новый товар с SKU и ценой продажи</a>
+{% for p in products if p.low_stock_threshold is not none and p.available_qty < p.low_stock_threshold %}<div class="alert alert-warning">Низкий доступный остаток: {{ p.name }} · {{ p.available_qty }} / {{ p.low_stock_threshold }}</div>{% endfor %}
+
+
+<div class="stock-toolbar mb-3">
+  <div>
+    <h3 class="mb-1">Склад</h3>
+    <div class="d-flex gap-2 flex-wrap mt-2">
+  <span class="pill">
+    Базадағы барлық карточка: <b>{{ total_products }}</b>
+  </span>
+
+  <span class="pill">
+    Көрсетілгені: <b>{{ visible_products }}</b>
+  </span>
+
+  <span class="pill">
+    Фотосы бар: <b>{{ with_photo }}</b>
+  </span>
+
+  <span class="pill">
+    Парсер нәтижесі бар: <b>{{ with_parser }}</b>
+  </span>
+</div>
+    <div class="muted">
+      Kaspi деректерімен жұмыс істеуге дайын
+      жеңілдетілген склад беті
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <a
+      class="btn btn-primary"
+      href="{{ url_for('kaspibot.parser.page') }}"
+    >
+      Парсер Kaspi
+    </a>
+
+    <span class="pill">
+      <span class="muted">
+        Складтың жалпы сомасы:
+      </span>
+      <span>{{ total_value }} тг</span>
+    </span>
+
+    <form
+      method="post"
+      action="{{ url_for('kaspibot.products_import_algatop_json') }}"
+      enctype="multipart/form-data"
+      class="d-flex gap-2 flex-wrap"
+    ><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input
+        type="file"
+        name="file"
+        accept=".json,application/json"
+        class="form-control"
+        style="max-width:320px;"
+        required
+      >
+
+      <button class="btn btn-primary" type="submit">
+        Фото/дерек импорт
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="algatop-list">
+  {% for p in products %}
+    <div class="algatop-card">
+
+      <div class="algatop-header-row">
+        <div class="algatop-left">
+          <div class="algatop-thumb-wrap">
+            {% if p.image_url %}
+              <img
+                src="{{ p.image_url }}"
+                alt="{{ p.name }}"
+                class="algatop-thumb"
+              >
+            {% else %}
+              <div class="algatop-thumb algatop-thumb-empty">
+                Фото жоқ
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="algatop-main-info">
+            <div class="algatop-title">
+              <a
+                class="linkish"
+                href="{{ url_for('kaspibot.product_detail', product_id=p.id) }}"
+              >
+                {{ p.name }}
+              </a>
+            </div>
+
+            <div class="algatop-subline">
+              {% if p.category_name %}
+                <div>
+                  Категория: {{ p.category_name }}
+                </div>
+              {% endif %}
+
+              {% if p.sku %}
+                <div>
+                  Артикул: {{ p.sku }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="algatop-buy-row">
+              <span class="muted">
+                Цена закупа
+              </span>
+
+              <strong>
+                {{ p.netcost if p.netcost else p.purchase_price }} тг
+              </strong>
+            </div>
+
+            {% if p.is_top_speed %}
+              <div class="algatop-flags">
+                <span class="speed-flag">
+                  ⚡ Турбо скорость
+                </span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="algatop-actions">
+          <a
+            class="linkish"
+            href="{{ url_for('kaspibot.product_detail', product_id=p.id) }}"
+          >
+            Карточкалар
+          </a>
+
+          <a
+            class="linkish"
+            href="{{ url_for('kaspibot.product_edit', product_id=p.id) }}"
+          >
+            Өзгерту
+          </a>
+        </div>
+      </div>
+
+      {% set observation = parser_results.get(p.id) %}
+
+      {% if observation %}
+        {% set result = observation.data %}
+        {% set pricing = result.pricing or {} %}
+
+        <div class="mt-2 mb-2">
+          <a href="{{ url_for('kaspibot.parser.page',
+            job_id=observation.job_id
+          ) }}">
+            Парсер:
+            {{ observation.created_at.strftime('%d.%m.%Y %H:%M') }}
+            UTC
+          </a>
+
+          {% if result.error %}
+            <span class="text-danger">
+              · Ошибка проверки — подробнее в результатах
+            </span>
+
+          {% elif result.our_price is none %}
+            <span class="muted">
+              · Цена вашего продавца не подтверждена
+            </span>
+
+          {% else %}
+            <span>
+              · Наша цена:
+              <b>{{ result.our_price }} ₸</b>
+            </span>
+
+            {% if pricing.get('competitor_price') is not none %}
+              <span>
+                · Конкурент:
+                {{ pricing.competitor_price }} ₸
+              </span>
+            {% endif %}
+
+            {% if pricing.get('new_price') is not none %}
+              <span>
+                · Рекомендация:
+                <b>{{ pricing.new_price }} ₸</b>
+              </span>
+            {% endif %}
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <div class="algatop-stats-grid simple-grid">
+        <div class="algatop-stat-box">
+          <div class="algatop-stat-label">
+            Закуп
+          </div>
+
+          <div class="algatop-stat-value">
+            {{ p.netcost if p.netcost else p.purchase_price }} тг
+          </div>
+        </div>
+
+        <div class="algatop-stat-box">
+          <div class="algatop-stat-label">
+            Жалпы
+          </div>
+
+          <div class="algatop-stat-value">
+            {{ p.stock_qty }}
+          </div>
+        </div>
+
+        <div class="algatop-stat-box">
+          <div class="algatop-stat-label">
+            Жолда
+          </div>
+
+          <div class="algatop-stat-value">
+            {{ p.onway_qty }}
+          </div>
+        </div>
+
+        <div class="algatop-stat-box">
+          <div class="algatop-stat-label">
+            Қолжетімді
+          </div>
+
+          <div class="algatop-stat-value">
+            {% if p.available_qty < 0 %}
+              0
+            {% else %}
+              {{ p.available_qty }}
+            {% endif %}
+          </div>
+        </div>
+
+        {% if p.current_price %}
+          <div class="algatop-stat-box">
+            <div class="algatop-stat-label">
+              Kaspi бағасы
+            </div>
+
+            <div class="algatop-stat-value">
+              {{ '%.2f'|format(p.current_price) }} тг
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  {% endfor %}
+</div>
+
+{% if products|length == 0 %}
+  <div class="empty-box">
+    <div style="font-weight:800; margin-bottom:6px;">
+      Тауар табылмады
+    </div>
+
+    <div class="muted">
+      Қазір актив товар жоқ.
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

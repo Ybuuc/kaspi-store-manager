@@ -75,7 +75,7 @@ jobs:
           app = create_app({'TESTING': True, 'SECRET_KEY': 'build-smoke-only'})
           result = app.test_cli_runner().invoke(args=['init-db'])
           assert result.exit_code == 0, result.output
-          assert app.test_client().get('/login').status_code == 200
+          assert app.test_client().get('/management/login').status_code == 200
           PY
       - uses: actions/upload-artifact@v4
         with:
