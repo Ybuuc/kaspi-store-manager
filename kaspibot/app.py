@@ -6,7 +6,7 @@ from kaspibot.services.chatbot_tools import top_profit_product_last_week, summar
 import json
 import openpyxl
 from flask import (
-    Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify
+    Blueprint, current_app, render_template, request, redirect, url_for, flash, send_file, jsonify
 )
 from sqlalchemy import func
 
@@ -20,15 +20,6 @@ from kaspibot.models import (
     IncomingItem,
 )
 from kaspibot.services.excel_import import read_alias_counts_from_excel, file_hash
-from kaspibot.services.kaspi_api import (
-    get_orders,
-    get_order_entries,
-    get_order_details,
-    get_products,
-    extract_products_from_response,
-)
-from kaspibot.services.active_orders_import import sync_order_and_entries_to_db
-from kaspibot.services.pagination import collect_pages
 
 
 # --- AI Chatbot (Gemini) ---
@@ -103,90 +94,6 @@ def consume_onway_items(product_id: int, qty: int) -> int:
         it.is_active = False
     return len(items)
 
-def sync_products_from_kaspi() -> tuple[int, int, int]:
-    """
-    Kaspi-ден товарларды тартып, products кестесіне синхрондайды.
-    Қайтарымы: (created_count, updated_count, deactivated_count)
-    """
-    # Preserve page-specific included relationships when normalizing each response.
-    normalized = []
-    def fetch_products(**kwargs):
-        page = get_products(**kwargs)
-        normalized.extend(extract_products_from_response(page))
-        return page
-    collect_pages(fetch_products)
-    items = normalized
-
-    seen_ids = set()
-    created_count = 0
-    updated_count = 0
-
-    for item in items:
-        kaspi_product_id = str(item.get("kaspi_product_id") or "").strip()
-        if not kaspi_product_id:
-            continue
-
-        seen_ids.add(kaspi_product_id)
-
-        product = Product.query.filter_by(kaspi_product_id=kaspi_product_id).first()
-
-        # fallback: sku арқылы табуға болады
-        if not product:
-            sku = str(item.get("sku") or "").strip()
-            if sku:
-                product = Product.query.filter_by(sku=sku).first()
-
-        if not product:
-            name = str(item.get("name") or "").strip() or f"Kaspi product {kaspi_product_id}"
-            product = Product(
-                name=name,
-                purchase_price=0,
-                stock_qty=0,
-                reserved_qty=0,
-                onway_qty=0,
-            )
-            db.session.add(product)
-            created_count += 1
-        else:
-            updated_count += 1
-
-        incoming_name = str(item.get("name") or "").strip()
-        incoming_sku = str(item.get("sku") or "").strip()
-        incoming_category = str(item.get("category_name") or "").strip()
-        incoming_image = str(item.get("image_url") or "").strip()
-        incoming_price = int(item.get("current_price") or 0)
-        raw_json = str(item.get("raw_json") or "")
-
-        # маңызды: name-ды бос қылмаймыз
-        if incoming_name:
-            product.name = incoming_name
-
-        product.kaspi_product_id = kaspi_product_id
-        product.sku = incoming_sku or product.sku
-        product.category_name = incoming_category
-        product.image_url = incoming_image
-        product.current_price = incoming_price
-        product.is_active = True
-        product.last_synced_at = datetime.utcnow()
-        product.kaspi_raw_json = raw_json
-
-    deactivated_count = 0
-
-    if seen_ids:
-        old_products = (
-            Product.query
-            .filter(Product.kaspi_product_id.isnot(None))
-            .filter(~Product.kaspi_product_id.in_(list(seen_ids)))
-            .filter(Product.is_active == True, Product.archived_at.is_(None))  # noqa: E712
-            .all()
-        )
-
-        for p in old_products:
-            p.is_active = False
-            deactivated_count += 1
-
-    db.session.commit()
-    return created_count, updated_count, deactivated_count
 def normalize_product_name(value: str) -> str:
     value = str(value or "").strip().lower()
     return " ".join(value.split())
@@ -774,6 +681,17 @@ def orders_page():
         .all()
     )
 
+    legacy_lines = []
+    if not current_app.config['DEMO_MODE']:
+        verified = []
+        for line in all_lines:
+            try:
+                raw = json.loads(line.raw_json or '{}')
+            except (ValueError, TypeError):
+                raw = {}
+            (verified if raw.get('source') == 'kaspi_api' else legacy_lines).append(line)
+        all_lines = verified
+
     # Бір тапсырыс бірнеше тауар позициясынан тұруы мүмкін.
     # Санақта бір тапсырысты бір рет қана есептейміз.
     unique_orders_map = {}
@@ -791,6 +709,9 @@ def orders_page():
 
     buckets = {
         "all": [],
+        "legacy": list({row.order_code: row for row in legacy_lines}.values()),
+        "active": [],
+        "archived": [],
         "preorder": [],
         "packing": [],
         "transmission": [],
@@ -803,15 +724,12 @@ def orders_page():
     for row in unique_orders_map.values():
         category = _kaspi_order_bucket(row)
 
+        buckets['all'].append(row)
         if category is None:
+            buckets['archived'].append(row)
             continue
-
         buckets[category].append(row)
-
-        # «Барлығы» — Kaspi Доставка тапсырыстары.
-        # Басқа арналар жеке сілтемеде көрсетіледі.
-        if category != "other":
-            buckets["all"].append(row)
+        buckets['active'].append(row)
 
     if bucket not in buckets:
         bucket = "all"
@@ -850,18 +768,14 @@ def order_detail_page(order_code):
 # PRODUCTS / STOCK
 @bp.route("/products/sync-kaspi", methods=["POST"])
 def products_sync_kaspi():
+    from kaspibot.services.sync_job import launch
     try:
-        created_count, updated_count, deactivated_count = sync_products_from_kaspi()
+        launch(current_app.config['KASPI_HISTORY_DAYS'])
+        flash('Чтение кабинета запущено в фоне. Товары обновляются по реальным позициям заказов.', 'success')
+    except ValueError as exc:
+        flash(str(exc), 'error')
+    return redirect(url_for('kaspibot.orders_page'))
 
-        flash(
-            f"Kaspi синхрон аяқталды: жаңа {created_count}, жаңартылды {updated_count}, жасырылды {deactivated_count}",
-            "success"
-        )
-    except Exception as e:
-        flash(f"Kaspi синхрон қатесі: {e}", "error")
-
-    return redirect(url_for("kaspibot.products"))
-# ======================
 @bp.route("/products/import-algatop-json", methods=["POST"])
 def products_import_algatop_json():
     try:
@@ -1288,6 +1202,9 @@ def stock_in():
 # ======================
 @bp.route("/onway")
 def onway():
+    if not current_app.config['DEMO_MODE']:
+        from kaspibot.services.real_report import render_onway
+        return render_onway()
     products_list = (
         Product.query
         .filter(Product.onway_qty >= 1)
@@ -1783,6 +1700,9 @@ def _calc_profit_rows(start_d: date, end_d: date):
 
 @bp.route("/report")
 def report():
+    if not current_app.config['DEMO_MODE']:
+        from kaspibot.services.real_report import render_report
+        return render_report()
     today = datetime.utcnow().date()
     start_str = request.args.get("start", "")
     end_str = request.args.get("end", "")
@@ -1811,6 +1731,9 @@ def report():
 
 @bp.route("/report/export")
 def report_export():
+    if not current_app.config['DEMO_MODE']:
+        from kaspibot.services.real_report import render_report
+        return render_report(export=True)
     today = datetime.utcnow().date()
     start_str = request.args.get("start", "")
     end_str = request.args.get("end", "")
@@ -1876,15 +1799,20 @@ def _product_to_dict(p: Product) -> dict:
         "id": p.id,
         "name": p.name,
         "purchase_price": int(p.purchase_price or 0),
-        "stock_qty": stock_qty,
+        "inventory_source": p.inventory_source or "archive",
+        "stock_qty": None if p.inventory_source == "unknown" else stock_qty,
         "onway_qty": onway_qty,
         "incoming_qty": incoming_qty,
-        "available_qty": available_qty,
+        "available_qty": None if p.inventory_source == "unknown" or p.available_qty < 0 else available_qty,
+        "reconciliation_required": p.available_qty < 0 or p.inventory_source == "unknown",
     }
 
 
 @bp.get("/api/summary")
 def api_summary():
+    if not current_app.config['DEMO_MODE']:
+        from kaspibot.services.real_report import live_summary
+        return jsonify(live_summary())
     # 1) Складтағы жалпы сумма = (қолжетімді * закуп)
     products = Product.query.all()
     stock_total = 0
@@ -1920,6 +1848,9 @@ def api_summary():
     })
 @bp.get("/api/onway/summary")
 def api_onway_summary():
+    if not current_app.config['DEMO_MODE']:
+        from kaspibot.services.real_report import live_summary
+        return jsonify(live_summary())
     products_list = (
         Product.query
         .filter(Product.onway_qty >= 1)
@@ -2401,135 +2332,24 @@ def api_in_receive():
     })
 @bp.route("/api/kaspi/sync-orders", methods=["POST"])
 def kaspi_sync_orders():
+    from kaspibot.services.sync_job import launch
     try:
-        errors = []
+        run_id = launch(current_app.config['KASPI_HISTORY_DAYS'])
+        return jsonify(ok=True, queued=True, run_id=run_id), 202
+    except ValueError as exc:
+        return jsonify(ok=False, error=str(exc)), 409
 
-        states_map = {
-            "new": "NEW",
-            "sign_required": "SIGN_REQUIRED",
-            "pickup": "PICKUP",
-            "delivery": "DELIVERY",
-            "kaspi_delivery": "KASPI_DELIVERY",
-            "archive": "ARCHIVE",
-        }
 
-        summary = {}
+@bp.get('/api/kaspi/status')
+def kaspi_sync_status():
+    from kaspibot.models import KaspiSyncRun
+    run = KaspiSyncRun.query.order_by(KaspiSyncRun.id.desc()).first()
+    return jsonify(configured=bool(current_app.config.get('KASPI_API_TOKEN')),
+                   last_run=None if run is None else dict(status=run.status, orders=run.orders_count,
+                   lines=run.lines_count, errors=run.error_count, error_details=json.loads(run.errors_json or "[]"), message=run.message,
+                   started_at=run.started_at.isoformat(),
+                   finished_at=run.finished_at.isoformat() if run.finished_at else None))
 
-        for bucket_name in states_map:
-            summary[bucket_name] = {
-                "total_lines": 0,
-                "created_onway": 0,
-                "created_sale": 0,
-                "cancelled": 0,
-                "unmatched": 0,
-                "unmatched_titles": [],
-                "skipped": 0,
-            }
-
-        for bucket_name, state_value in states_map.items():
-            orders = collect_pages(get_orders, state=state_value, days_back=14)
-
-            print(
-                f"SYNC STATE={state_value}, "
-                f"ORDERS={len(orders)}"
-            )
-
-            for order in orders:
-                order_id = str(
-                    order.get("id") or ""
-                ).strip()
-
-                if not order_id:
-                    continue
-
-                try:
-                    entries_payload = get_order_entries(order_id)
-                    order_details = get_order_details(order_id)
-
-                    result = sync_order_and_entries_to_db(
-                        order,
-                        entries_payload,
-                        order_details,
-                    )
-
-                    for key in [
-                        "total_lines",
-                        "created_onway",
-                        "created_sale",
-                        "cancelled",
-                        "unmatched",
-                        "skipped",
-                    ]:
-                        summary[bucket_name][key] += int(
-                            result.get(key, 0) or 0
-                        )
-
-                    current_titles = summary[bucket_name][
-                        "unmatched_titles"
-                    ]
-
-                    new_titles = (
-                        result.get("unmatched_titles", []) or []
-                    )
-
-                    for title in new_titles:
-                        if (
-                            title not in current_titles
-                            and len(current_titles) < 20
-                        ):
-                            current_titles.append(title)
-
-                except Exception as order_err:
-                    db.session.rollback()
-
-                    errors.append({
-                        "state": state_value,
-                        "order_id": order_id,
-                    })
-
-                    print(
-                        f"ORDER PROCESS ERROR [{state_value}] "
-                        f"order_id={order_id}: {order_err}"
-                    )
-
-                    continue
-
-        # Бұл бөлік екі for циклінен де тыс орналасады.
-        if errors:
-            return jsonify({
-                "ok": False,
-                "partial": True,
-                "error": (
-                    f"{len(errors)} тапсырысты өңдеу кезінде "
-                    "қате шықты. Сәтті өңделген тапсырыстар "
-                    "сақталды. Толық қате терминалда көрсетілген. "
-                    "Сақталған нәтижелерді көру үшін бетті жаңартыңыз."
-                ),
-                "error_count": len(errors),
-                "errors": errors,
-                "results": summary,
-            })
-
-        return jsonify({
-            "ok": True,
-            "partial": False,
-            "error_count": 0,
-            "results": summary,
-        })
-
-    except Exception as e:
-        db.session.rollback()
-
-        print(f"KASPI SYNC ERROR: {e}")
-
-        return jsonify({
-            "ok": False,
-            "error": (
-                f"Синхрондау аяқталмады: {e}. "
-                "Бұған дейін сәтті сақталған тапсырыстар "
-                "базада қалды."
-            ),
-        }), 500
 # PRODUCTS
 # ----------------------
 # ✅ GET /api/products?q=...  (іздеу name бойынша)
@@ -2764,6 +2584,8 @@ def api_chat():
         return jsonify(reference)
 
     msg_lower = msg.lower()
+    if not current_app.config['DEMO_MODE'] and any(term in msg_lower for term in ('склад','summary','қорытынды','айналым','пайда')):
+        return jsonify(reply='Данные физического склада, закупка и чистая прибыль пока не сверены с кабинетом. Откройте отчёт Kaspi: там только прочитанные из API заказы, без расчётной прибыли и подставленных остатков.', mode='local_reference')
 
     # ✅ 1) Нақты DB сұрақтарын ұстаймыз (AI-сыз, нақты жауап)
     if ("алдыңғы апта" in msg_lower or "өткен апта" in msg_lower) and ("ең көп" in msg_lower) and ("пайда" in msg_lower):

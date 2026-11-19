@@ -5,11 +5,15 @@
 
 <h4>{{ product.name }}</h4>
 
+{% if config.DEMO_MODE %}
 <p>
   Қоймада: <b>{{ product.stock_qty }}</b> |
   Жолда: <b>{{ product.in_transit_qty or 0 }}</b> |
   Барлығы: <b>{{ (product.stock_qty or 0) + (product.in_transit_qty or 0) }}</b>
 </p>
+{% else %}
+<div class="alert alert-warning">Физические остатки, закупка и расходы этой карточки не сверены с кабинетом. Ниже сохранена локальная история; актуальные полученные заказы доступны в отчёте Kaspi.</div>
+{% endif %}
 
 <hr>
 
@@ -66,7 +70,7 @@
   </thead>
   <tbody>
     {% for m in movements %}
-      {% if m.kind == 'SALE' %}
+      {% if config.DEMO_MODE and m.kind == 'SALE' %}
         {% set qty = (-m.qty_change) %}
         {% set revenue = (m.sale_sum or 0) %}
         {% set delivery = (m.delivery_cost or 0) %}

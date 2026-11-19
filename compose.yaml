@@ -11,6 +11,8 @@ services:
       OLLAMA_BASE_URL: http://host.docker.internal:11434
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      KASPI_HISTORY_DAYS: ${KASPI_HISTORY_DAYS:-14}
+      KSM_DEMO_MODE: ${KSM_DEMO_MODE:-0}
       KASPI_API_TOKEN: ${KASPI_API_TOKEN:-}
     volumes:
       - app-data:/app/instance

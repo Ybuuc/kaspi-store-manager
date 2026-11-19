@@ -1,9 +1,11 @@
 {% extends "kaspibot/base.html" %}
 
 {% block content %}
+<div class="alert alert-info">Карточки и заказы обновляются из API Kaspi. Физический остаток и закупочная цена из API заказов не поступают: существующие значения сохранены из вашей базы. Полный каталог, актуальные цены и остатки требуют отдельной выгрузки кабинета.</div>
+
 <form method="get" class="d-flex gap-2 mb-3"><label for="q">Поиск по названию / SKU</label><input class="form-control" style="max-width:400px" id="q" name="q" value="{{ request.args.get('q', '') }}"><button class="btn btn-primary">Найти</button></form>
 <a class="btn btn-outline-secondary" href="{{ url_for('management.product_new') }}">+ Новый товар с SKU и ценой продажи</a>
-{% for p in products if p.low_stock_threshold is not none and p.available_qty < p.low_stock_threshold %}<div class="alert alert-warning">Низкий доступный остаток: {{ p.name }} · {{ p.available_qty }} / {{ p.low_stock_threshold }}</div>{% endfor %}
+{% for p in products if p.inventory_source != 'unknown' and p.available_qty >= 0 and p.low_stock_threshold is not none and p.available_qty < p.low_stock_threshold %}<div class="alert alert-warning">Низкий доступный остаток: {{ p.name }} · {{ p.available_qty }} / {{ p.low_stock_threshold }}</div>{% endfor %}
 
 
 <div class="stock-toolbar mb-3">
@@ -44,7 +46,7 @@
       <span class="muted">
         Складтың жалпы сомасы:
       </span>
-      <span>{{ total_value }} тг</span>
+      <span>{{ (total_value|string + " тг") if config.DEMO_MODE else "не сверено с кабинетом" }}</span>
     </span>
 
     <form
@@ -119,7 +121,7 @@
               </span>
 
               <strong>
-                {{ p.netcost if p.netcost else p.purchase_price }} тг
+                {% if p.inventory_source == 'unknown' %}не получена{% else %}{{ p.netcost if p.netcost else p.purchase_price }} тг (локальная база){% endif %}
               </strong>
             </div>
 
@@ -205,7 +207,7 @@
           </div>
 
           <div class="algatop-stat-value">
-            {{ p.netcost if p.netcost else p.purchase_price }} тг
+            {% if p.inventory_source == 'unknown' %}не получена{% else %}{{ p.netcost if p.netcost else p.purchase_price }} тг (локальная база){% endif %}
           </div>
         </div>
 
@@ -215,7 +217,7 @@
           </div>
 
           <div class="algatop-stat-value">
-            {{ p.stock_qty }}
+            {{ 'нет данных API' if p.inventory_source == 'unknown' else p.stock_qty }}
           </div>
         </div>
 
@@ -235,8 +237,8 @@
           </div>
 
           <div class="algatop-stat-value">
-            {% if p.available_qty < 0 %}
-              0
+            {% if p.inventory_source == 'unknown' %}нет данных API{% elif p.available_qty < 0 %}
+              требуется сверка
             {% else %}
               {{ p.available_qty }}
             {% endif %}

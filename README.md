@@ -4,6 +4,7 @@
 движения, поступления, товары в пути, Kaspi-заказы, импорт, отчёты, парсер и чат.
 Функции менеджера добавлены в архив: **одна база, один каталог, один остаток**.
 
+- [Исправление реальной синхронизации Kaspi](docs/kaspi-live-sync.md)
 - [Запуск с данными и Docker](docs/integration.md)
 - [Карта соответствия ЛЗ1–12](docs/course/README.md)
 - [Финмодель команды2человека](docs/course/finance/README.md)
@@ -33,3 +34,6 @@ $env:KSM_SECRET_KEY = (.\.venv\Scripts\python.exe -c "import secrets; print(secr
 Расчёты: pip install -r requirements-dev.txt; python tools/finance.py;
 python tools/forecast.py; python tools/evaluate_assistant.py.
 Исторические документы сохранены; актуальные оговорки — в docs/course.
+
+Рабочий режим отделяет подтверждённые данные API от архивных остатков и расчётов.
+Для физического склада нужна отдельная выгрузка кабинета; он не угадывается из истории заказов.

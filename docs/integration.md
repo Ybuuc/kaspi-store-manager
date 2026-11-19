@@ -1,3 +1,6 @@
+> Актуальная сверка реального кабинета и исправления: [kaspi-live-sync.md](kaspi-live-sync.md).
+> Рабочий отчёт показывает полученные данные API; архивные расчёты доступны только в явном demo-режиме.
+
 # Запуск: архивное приложение и исходная app.db
 
 Основа — kaspibot.zip. Один сервер, один файл app.db, исходные модели/страницы
@@ -26,7 +29,7 @@ $env:KSM_SECRET_KEY = (.\.venv\Scripts\python.exe -c "import secrets; print(secr
 Пароль задаётся вами. Вход: http://127.0.0.1:5000/management/login.
 Для сотрудника: create-user --role employee employee. Сохранить KSM_SECRET_KEY
 у себя и задавать при повторном запуске. Для Linux/macOS использовать .venv/bin/python.
-Flask при таком запуске сам не читает .env: переменные задаются в терминале.
+Токен Kaspi и ключ приложения читаются из локального .env; переменные окружения имеют приоритет.
 Путь к базе можно задать KASPIBOT_DATABASE=абсолютный-путь-к-app.db.
 DATABASE_URL/SQLALCHEMY_DATABASE_URI для этой однофайловой версии не использовать.
 

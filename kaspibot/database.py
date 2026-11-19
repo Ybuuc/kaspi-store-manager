@@ -41,10 +41,13 @@ def upgrade_archive():
     with db.engine.begin() as conn:
         columns = {row[1] for row in conn.exec_driver_sql('PRAGMA table_info(products)')}
         for name, datatype in [('archived_at', 'TEXT'), ('low_stock_threshold', 'INTEGER'),
-                               ('price_cents', 'INTEGER')]:
+                               ('price_cents', 'INTEGER'), ('inventory_source', 'TEXT')]:
             if name not in columns:
                 conn.exec_driver_sql(f'ALTER TABLE products ADD COLUMN {name} {datatype}')
         conn.exec_driver_sql('UPDATE products SET price_cents=CAST(round(current_price*100) AS INTEGER) WHERE price_cents IS NULL')
+        sync_columns = {row[1] for row in conn.exec_driver_sql('PRAGMA table_info(kaspi_sync_runs)')}
+        if sync_columns and 'errors_json' not in sync_columns:
+            conn.exec_driver_sql('ALTER TABLE kaspi_sync_runs ADD COLUMN errors_json TEXT')
         duplicates = conn.exec_driver_sql("SELECT lower(sku) FROM products WHERE sku IS NOT NULL AND trim(sku)<>'' GROUP BY lower(sku) HAVING count(*)>1").fetchall()
         if duplicates:
             raise RuntimeError('Existing SKU duplicates: resolve explicitly on a backup copy; no records were removed')
@@ -111,5 +114,5 @@ def write_audit(session, _context):
         connection.execute(text('''INSERT INTO audit_log(product_id,actor_id,action,old_value,new_value)
                                    VALUES(:product,:actor,:action,:old,:new)'''),
                            dict(product=product.id, actor=actor, action=action,
-                                old=None if old is None else json.dumps(old, ensure_ascii=False) if not isinstance(old, (int, str)) else str(old),
+                                old=None if old is None else json.dumps(old, ensure_ascii=False, default=str) if not isinstance(old, (int, str)) else str(old),
                                 new='' if new is None else str(new)))

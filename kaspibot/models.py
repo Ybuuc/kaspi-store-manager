@@ -10,6 +10,7 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # Additive course features; existing archive IDs and original columns stay intact.
+    inventory_source = db.Column(db.String(30), nullable=True)
     archived_at = db.Column(db.String(40), nullable=True)
     low_stock_threshold = db.Column(db.Integer, nullable=True)
     price_cents = db.Column(db.Integer, nullable=True)
@@ -670,3 +671,16 @@ class ParserObservation(db.Model):
         import json
 
         return json.loads(self.data_json)
+
+class KaspiSyncRun(db.Model):
+    __tablename__ = 'kaspi_sync_runs'
+    errors_json = db.Column(db.Text, nullable=True)
+    id = db.Column(db.Integer, primary_key=True)
+    active_slot = db.Column(db.String(30), unique=True, nullable=True)
+    started_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    finished_at = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(30), nullable=False, default='running')
+    orders_count = db.Column(db.Integer, nullable=False, default=0)
+    lines_count = db.Column(db.Integer, nullable=False, default=0)
+    error_count = db.Column(db.Integer, nullable=False, default=0)
+    message = db.Column(db.Text, nullable=True)

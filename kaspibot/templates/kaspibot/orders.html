@@ -23,9 +23,13 @@
   </div>
 
   <p style="margin-bottom: 20px; color: #666;">
-    Бұл бөлімде Kaspi-ден келген заказдар көрсетіледі.
+    Источник — API реального кабинета Kaspi. При ошибке соединения показывается сохранённая копия; данные не подменяются тестовыми. Все — включает архив и способы доставки. Старые строки базы отделены до повторного чтения API.
   </p>
 
+  <p><a href="{{ url_for('kaspibot.orders_page',bucket='all') }}">Все полученные</a> · <a href="{{ url_for('kaspibot.orders_page',bucket='active') }}">В работе</a> · <a href="{{ url_for('kaspibot.orders_page',bucket='archived') }}">Завершённые / архив</a></p>
+  <p><a href="{{ url_for('kaspibot.orders_page',bucket='legacy') }}">Сохранённые до сверки: {{ counts.legacy }} заказов</a></p>
+  {% if bucket == 'legacy' %}<div class="alert alert-warning">Это старая копия из архива. Актуальность по реальному кабинету пока не подтверждена.</div>{% endif %}
+  <div id="syncHistory" role="status"></div>
   <div id="syncStatus" style="margin-bottom:16px; color:#555; font-weight:600;"></div>
 
   <div style="display: flex; gap: 30px; align-items: flex-start;">
@@ -155,6 +159,11 @@
   const syncBtn = document.getElementById("syncKaspiBtn");
   const syncStatus = document.getElementById("syncStatus");
 
+  fetch('/api/kaspi/status').then(r => r.json()).then(data => {
+    const run = data.last_run;
+    document.getElementById('syncHistory').textContent = !data.configured ? 'API-токен не настроен.' : !run ? 'Успешная синхронизация ещё не подтверждена.' :
+      'Последний запуск: ' + run.status + ' · ' + (run.finished_at || run.started_at) + ' UTC · заказов: ' + run.orders + ' · ошибок: ' + run.errors + ' · ' + (run.message || '');
+  });
   if (syncBtn) {
     syncBtn.addEventListener("click", async () => {
       const oldText = syncBtn.innerText;
@@ -175,18 +184,34 @@
         const data = await resp.json();
 
         if (!resp.ok || !data.ok) {
-          syncStatus.innerText = "Қате: " + (data.error || "sync орындалмады");
+          syncStatus.innerText = "Қате: " + (data.error || 'Синхронизация неполная') + '\n' + (data.errors || []).map(item => item.message).join('\n');
           syncBtn.disabled = false;
           syncBtn.innerText = oldText;
           syncBtn.style.opacity = "1";
           return;
         }
 
-        syncStatus.innerText = "Жаңарту аяқталды. Бет қайта жүктеледі...";
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        syncStatus.innerText = 'Синхронизация выполняется в фоне. Страницу можно оставить открытой.';
+        const timer = setInterval(async () => {
+          try {
+            const state = await (await fetch('/api/kaspi/status')).json();
+            const run = state.last_run;
+            if (!run) return;
+            syncStatus.textContent = 'Состояние: ' + run.status + ' · ' + (run.message || '') + ' · ' + (run.error_details || []).slice(0,3).map(e => e.message).join('; ');
+            if (!['queued', 'running'].includes(run.status)) {
+              clearInterval(timer);
+              syncBtn.disabled = false;
+              syncBtn.innerText = oldText;
+              syncBtn.style.opacity = '1';
+              if (run.status === 'success') location.reload();
+              else syncStatus.textContent += ' Обновите страницу, чтобы увидеть полученную часть данных.';
+            }
+          } catch (error) {
+            clearInterval(timer);
+            syncStatus.textContent = 'Не удалось прочитать состояние. Обновите страницу; повторный запуск не создаёт дублей.';
+            syncBtn.disabled = false;
+          }
+        }, 2000);
 
       } catch (err) {
         syncStatus.innerText = "Қате: " + err;

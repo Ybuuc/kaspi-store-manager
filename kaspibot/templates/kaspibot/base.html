@@ -447,7 +447,7 @@
         {% if g.user['role']=='admin' %}
         <a href="{{ url_for('kaspibot.orders_page') }}">Kaspi-заказы</a>
         <a href="{{ url_for('kaspibot.import_page') }}">Excel</a>
-        <a href="{{ url_for('kaspibot.report') }}">Прибыль</a>
+        <a href="{{ url_for('kaspibot.report') }}">Отчёт Kaspi</a>
         <a href="{{ url_for('kaspibot.chat_page') }}">Помощник</a>{% endif %}
         <form method="post" action="{{ url_for('management.logout') }}" style="margin:0"><button class="btn btn-outline-secondary btn-sm" type="submit">Выход · {{ g.user['username'] }}</button></form>
       </nav>{% endif %}
@@ -455,10 +455,10 @@
     {% if g.user %}<nav class="navlinks" aria-label="Учёт и контроль" style="justify-content:flex-start;margin:10px 0;padding:8px;background:white;border-radius:12px;border:1px solid var(--line)">
       <a href="{{ url_for('management.products') }}">Каталог и пороги</a>
       <a href="{{ url_for('management.product_archive') }}">Архив товаров</a>
-      <a href="{{ url_for('management.orders') }}">Учебные заказы</a>
+      {% if config.DEMO_MODE %}<a href="{{ url_for('management.orders') }}">Учебные заказы</a>{% endif %}
       {% if g.user['role']=='admin' %}
       <a href="{{ url_for('management.inventory_report') }}">Сводка склада</a>
-      <a href="{{ url_for('management.sales_report') }}">Учебная статистика</a>
+      {% if config.DEMO_MODE %}<a href="{{ url_for('management.sales_report') }}">Учебная статистика</a>{% endif %}
       <a href="{{ url_for('management.audit_report') }}">Журнал</a>
       <a href="{{ url_for('management.admin_dashboard') }}">Сотрудники</a>{% endif %}
     </nav>{% endif %}
@@ -473,6 +473,7 @@
       {% endwith %}
     </div>
 
+    {% if g.user and not config.DEMO_MODE %}<div class="alert alert-warning mt-3">Реальный кабинет: заказы обновляются кнопкой в разделе «Kaspi-заказы». Складские остатки и закупочные цены из архивной базы ещё не сверены с кабинетом; они не являются актуальным остатком Kaspi.</div>{% endif %}
     <div class="content-card">
       {% block content %}{% endblock %}
     </div>

@@ -25,6 +25,15 @@ def create_app(test_config=None):
         KASPI_API_BASE=os.environ.get('KASPI_API_BASE', 'https://kaspi.kz/shop/api/v2'),
         SQLALCHEMY_TRACK_MODIFICATIONS=False, MAX_CONTENT_LENGTH=16 * 1024 * 1024,
     )
+    from kaspibot.settings import local_settings
+    local = local_settings(app.root_path)
+    for key in ('KASPI_API_TOKEN', 'KASPI_API_BASE'):
+        if key in local:
+            app.config[key] = local[key]
+    app.config['SECRET_KEY'] = local.get('KSM_SECRET_KEY') or local.get('SECRET_KEY') or app.secret_key
+    app.config['DATABASE'] = local.get('KASPIBOT_DATABASE') or app.config['DATABASE']
+    app.config['KASPI_HISTORY_DAYS'] = int(os.environ.get('KASPI_HISTORY_DAYS', local.get('KASPI_HISTORY_DAYS', '14')))
+    app.config['DEMO_MODE'] = os.environ.get('KSM_DEMO_MODE', local.get('KSM_DEMO_MODE', '0')) == '1'
     if test_config:
         app.config.update(test_config)
     if not app.secret_key:
@@ -48,6 +57,8 @@ def create_app(test_config=None):
     init_management(app)
     from kaspibot.app import bp
     app.register_blueprint(bp)
+    from kaspibot.sync_cli import register
+    register(app)
 
     @app.before_request
     def access_control():
