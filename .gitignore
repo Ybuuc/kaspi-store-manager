@@ -7,3 +7,7 @@ __pycache__/
 instance/
 dist/
 .ruff_cache/
+
+.env
+*.db
+*.sqlite3

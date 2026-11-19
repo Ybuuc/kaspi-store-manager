@@ -14,6 +14,10 @@ def build():
     files = [root / name for name in ("app.py", "requirements.txt", "requirements.lock", "README.md")]
     files += sorted((root / "templates").glob("*.html"))
     files += sorted((root / "static").glob("*.css"))
+    files += sorted(p for p in (root / "kaspibot").rglob("*")
+                    if p.is_file() and p.suffix in {".py", ".html", ".json", ".md"})
+    files += [root / "Dockerfile", root / "compose.yaml", root / ".env.example", root / ".dockerignore",
+              root / "docs/integration.md"]
     manifest = {"commit": sha, "files": {
         p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files
     }}

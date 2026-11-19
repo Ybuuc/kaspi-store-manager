@@ -1,0 +1,6 @@
+{% extends "kaspibot/base.html" %}
+{% block content %}
+<h2>Возвраты</h2>
+<a href="{{ url_for('kaspibot.orders_archive_page') }}">Архив заказов</a>
+{% include "kaspibot/order_rows.html" %}
+{% endblock %}

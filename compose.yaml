@@ -1,0 +1,14 @@
+services:
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      KSM_SECRET_KEY: ${KSM_SECRET_KEY:?Set KSM_SECRET_KEY in .env}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3-flash-preview}
+      KASPI_API_TOKEN: ${KASPI_API_TOKEN:-}
+    volumes:
+      - app-data:/app/instance
+volumes:
+  app-data:

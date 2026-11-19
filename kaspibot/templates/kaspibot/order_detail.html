@@ -1,0 +1,59 @@
+{% extends "kaspibot/base.html" %}
+
+{% block content %}
+<div class="card" style="padding: 24px; border-radius: 18px; background: white;">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+    <div>
+      <h2 style="margin:0;">Заказ №{{ head.order_code }}</h2>
+      <div style="margin-top:8px; color:#666;">
+        Клиент: <b>{{ head.customer_name or "-" }}</b>
+        &nbsp; | &nbsp;
+        Телефон: <b>{{ head.customer_phone or "-" }}</b>
+      </div>
+    </div>
+
+    <a href="{{ url_for('kaspibot.orders_page') }}"
+       style="text-decoration:none; padding:10px 14px; border-radius:12px; background:#f3f4f6; color:#222; font-weight:700;">
+      Артқа
+    </a>
+  </div>
+
+  <div style="margin-bottom:18px; display:flex; gap:14px; flex-wrap:wrap;">
+    <div style="padding:10px 14px; border-radius:12px; background:#f7f7f9;">
+      State: <b>{{ head.state or "-" }}</b>
+    </div>
+    <div style="padding:10px 14px; border-radius:12px; background:#f7f7f9;">
+      Status Text: <b>{{ head.status_text or "-" }}</b>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="text-align:left; border-bottom:1px solid #ddd;">
+          <th style="padding:12px;">Entry ID</th>
+          <th style="padding:12px;">Тауар</th>
+          <th style="padding:12px;">Саны</th>
+          <th style="padding:12px;">Сумма</th>
+          <th style="padding:12px;">State</th>
+          <th style="padding:12px;">Status Text</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr style="border-bottom:1px solid #eee;">
+          <td style="padding:12px;">{{ r.entry_id or "-" }}</td>
+          <td style="padding:12px;">{{ r.title or "-" }}</td>
+          <td style="padding:12px;">{{ r.qty or 0 }}</td>
+          <td style="padding:12px;">{{ r.sale_sum or 0 }}</td>
+          <td style="padding:12px;">{{ r.state or "-" }}</td>
+          <td style="padding:12px;">{{ r.status_text or "-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

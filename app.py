@@ -658,6 +658,9 @@ def create_app(test_config=None):
         """, ((page - 1) * 50,)).fetchall()
         return render_template("audit_report.html", entries=rows, page=page, has_next=page * 50 < total)
 
+    from kaspibot import init_app
+    init_app(app, db)
+
     return app
 
 

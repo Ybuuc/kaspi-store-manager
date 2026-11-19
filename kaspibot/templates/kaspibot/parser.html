@@ -1,0 +1,315 @@
+{% extends "kaspibot/base.html" %}
+
+{% block content %}
+
+<h3>Парсер Kaspi</h3>
+
+<p>
+  Сбор товаров и видимых предложений продавцов.
+  Рекомендуемая цена сохраняется для анализа;
+  цены в Kaspi и складские остатки не изменяются.
+</p>
+
+<a href="{{ url_for('kaspibot.products') }}">← Склад</a>
+
+<form method="post" class="mt-3 mb-4"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input
+    type="hidden"
+    name="csrf"
+    value="{{ session.parser_csrf }}"
+  >
+
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="merchant" class="form-label">
+        ID магазина
+      </label>
+
+      <input
+        id="merchant"
+        name="merchant_id"
+        class="form-control"
+        required
+        pattern="[0-9]+"
+        value="{{ config.merchant_id }}"
+      >
+    </div>
+
+    <div class="col-md-3">
+      <label for="seller" class="form-label">
+        Точное имя продавца
+      </label>
+
+      <input
+        id="seller"
+        name="seller"
+        class="form-control"
+        required
+        value="{{ config.seller }}"
+      >
+    </div>
+
+    <div class="col-md-3">
+      <label for="city" class="form-label">
+        Код города Kaspi (необязательно)
+      </label>
+
+      <input
+        id="city"
+        name="city"
+        class="form-control"
+        pattern="[0-9]*"
+        value="{{ config.city }}"
+      >
+    </div>
+
+    <div class="col-md-3">
+      <label for="pages" class="form-label">
+        Лимит страниц каталога
+      </label>
+
+      <input
+        id="pages"
+        type="number"
+        name="max_pages"
+        class="form-control"
+        min="1"
+        max="100"
+        value="{{ config.max_pages }}"
+      >
+    </div>
+  </div>
+
+  <p class="muted mt-2">
+    Без кода города используется город, выбранный сайтом.
+    Цены и доступность зависят от города;
+    список продавцов может быть неполным.
+  </p>
+
+  <label class="d-block my-3">
+    <input
+      type="checkbox"
+      name="headless"
+      {% if config.headless %}checked{% endif %}
+    >
+    Без окна браузера (обязательно для Docker)
+  </label>
+
+  <details class="mb-3">
+    <summary>
+      Настройки рекомендуемых цен по Kaspi ID
+    </summary>
+
+    <p class="mt-2">
+      min_price / max_price — границы,
+      step — шаг в тенге,
+      allow_increase — разрешить повышение,
+      fixed_price — оставить цену.
+      По умолчанию: 2500–15000 ₸,
+      шаг 2 ₸, повышение разрешено.
+    </p>
+
+    <textarea
+      name="settings"
+      class="form-control font-monospace"
+      rows="12"
+      aria-label="Настройки цен JSON"
+    >{{ settings_text }}</textarea>
+  </details>
+
+  <button
+    type="submit"
+    class="btn btn-primary"
+    {% if active %}disabled{% endif %}
+  >
+    Запустить парсер
+  </button>
+
+  {% if active %}
+    <a
+      class="ms-3"
+      href="{{ url_for('kaspibot.parser.page', job_id=active.id) }}"
+    >
+      Идёт проверка №{{ active.id }}
+    </a>
+  {% endif %}
+</form>
+
+{% if job %}
+
+  {% set statuses = {
+    'queued': 'Ожидает запуска',
+    'running': 'Выполняется',
+    'completed': 'Завершена',
+    'partial': 'Завершена с ошибками',
+    'failed': 'Ошибка / прервана'
+  } %}
+
+  <div class="alert alert-info">
+    <b>
+      Проверка №{{ job.id }} —
+      {{ statuses.get(job.status, job.status) }}
+    </b>
+
+    <br>
+
+    {{ job.message }}
+
+    <br>
+
+    Обработано: {{ job.processed }}
+    · Ошибок: {{ job.errors }}
+    · Начало (UTC):
+    {{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+
+    {% if job.status in ['queued', 'running'] %}
+      <br>
+
+      <a href="{{ url_for('kaspibot.parser.page', job_id=job.id) }}">
+        Обновить результаты
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Товар</th>
+          <th>Наша цена</th>
+          <th>Дешёвый конкурент</th>
+          <th>Рекомендуемая цена</th>
+          <th>Результат</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for row in observations %}
+          {% set d = row.data %}
+          {% set pricing = d.pricing or {} %}
+
+          <tr>
+            <td>
+              {% if row.product_id %}
+                <a href="{{ url_for('kaspibot.product_detail',
+                  product_id=row.product_id
+                ) }}">
+                  {{ d.name }}
+                </a>
+              {% else %}
+                {{ d.name }}
+              {% endif %}
+
+              <br>
+
+              <small>
+                Kaspi ID: {{ row.kaspi_id }}
+              </small>
+            </td>
+
+            <td>
+              {% if d.our_price is not none %}
+                {{ d.our_price }} ₸
+              {% else %}
+                Не подтверждена
+              {% endif %}
+            </td>
+
+            <td>
+              {{ pricing.get('competitor_name') or '—' }}
+
+              <br>
+
+              {% if pricing.get('competitor_price') is not none %}
+                {{ pricing.competitor_price }} ₸
+              {% endif %}
+            </td>
+
+            <td>
+              {% if pricing.get('new_price') is not none %}
+                {{ pricing.new_price }} ₸
+              {% else %}
+                —
+              {% endif %}
+            </td>
+
+            <td>
+              {% if d.error %}
+                <span class="text-danger">
+                  {{ d.error }}
+                </span>
+              {% else %}
+
+                {% set reasons = {
+                  'our_price_missing':
+                    'Ваш продавец не найден — расчёт пропущен',
+                  'no_competitors':
+                    'Другие продавцы не найдены',
+                  'fixed_price':
+                    'Фиксированная цена',
+                  'price_increase_disabled':
+                    'Повышение запрещено'
+                } %}
+
+                {% set actions = {
+                  'increase': 'Повысить',
+                  'decrease': 'Снизить',
+                  'keep': 'Оставить'
+                } %}
+
+                {{ reasons.get(
+                  pricing.get('reason'),
+                  actions.get(pricing.get('action'), '—')
+                ) }}
+
+                <details>
+                  <summary>
+                    Предложения ({{ d.competitors|length }})
+                  </summary>
+
+                  {% for offer in d.competitors %}
+                    <div>
+                      {{ offer.seller_name }}:
+                      {{ offer.price }} ₸
+                    </div>
+                  {% endfor %}
+                </details>
+
+              {% endif %}
+            </td>
+          </tr>
+
+        {% else %}
+          <tr>
+            <td colspan="5">
+              Результатов пока нет.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endif %}
+
+{% if jobs %}
+  <details class="mt-3">
+    <summary>
+      Последние проверки
+    </summary>
+
+    <ul>
+      {% for old in jobs %}
+        <li>
+          <a href="{{ url_for('kaspibot.parser.page', job_id=old.id) }}">
+            №{{ old.id }}
+            · {{ old.created_at.strftime('%Y-%m-%d %H:%M') }} UTC
+            · {{ old.processed }} товаров
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </details>
+{% endif %}
+
+{% endblock %}
