@@ -1,18 +1,2 @@
-<!doctype html>
-<html lang="kk">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Kaspi Store Manager{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <header>
-    <a href="{{ url_for('index') }}">Kaspi Store Manager</a>
-    {% if g.user %}
-    <nav><a href="{{ url_for('products') }}">Тауарлар</a><a href="{{ url_for('orders') }}">Тапсырыстар</a>{% if g.user['role'] == 'admin' %}<a href="{{ url_for('inventory_report') }}">Қойма есебі</a><a href="{{ url_for('sales_report') }}">Сату статистикасы</a><a href="{{ url_for('audit_report') }}">Өзгерістер журналы</a><a href="{{ url_for('admin_dashboard') }}">Әкімші</a>{% endif %}<span>{{ g.user['username'] }}</span><form action="{{ url_for('logout') }}" method="post"><button type="submit">Шығу</button></form></nav>
-    {% endif %}
-  </header>
-  <main>{% block content %}{% endblock %}</main>
-</body>
-</html>
+{% extends "kaspibot/base.html" %}
+{% block content %}{% endblock %}

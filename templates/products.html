@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'management_base.html' %}
 {% block title %}Тауарлар · Kaspi Store Manager{% endblock %}
-{% block content %}
+{% block management_content %}
 <h1>Тауарлар</h1>
-<p><a href="{{ url_for('product_new') }}">+ Жаңа тауар</a> · <a href="{{ url_for('product_archive') }}">Архив</a></p>
-<form method="get" action="{{ url_for('products') }}" class="search">
+<p><a href="{{ url_for('management.product_new') }}">+ Жаңа тауар</a> · <a href="{{ url_for('management.product_archive') }}">Архив</a></p>
+<form method="get" action="{{ url_for('management.products') }}" class="search">
   <label for="q">Атауы бойынша іздеу</label>
   <input id="q" name="q" value="{{ query }}" placeholder="Тауар атауы">
   <button type="submit">Іздеу</button>
@@ -12,9 +12,9 @@
 <div class="table-wrap"><table>
   <thead><tr><th>Атауы</th><th>SKU</th><th>Бағасы</th><th>Қойма қалдығы</th><th>Ескерту</th></tr></thead>
   <tbody>{% for product in products %}<tr>
-    <td><a href="{{ url_for('product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></td>
-    <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{{ product['stock'] }}</td>
-    <td>{% if product['low_stock_threshold'] is not none and product['stock'] < product['low_stock_threshold'] %}<span class="warning">Төмен қалдық</span>{% else %}—{% endif %}</td>
+    <td><a href="{{ url_for('management.product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></td>
+    <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{{ product['stock_qty'] }}</td>
+    <td>{% if product['low_stock_threshold'] is not none and product['stock_qty'] < product['low_stock_threshold'] %}<span class="warning">Төмен қалдық</span>{% else %}—{% endif %}</td>
   </tr>{% endfor %}</tbody>
 </table></div>
 {% else %}<p class="empty">{% if query %}Сұрауға сәйкес тауар табылмады.{% else %}Әзірге тауарлар жоқ.{% endif %}</p>{% endif %}

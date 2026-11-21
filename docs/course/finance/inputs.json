@@ -1,0 +1,69 @@
+{
+  "currency": "KZT",
+  "as_of": "2026-11-19",
+  "team_members": 2,
+  "development_hours": 60,
+  "hourly_cost_kzt": 2500,
+  "training_hours": 4,
+  "support_hours_month": 2,
+  "saved_hours_month": 20,
+  "users": 2,
+  "price_user_month": 10000,
+  "variable_cost_user_month": 1000,
+  "variants": {
+    "public_cloud": {
+      "hardware_kzt": 0,
+      "infrastructure_kzt_month": 12050,
+      "licenses_kzt_month": 0
+    },
+    "own_infrastructure": {
+      "hardware_kzt": 150000,
+      "infrastructure_kzt_month": 1000,
+      "licenses_kzt_month": 0
+    },
+    "open_stack_vps": {
+      "hardware_kzt": 0,
+      "infrastructure_kzt_month": 3894,
+      "licenses_kzt_month": 0
+    },
+    "existing_laptop_demo": {
+      "hardware_kzt": 0,
+      "infrastructure_kzt_month": 1000,
+      "licenses_kzt_month": 0
+    }
+  },
+  "assumptions": {
+    "development_hours": "60 person-hours of adaptation; estimate, not timesheet",
+    "hourly_cost_kzt": "2500 KZT/h shadow cost; assumption, not measured salary",
+    "saved_hours_month": "20 h/month hypothesis, unvalidated because interviews do not exist",
+    "support_hours_month": "2 h/month estimate; excludes incident bursts",
+    "exchange_rates": "500 KZT/USD, 600 KZT/EUR: fixed scenario assumptions, not market quotes",
+    "users": "2 operating users assumption; team of 2 confirmed by user",
+    "training_hours": "4 person-hours estimate",
+    "own_infrastructure": "150000 KZT hypothetical hardware replacement + 1000 electricity/month",
+    "existing_laptop_demo": "Existing equipment with no new purchase; 1000 electricity/month allocation",
+    "public_cloud": "AWS Lightsail Linux/Unix 4GB 24 USD/month *500 + 50 snapshot estimate; excluding taxes and excess traffic",
+    "open_stack_vps": "5.49 EUR/month *600 + 600 reserve for network/backup; indicative cached Hetzner price, live confirmation required",
+    "unit_economics": "10000 KZT per-user price and 1000 variable cost are hypothetical service model; store internal tool has no real subscription revenue",
+    "licenses": "Flask/SQLAlchemy/SQLite and development tools: zero license cost; labour and infrastructure remain costs"
+  },
+  "sources": [
+    {
+      "url": "https://aws.amazon.com/lightsail/pricing/",
+      "checked": "2026-11-19",
+      "value": "4 GB Linux/Unix IPv4 bundle: 24 USD/month",
+      "status": "live page verified"
+    },
+    {
+      "url": "https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/",
+      "checked": "2026-11-19",
+      "value": "CX23 5.49 EUR/month before VAT and IPv4",
+      "status": "cached official result; direct page 404, reconfirm before use"
+    },
+    {
+      "url": "https://www.sqlite.org/copyright.html",
+      "value": "SQLite is public domain; no licence fee",
+      "status": "licence source"
+    }
+  ]
+}

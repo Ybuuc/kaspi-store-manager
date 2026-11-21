@@ -1,6 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'management_base.html' %}
 {% block title %}Сату статистикасы · Kaspi Store Manager{% endblock %}
-{% block content %}
+{% block management_content %}
 <section class="panel"><h1>Сату статистикасы</h1>
   <form method="get"><label>Бастап <input type="date" name="from" value="{{ start }}" required></label>
     <label>Дейін <input type="date" name="to" value="{{ end }}" required></label>

@@ -1,0 +1,14 @@
+.git
+.venv
+instance
+dist
+.env
+*.db
+*.sqlite3
+__pycache__
+.ruff_cache
+
+backups
+data
+**/*.db
+**/*.sqlite3

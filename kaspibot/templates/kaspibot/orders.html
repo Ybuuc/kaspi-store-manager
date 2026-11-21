@@ -1,0 +1,225 @@
+{% extends "kaspibot/base.html" %}
+
+{% block content %}
+<div class="card" style="padding: 24px; border-radius: 18px; background: white;">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:10px;">
+    <h2 style="margin:0;">Заказдар</h2>
+
+    <button
+      id="syncKaspiBtn"
+      type="button"
+      style="
+        border:none;
+        background:#2563eb;
+        color:white;
+        padding:10px 16px;
+        border-radius:12px;
+        font-weight:700;
+        cursor:pointer;
+      ">
+      Базаны жаңарту
+    </button>
+  </div>
+
+  <p style="margin-bottom: 20px; color: #666;">
+    Источник — API реального кабинета Kaspi. При ошибке соединения показывается сохранённая копия; данные не подменяются тестовыми. Все — включает архив и способы доставки. Старые строки базы отделены до повторного чтения API.
+  </p>
+
+  <p><a href="{{ url_for('kaspibot.orders_page',bucket='all') }}">Все полученные</a> · <a href="{{ url_for('kaspibot.orders_page',bucket='active') }}">В работе</a> · <a href="{{ url_for('kaspibot.orders_page',bucket='archived') }}">Завершённые / архив</a></p>
+  <p><a href="{{ url_for('kaspibot.orders_page',bucket='legacy') }}">Сохранённые до сверки: {{ counts.legacy }} заказов</a></p>
+  {% if bucket == 'legacy' %}<div class="alert alert-warning">Это старая копия из архива. Актуальность по реальному кабинету пока не подтверждена.</div>{% endif %}
+  <div id="syncHistory" role="status"></div>
+  <div id="syncStatus" style="margin-bottom:16px; color:#555; font-weight:600;"></div>
+
+  <div style="display: flex; gap: 30px; align-items: flex-start;">
+
+    <div style="min-width: 260px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+
+        <a href="{{ url_for('kaspibot.orders_page', bucket='preorder') }}"
+           style="text-decoration:none; padding:12px 14px; border-radius:12px;
+                  {% if bucket == 'preorder' %}background:#eef3ff; font-weight:700;{% else %}background:#f7f7f9;{% endif %} color:#222;">
+          Предзаказ — {{ counts.preorder }}
+        </a>
+
+        <a href="{{ url_for('kaspibot.orders_page', bucket='packing') }}"
+           style="text-decoration:none; padding:12px 14px; border-radius:12px;
+                  {% if bucket == 'packing' %}background:#eef3ff; font-weight:700;{% else %}background:#f7f7f9;{% endif %} color:#222;">
+          Упаковка — {{ counts.packing }}
+        </a>
+
+        <a href="{{ url_for('kaspibot.orders_page', bucket='transmission') }}"
+           style="text-decoration:none; padding:12px 14px; border-radius:12px;
+                  {% if bucket == 'transmission' %}background:#eef3ff; font-weight:700;{% else %}background:#f7f7f9;{% endif %} color:#222;">
+          Передача — {{ counts.transmission }}
+        </a>
+
+        <a href="{{ url_for('kaspibot.orders_page', bucket='transmitted') }}"
+           style="text-decoration:none; padding:12px 14px; border-radius:12px;
+                  {% if bucket == 'transmitted' %}background:#eef3ff; font-weight:700;{% else %}background:#f7f7f9;{% endif %} color:#222;">
+          Переданы на доставку — {{ counts.transmitted }}
+        </a>
+
+        <a href="{{ url_for('kaspibot.orders_page', bucket='cancelled_delivery') }}"
+           style="text-decoration:none; padding:12px 14px; border-radius:12px;
+                  {% if bucket == 'cancelled_delivery' %}background:#eef3ff; font-weight:700;{% else %}background:#f7f7f9;{% endif %} color:#222;">
+          Отменены при доставке — {{ counts.cancelled_delivery }}
+        </a>
+
+        <a href="{{ url_for('kaspibot.orders_page', bucket='all') }}"
+           style="text-decoration:none; padding:12px 14px; border-radius:12px;
+                  {% if bucket == 'all' %}background:#eef3ff; font-weight:700;{% else %}background:#f7f7f9;{% endif %} color:#222;">
+                    Барлығы — {{ counts.all }}
+        </a>
+
+        <a
+          href="{{ url_for('kaspibot.orders_page', bucket='unknown') }}"
+          style="
+            text-decoration:none;
+            padding:12px 14px;
+            border-radius:12px;
+            background:#fff3cd;
+            color:#664d03;
+            {% if bucket == 'unknown' %}font-weight:700;{% endif %}
+          "
+        >
+          Анықталмаған — {{ counts.unknown }}
+        </a>
+
+        <a
+          href="{{ url_for('kaspibot.orders_page', bucket='other') }}"
+          style="
+            text-decoration:none;
+            padding:12px 14px;
+            border-radius:12px;
+            {% if bucket == 'other' %}
+              background:#eef3ff;
+              font-weight:700;
+            {% else %}
+              background:#f7f7f9;
+            {% endif %}
+            color:#222;
+          "
+        >
+          Басқа жеткізу түрлері — {{ counts.other }}
+        </a>
+
+      </div>
+    </div>
+
+    <div style="flex: 1;">
+      <div style="overflow-x: auto;">
+        <table style="width:100%; border-collapse: collapse;">
+          <thead>
+            <tr style="text-align:left; border-bottom:1px solid #ddd;">
+              <th style="padding:12px;">Заказ</th>
+              <th style="padding:12px;">Клиент</th>
+              <th style="padding:12px;">Телефон</th>
+              <th style="padding:12px;">Тауар</th>
+              <th style="padding:12px;">Саны</th>
+              <th style="padding:12px;">Сумма</th>
+              <th style="padding:12px;">State</th>
+              <th style="padding:12px;">Status Text</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+            <tr style="border-bottom:1px solid #eee;">
+              <td style="padding:12px;">
+                <a href="{{ url_for('kaspibot.order_detail_page', order_code=r.order_code) }}"
+                   style="color:#2563eb; text-decoration:none; font-weight:700;">
+                  {{ r.order_code or "-" }}
+                </a>
+              </td>
+              <td style="padding:12px;">{{ r.customer_name or "-" }}</td>
+              <td style="padding:12px;">{{ r.customer_phone or "-" }}</td>
+              <td style="padding:12px;">{{ r.title or "-" }}</td>
+              <td style="padding:12px;">{{ r.qty or 0 }}</td>
+              <td style="padding:12px;">{{ r.sale_sum or 0 }}</td>
+              <td style="padding:12px;">{{ r.state or "-" }}</td>
+              <td style="padding:12px;">{{ r.status_text or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="8" style="padding:18px; color:#777;">
+                Бұл бөлімде әзірге заказ жоқ.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const syncBtn = document.getElementById("syncKaspiBtn");
+  const syncStatus = document.getElementById("syncStatus");
+
+  fetch('/api/kaspi/status').then(r => r.json()).then(data => {
+    const run = data.last_run;
+    document.getElementById('syncHistory').textContent = !data.configured ? 'API-токен не настроен.' : !run ? 'Успешная синхронизация ещё не подтверждена.' :
+      'Последний запуск: ' + run.status + ' · ' + (run.finished_at || run.started_at) + ' UTC · заказов: ' + run.orders + ' · ошибок: ' + run.errors + ' · ' + (run.message || '');
+  });
+  if (syncBtn) {
+    syncBtn.addEventListener("click", async () => {
+      const oldText = syncBtn.innerText;
+
+      syncBtn.disabled = true;
+      syncBtn.innerText = "Жаңартылып жатыр...";
+      syncBtn.style.opacity = "0.7";
+      syncStatus.innerText = "Kaspi-ден мәліметтер жүктеліп жатыр...";
+
+      try {
+        const resp = await fetch("/api/kaspi/sync-orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok || !data.ok) {
+          syncStatus.innerText = "Қате: " + (data.error || 'Синхронизация неполная') + '\n' + (data.errors || []).map(item => item.message).join('\n');
+          syncBtn.disabled = false;
+          syncBtn.innerText = oldText;
+          syncBtn.style.opacity = "1";
+          return;
+        }
+
+        syncStatus.innerText = 'Синхронизация выполняется в фоне. Страницу можно оставить открытой.';
+        const timer = setInterval(async () => {
+          try {
+            const state = await (await fetch('/api/kaspi/status')).json();
+            const run = state.last_run;
+            if (!run) return;
+            syncStatus.textContent = 'Состояние: ' + run.status + ' · ' + (run.message || '') + ' · ' + (run.error_details || []).slice(0,3).map(e => e.message).join('; ');
+            if (!['queued', 'running'].includes(run.status)) {
+              clearInterval(timer);
+              syncBtn.disabled = false;
+              syncBtn.innerText = oldText;
+              syncBtn.style.opacity = '1';
+              if (run.status === 'success') location.reload();
+              else syncStatus.textContent += ' Обновите страницу, чтобы увидеть полученную часть данных.';
+            }
+          } catch (error) {
+            clearInterval(timer);
+            syncStatus.textContent = 'Не удалось прочитать состояние. Обновите страницу; повторный запуск не создаёт дублей.';
+            syncBtn.disabled = false;
+          }
+        }, 2000);
+
+      } catch (err) {
+        syncStatus.innerText = "Қате: " + err;
+        syncBtn.disabled = false;
+        syncBtn.innerText = oldText;
+        syncBtn.style.opacity = "1";
+      }
+    });
+  }
+</script>
+{% endblock %}

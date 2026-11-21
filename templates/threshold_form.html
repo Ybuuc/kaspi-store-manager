@@ -1,6 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'management_base.html' %}
 {% block title %}Төмен қалдық шегі · Kaspi Store Manager{% endblock %}
-{% block content %}
+{% block management_content %}
 <section class="panel narrow">
   <h1>{{ product['name'] }} — төмен қалдық шегі</h1>
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
@@ -11,6 +11,6 @@
     <p>Қалдық шектен төмен болса, ескерту көрсетіледі. Бос қалдырсаңыз, ескерту өшіріледі.</p>
     <button type="submit">Сақтау</button>
   </form>
-  <p><a href="{{ url_for('product_detail', product_id=product['id']) }}">← Тауар карточкасы</a></p>
+  <p><a href="{{ url_for('management.product_detail', product_id=product['id']) }}">← Тауар карточкасы</a></p>
 </section>
 {% endblock %}

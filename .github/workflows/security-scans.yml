@@ -40,6 +40,7 @@ jobs:
         if: always()
         run: |
           if test -f trivy-report.txt; then
+            cat trivy-report.txt
             echo '### Trivy filesystem scan' >> "$GITHUB_STEP_SUMMARY"
             echo '```text' >> "$GITHUB_STEP_SUMMARY"
             cat trivy-report.txt >> "$GITHUB_STEP_SUMMARY"
