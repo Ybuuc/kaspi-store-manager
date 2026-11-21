@@ -684,3 +684,26 @@ class KaspiSyncRun(db.Model):
     lines_count = db.Column(db.Integer, nullable=False, default=0)
     error_count = db.Column(db.Integer, nullable=False, default=0)
     message = db.Column(db.Text, nullable=True)
+
+
+class SellerCatalogImport(db.Model):
+    __tablename__ = 'seller_catalog_imports'
+    id = db.Column(db.Integer, primary_key=True)
+    sha256 = db.Column(db.String(64), unique=True, nullable=False)
+    source_date = db.Column(db.String(40), nullable=False)
+    imported_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    merchant_id = db.Column(db.String(120), nullable=False)
+    raw_xml = db.Column(db.LargeBinary, nullable=False)
+
+
+class SellerCatalogOffer(db.Model):
+    __tablename__ = 'seller_catalog_offers'
+    __table_args__ = (db.UniqueConstraint('import_id', 'sku'),)
+    id = db.Column(db.Integer, primary_key=True)
+    import_id = db.Column(db.Integer, db.ForeignKey('seller_catalog_imports.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    sku = db.Column(db.String(120), nullable=False, index=True)
+    model = db.Column(db.Text, nullable=False)
+    brand = db.Column(db.Text, nullable=False)
+    stocks_json = db.Column(db.Text, nullable=False)
+    prices_json = db.Column(db.Text, nullable=False)

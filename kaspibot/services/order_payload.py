@@ -126,7 +126,11 @@ def resolve_product(line):
     if sku and not product.sku:
         product.sku=sku
     if code and not product.kaspi_product_id:
-        product.kaspi_product_id=code
+        # A legacy name match may have claimed this public code for another SKU.
+        # Exact seller SKU wins; keep the actual code in raw JSON without stealing its old link.
+        owner=Product.query.filter_by(kaspi_product_id=code).first()
+        if owner is None or owner.id==product.id:
+            product.kaspi_product_id=code
     if line.get('category') and not product.category_name:
         product.category_name=line['category']
     product.last_synced_at=datetime.now(timezone.utc).replace(tzinfo=None)

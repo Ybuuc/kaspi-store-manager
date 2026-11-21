@@ -44,10 +44,20 @@ def run(screenshot):
                 page.wait_for_url('**/management/products/1')
                 assert page.get_by_text('2700.50 ₸',exact=True).count()>0
                 page.goto(f'http://127.0.0.1:{server.server_port}/products')
+                catalog=Path(directory)/'seller.xml'
+                catalog.write_text('<kaspi_catalog date="2026-11-19 22:07"><merchantid>browser-fixture</merchantid><offers><offer sku="UI-1"><model>UI test tea</model><brand>Fixture</brand><availabilities><availability available="yes" storeId="PP1" stockCount="49.0" preOrder="16"/></availabilities><price>3900</price></offer></offers></kaspi_catalog>',encoding='utf-8')
+                page.goto(f'http://127.0.0.1:{server.server_port}/products/seller-catalog')
+                page.locator('[name=file]').set_input_files(str(catalog))
+                page.get_by_role('button',name='Импортировать XML').click()
+                page.wait_for_url('**/products/seller-catalog')
+                assert 'UI test tea' in page.locator('tbody').inner_text()
+                assert 'предзаказ 16 дн.' in page.locator('tbody').inner_text()
+                assert '49 шт.' in page.locator('tbody').inner_text()
+                assert page.request.get(f'http://127.0.0.1:{server.server_port}/api/kaspi/catalog').json()['offers'][0]['stocks'][0]['quantity']==49
                 screenshot=Path(screenshot)
                 screenshot.parent.mkdir(parents=True,exist_ok=True)
                 page.screenshot(path=str(screenshot),full_page=True)
-                print(f'Chromium {browser.version}: login, archive catalogue, shared price update passed')
+                print(f'Chromium {browser.version}: login, archive catalogue, shared price update, seller XML upload and snapshot passed')
                 browser.close()
         finally:
             server.shutdown()

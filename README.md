@@ -1,3 +1,5 @@
+> Сверка по предоставленному XML, отдельные цены/предзаказ и оставшиеся SKU: [seller-xml.md](docs/seller-xml.md).
+
 # Kaspi Stock — архив как основа
 
 Приложение и app.db из kaspibot.zip — основа. Сохранены товары, aliases,

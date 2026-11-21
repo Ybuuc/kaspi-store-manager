@@ -890,7 +890,11 @@ def products():
 
     observations = latest_observations()
 
+    from kaspibot.services.seller_catalog import latest_catalog
+    catalog_snapshot, catalog_rows = latest_catalog()
     return render_template("kaspibot/products.html",
+        catalog_snapshot=catalog_snapshot,
+        catalog_by_product={row['product_id']: row for row in catalog_rows},
         products=products_list,
         total_value=total_value,
         parser_results=observations,

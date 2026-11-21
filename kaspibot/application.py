@@ -59,6 +59,8 @@ def create_app(test_config=None):
     app.register_blueprint(bp)
     from kaspibot.sync_cli import register
     register(app)
+    from kaspibot.catalog_routes import register as register_catalog
+    register_catalog(app)
 
     @app.before_request
     def access_control():

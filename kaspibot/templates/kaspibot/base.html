@@ -445,6 +445,7 @@
         <a href="{{ url_for('kaspibot.stock_in') }}">Приёмка</a>
         <a href="{{ url_for('kaspibot.onway') }}">В пути</a>
         {% if g.user['role']=='admin' %}
+        <a href="{{ url_for('kaspibot_catalog.catalog') }}">XML-каталог</a>
         <a href="{{ url_for('kaspibot.orders_page') }}">Kaspi-заказы</a>
         <a href="{{ url_for('kaspibot.import_page') }}">Excel</a>
         <a href="{{ url_for('kaspibot.report') }}">Отчёт Kaspi</a>

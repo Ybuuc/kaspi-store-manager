@@ -1,6 +1,7 @@
 {% extends "kaspibot/base.html" %}
 
 {% block content %}
+<p><a class="btn btn-primary" href="{{ url_for('kaspibot_catalog.catalog') }}">Каталог, цены и остатки из XML продавца</a></p>
 <div class="alert alert-info">Карточки и заказы обновляются из API Kaspi. Физический остаток и закупочная цена из API заказов не поступают: существующие значения сохранены из вашей базы. Полный каталог, актуальные цены и остатки требуют отдельной выгрузки кабинета.</div>
 
 <form method="get" class="d-flex gap-2 mb-3"><label for="q">Поиск по названию / SKU</label><input class="form-control" style="max-width:400px" id="q" name="q" value="{{ request.args.get('q', '') }}"><button class="btn btn-primary">Найти</button></form>
@@ -200,6 +201,13 @@
         </div>
       {% endif %}
 
+      {% set seller = catalog_by_product.get(p.id) %}
+      {% if seller %}
+      <div class="alert alert-info mt-2">Прайс продавца от {{ catalog_snapshot.source_date }}:<br>
+      {% for city, price in seller.prices.items() %}Цена {{ city }}: <b>{{ price }} ₸</b>. {% endfor %}<br>
+      {% for stock in seller.stocks %}Склад {{ stock.store_id }}: {{ stock.available }}, количество {{ stock.quantity if stock.quantity is not none else 'не указано' }}, предзаказ {{ stock.preorder_days }} дн.<br>{% endfor %}
+      Это заявленная доступность; физическое наличие не подтверждено.</div>
+      {% endif %}
       <div class="algatop-stats-grid simple-grid">
         <div class="algatop-stat-box">
           <div class="algatop-stat-label">
@@ -248,7 +256,7 @@
         {% if p.current_price %}
           <div class="algatop-stat-box">
             <div class="algatop-stat-label">
-              Kaspi бағасы
+              Цена локальной карточки
             </div>
 
             <div class="algatop-stat-value">
