@@ -34,8 +34,13 @@ def create_app(test_config=None):
     app.config['DATABASE'] = local.get('KASPIBOT_DATABASE') or app.config['DATABASE']
     app.config['KASPI_HISTORY_DAYS'] = int(os.environ.get('KASPI_HISTORY_DAYS', local.get('KASPI_HISTORY_DAYS', '14')))
     app.config['DEMO_MODE'] = os.environ.get('KSM_DEMO_MODE', local.get('KSM_DEMO_MODE', '0')) == '1'
+    app.config['KASPI_AUTO_SYNC'] = os.environ.get('KASPI_AUTO_SYNC', local.get('KASPI_AUTO_SYNC', '1')) == '1'
+    app.config['KASPI_SYNC_INTERVAL_SECONDS'] = int(os.environ.get('KASPI_SYNC_INTERVAL_SECONDS', local.get('KASPI_SYNC_INTERVAL_SECONDS', '300')))
+    app.config['KASPI_CATALOG_URL'] = os.environ.get('KASPI_CATALOG_URL', local.get('KASPI_CATALOG_URL', ''))
     if test_config:
         app.config.update(test_config)
+    if not 60 <= app.config['KASPI_SYNC_INTERVAL_SECONDS'] <= 86400:
+        raise ValueError('KASPI_SYNC_INTERVAL_SECONDS must be between 60 and 86400')
     if not app.secret_key:
         raise RuntimeError('Set KSM_SECRET_KEY to a long random value before starting the app')
     path = Path(app.config['DATABASE']).resolve()
@@ -118,5 +123,25 @@ def create_app(test_config=None):
     @click.pass_context
     def old_init_alias(ctx):
         ctx.invoke(app.cli.commands['init-db'])
+
+    from kaspibot.services.automatic_sync import start as start_auto_sync
+
+    @app.before_request
+    def ensure_auto_sync_started():
+        # Compatibility for standard `flask run`: start when the server handles its first request.
+        # Preferred entry points start before listening; CLI init-db never starts a network worker.
+        start_auto_sync(app)
+
+    @app.cli.command('serve')
+    @click.option('--host', default='127.0.0.1')
+    @click.option('--port', type=click.IntRange(1, 65535), default=5000)
+    def serve(host, port):
+        """Start the web app and automatic Kaspi refresh immediately."""
+        handle = start_auto_sync(app)
+        try:
+            app.run(host=host, port=port, use_reloader=False)
+        finally:
+            if handle:
+                handle['stop'].set()
 
     return app

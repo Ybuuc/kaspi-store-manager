@@ -174,3 +174,35 @@ class SellerSyncTests(unittest.TestCase):
         self.assertNotIn('>OLD<',client.get('/orders').get_data(as_text=True))
         self.assertIn('OLD',client.get('/orders?bucket=legacy').get_data(as_text=True))
         self.assertNotIn('>OLD<',client.get('/report').get_data(as_text=True))
+
+
+    def test_automatic_repeat_does_not_refetch_entries_of_identical_verified_orders(self):
+        def fetch(**params):
+            return {'data':[order()] if params['state']=='ARCHIVE' else [],'meta':{'pageCount':1 if params['state']=='ARCHIVE' else 0}}
+        with self.app.app_context(), patch('kaspibot.services.seller_sync.get_orders',side_effect=fetch), \
+                patch('kaspibot.services.seller_sync.get_order_entries',return_value=entries()) as read:
+            self.assertTrue(synchronize()['ok'])
+            self.assertTrue(synchronize()['ok'])
+            self.assertEqual(read.call_count,1)
+            self.assertEqual(KaspiOrderSync.query.count(),1)
+
+
+    def test_active_entries_are_refetched_and_old_archived_cache_expires(self):
+        from datetime import datetime, timezone, timedelta
+        current=order(state='KASPI_DELIVERY',status='ACCEPTED_BY_MERCHANT')
+        def fetch(**params):
+            return {'data':[current] if params['state']==current['attributes']['state'] else [],'meta':{'pageCount':1 if params['state']==current['attributes']['state'] else 0}}
+        with self.app.app_context(), patch('kaspibot.services.seller_sync.get_orders',side_effect=fetch), \
+                patch('kaspibot.services.seller_sync.get_order_entries',return_value=entries()) as read:
+            synchronize()
+            synchronize()
+            self.assertEqual(read.call_count,2)
+            current['attributes'].update(state='ARCHIVE',status='COMPLETED')
+            synchronize()
+            row=KaspiOrderSync.query.one()
+            raw=json.loads(row.raw_json)
+            raw['entries_checked_at']=(datetime.now(timezone.utc)-timedelta(days=2)).isoformat()
+            row.raw_json=json.dumps(raw)
+            db.session.commit()
+            synchronize()
+            self.assertEqual(read.call_count,4)

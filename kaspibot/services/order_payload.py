@@ -77,7 +77,8 @@ def extract_lines(order, entries_payload, order_details=None):
                           state=str(attrs.get('state') or ''),status_text=str(attrs.get('status') or attrs.get('statusText') or ''),
                           detailed_state=str(attrs.get('state') or ''),detailed_status=str(attrs.get('status') or attrs.get('statusText') or ''),
                           creation_ms=attrs.get('creationDate'),
-                          raw_json=dict(source='kaspi_api',order=order,entry=entry,details=order_details,
+                          raw_json=dict(source='kaspi_api',entries_checked_at=datetime.now(timezone.utc).isoformat(),
+                                        order=order,entry=entry,details=order_details,
                                         master_product=master,merchant_product=merchant)))
     return lines
 

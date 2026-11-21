@@ -1,3 +1,5 @@
+> Автообновление при запуске и каждые 5 минут: [automatic-sync.md](automatic-sync.md).
+
 > Сверка по предоставленному XML, отдельные цены/предзаказ и оставшиеся SKU: [seller-xml.md](seller-xml.md).
 
 > Актуальная сверка реального кабинета и исправления: [kaspi-live-sync.md](kaspi-live-sync.md).

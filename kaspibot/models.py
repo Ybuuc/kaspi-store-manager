@@ -707,3 +707,20 @@ class SellerCatalogOffer(db.Model):
     brand = db.Column(db.Text, nullable=False)
     stocks_json = db.Column(db.Text, nullable=False)
     prices_json = db.Column(db.Text, nullable=False)
+
+
+class KaspiAutoSyncState(db.Model):
+    __tablename__ = 'kaspi_auto_sync_state'
+    id = db.Column(db.Integer, primary_key=True)
+    lease_owner = db.Column(db.String(40), nullable=True)
+    lease_until = db.Column(db.DateTime, nullable=True)
+    next_attempt_at = db.Column(db.DateTime, nullable=True)
+    last_attempt_at = db.Column(db.DateTime, nullable=True)
+    finished_at = db.Column(db.DateTime, nullable=True)
+    catalog_status = db.Column(db.String(30), nullable=False, default='not_configured')
+    catalog_message = db.Column(db.Text, nullable=True)
+    catalog_checked_at = db.Column(db.DateTime, nullable=True)
+    catalog_source_date = db.Column(db.String(40), nullable=True)
+    orders_status = db.Column(db.String(30), nullable=False, default='not_configured')
+    orders_message = db.Column(db.Text, nullable=True)
+    orders_run_id = db.Column(db.Integer, nullable=True)

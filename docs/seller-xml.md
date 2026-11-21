@@ -1,3 +1,5 @@
+> Автообновление при запуске и каждые 5 минут: [automatic-sync.md](automatic-sync.md).
+
 # Сверка каталога продавца из XML
 
 В приложении появился раздел **XML-каталог**: `/products/seller-catalog`.

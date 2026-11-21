@@ -7,7 +7,8 @@ def local_settings(root):
     values = {}
     path = Path(root) / '.env'
     allowed = {'KASPI_API_TOKEN', 'KSM_SECRET_KEY', 'SECRET_KEY', 'KASPIBOT_DATABASE',
-               'KASPI_API_BASE', 'KASPI_HISTORY_DAYS', 'KSM_DEMO_MODE'}
+               'KASPI_API_BASE', 'KASPI_HISTORY_DAYS', 'KSM_DEMO_MODE',
+               'KASPI_AUTO_SYNC', 'KASPI_SYNC_INTERVAL_SECONDS', 'KASPI_CATALOG_URL'}
     if path.is_file():
         for line in path.read_text(encoding='utf-8-sig').splitlines():
             line = line.strip()

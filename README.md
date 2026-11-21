@@ -1,3 +1,5 @@
+> Автообновление при запуске и каждые 5 минут: [automatic-sync.md](docs/automatic-sync.md).
+
 > Сверка по предоставленному XML, отдельные цены/предзаказ и оставшиеся SKU: [seller-xml.md](docs/seller-xml.md).
 
 # Kaspi Stock — архив как основа

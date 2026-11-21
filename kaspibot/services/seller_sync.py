@@ -91,13 +91,37 @@ def synchronize(days=14, run_id=None, recheck_old=True):
                 if str((row.get('attributes') or {}).get('code')) != str(code):
                     raise ValueError('Kaspi вернул другой заказ при поиске по коду')
                 collected[row['id']]=row
+        def unchanged_lines(order):
+            if order['attributes'].get('state') != 'ARCHIVE':
+                return None
+            code=str(order['attributes'].get('code') or order['id'])
+            previous=KaspiOrderSync.query.filter_by(order_code=code).all()
+            if not previous:
+                return None
+            for row in previous:
+                try:
+                    saved=json.loads(row.raw_json or '{}')
+                except (ValueError,TypeError):
+                    return None
+                try:
+                    checked=datetime.fromisoformat(saved.get('entries_checked_at') or '')
+                    if checked.tzinfo is None or datetime.now(timezone.utc)-checked >= timedelta(hours=24):
+                        return None
+                except (ValueError,TypeError):
+                    return None
+                if saved.get('source')!='kaspi_api' or saved.get('mapping_status')=='conflict' or saved.get('order')!=order or not row.product_id:
+                    return None
+            return len(previous)
+        unchanged={key:unchanged_lines(order) for key,order in collected.items()}
         app=current_app._get_current_object()
         def read_entries(order_id):
             # HTTP reads only in worker threads; ORM and all SQLite writes remain sequential.
             with app.app_context():
                 return get_order_entries(order_id)
         pool=ThreadPoolExecutor(max_workers=4)
-        entry_reads={key:pool.submit(read_entries,value['id']) for key,value in collected.items()}
+        # Do not prefetch hundreds of unchanged archived orders on every automatic tick.
+        entry_reads={key:pool.submit(read_entries,value['id']) for key,value in collected.items()
+                     if unchanged[key] is None}
         for index,order in enumerate(collected.values(),1):
             run=db.session.get(KaspiSyncRun,run_id)
             run.message=f'Чтение состава заказа: {index}/{len(collected)}'
@@ -105,20 +129,9 @@ def synchronize(days=14, run_id=None, recheck_old=True):
             run.lines_count=lines_count
             db.session.commit()
             try:
-                code=str(order['attributes'].get('code') or order['id'])
-                previous=KaspiOrderSync.query.filter_by(order_code=code).all()
-                unchanged=bool(previous)
-                for row in previous:
-                    try:
-                        saved=json.loads(row.raw_json or '{}')
-                    except (ValueError,TypeError):
-                        saved={}
-                    if saved.get('source')!='kaspi_api' or saved.get('mapping_status')=='conflict' or saved.get('order')!=order or not row.product_id:
-                        unchanged=False
-                        break
-                if unchanged:
+                if unchanged[order['id']] is not None:
                     orders_count+=1
-                    lines_count+=len(previous)
+                    lines_count+=unchanged[order['id']]
                     continue
                 entries=entry_reads[order['id']].result()
                 result=sync_order_and_entries_to_db(order,entries,apply_movements=False)

@@ -1,0 +1,37 @@
+<div class="alert alert-info mt-3" aria-live="polite">
+  <b>Автоматическое обновление</b><div id="automaticSyncSummary">Проверка состояния…</div>
+</div>
+<script>
+(() => {
+  const box = document.getElementById('automaticSyncSummary');
+  const labels = {imported:'загружен',unchanged:'файл не изменился',failed:'ошибка',
+    not_configured:'не настроено',queued:'в очереди',running:'выполняется',
+    success:'завершено',partial:'завершено частично',interrupted:'прервано'};
+  let timer;
+  async function refresh() {
+    try {
+      const response = await fetch('/api/kaspi/status');
+      if (!response.ok) throw new Error();
+      const data = await response.json();
+      const auto = data.automatic;
+      box.textContent = (auto.enabled ? (auto.running ? 'Работает' : 'Ожидает запуска') : 'Выключено') +
+        ' · интервал ' + auto.interval_seconds + ' сек.\n' +
+        'Заказы API: ' + (labels[auto.orders_status] || auto.orders_status) + ' · ' + (auto.orders_message || '') + '\n' +
+        'Каталог HTTPS: ' + (labels[auto.catalog_status] || auto.catalog_status) + ' · ' + (auto.catalog_message || '') + '\n' +
+        'Дата XML: ' + (auto.catalog_source_date || 'не получен') +
+        ' · последний успешный запрос XML: ' + (auto.catalog_checked_at ? auto.catalog_checked_at + ' UTC' : 'не выполнен') + '\n' +
+        'Следующая проверка: ' + (auto.next_attempt_at ? auto.next_attempt_at + ' UTC' : 'при запуске') +
+        (auto.startup_error ? '\n' + auto.startup_error : '');
+      box.style.whiteSpace = 'pre-line';
+    } catch (error) {
+      box.textContent = 'Не удалось проверить состояние автообновления. Сохранённые данные доступны.';
+    }
+    if (!document.hidden) timer = setTimeout(refresh, 5000);
+  }
+  document.addEventListener('visibilitychange', () => {
+    clearTimeout(timer);
+    if (!document.hidden) refresh();
+  });
+  refresh();
+})();
+</script>
