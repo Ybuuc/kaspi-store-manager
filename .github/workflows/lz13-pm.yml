@@ -1,0 +1,35 @@
+name: LZ13 PM digest
+on:
+  schedule:
+    - cron: '17 2 * * 1'
+  workflow_dispatch:
+  pull_request:
+    branches: [integration/archive-first-course, main]
+    paths: ['lz13/**', '.github/workflows/lz13-pm.yml']
+permissions:
+  contents: read
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    services:
+      ollama:
+        image: ollama/ollama:0.6.8
+        ports: ['11434:11434']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load local model
+        run: |
+          curl -fsS --retry 6 --retry-connrefused http://localhost:11434/api/pull -d '{"name":"qwen2.5:1.5b","stream":false}' | tee /tmp/pull.json
+          python -c 'import json; assert json.load(open("/tmp/pull.json"))["status"] == "success"'
+      - name: Generate PM report
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MODE: ${{ github.event_name == 'schedule' && 'week' || 'sprints' }}
+        run: python3 lz13/report.py --mode "$MODE" --out pm-output
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pm-digest
+          path: pm-output/
+          retention-days: 30
