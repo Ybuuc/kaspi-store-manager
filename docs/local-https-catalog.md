@@ -75,8 +75,12 @@ monitor between checks. Manual XML upload continues to work.
 
 Serving a static XML does not refresh its contents. An independent, authorized
 producer must replace `.local-catalog/catalog.xml` with a current seller export
-(prefer atomic file replacement). The recovered snapshot remains dated
-19 November 2026; there is no automatic producer configured by these tools.
+(prefer atomic file replacement). The setup script alone only recovers a dated snapshot. To refresh the file
+from the seller cabinet, enable the optional source in
+[kaspi-cabinet-export.md](kaspi-cabinet-export.md). Without that source (or your
+own producer), serving and re-reading the file does not refresh its contents.
 Prices remain dated XML observations, separate from local card prices, archived
 prices and physical stock. Model/brand and declared availability belong to the
 immutable snapshot; original card identity and inventory are retained.
+
+Свежая выгрузка из авторизованного кабинета: [kaspi-cabinet-export.md](kaspi-cabinet-export.md).

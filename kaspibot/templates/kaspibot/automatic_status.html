@@ -8,6 +8,8 @@
     not_configured:'не настроено',queued:'в очереди',running:'выполняется',
     available:'доступен, TLS проверен',not_checked:'ещё не проверен',invalid_url:'неверный URL',
     tls_error:'ошибка сертификата',unavailable:'недоступен',response_error:'ошибка ответа',
+    disabled:'выключен',waiting:'ожидает проверки',needs_login:'нужен локальный вход',
+    exported:'получен из кабинета',wrong_merchant:'другой магазин',stale:'устаревшая выгрузка',
     success:'завершено',partial:'завершено частично',interrupted:'прервано'};
   let timer;
   async function refresh() {
@@ -19,6 +21,8 @@
       box.textContent = (auto.enabled ? (auto.running ? 'Работает' : 'Ожидает запуска') : 'Выключено') +
         ' · интервал ' + auto.interval_seconds + ' сек.\n' +
         'Заказы API: ' + (labels[auto.orders_status] || auto.orders_status) + ' · ' + (auto.orders_message || '') + '\n' +
+        'Источник XML: ' + (labels[auto.source?.state] || auto.source?.state || 'не настроен') + ' · ' + (auto.source?.message || '') + '\n' +
+        'Последняя выгрузка из Kaspi: ' + (auto.source?.exported_at || 'не выполнена') + '\n' +
         'HTTPS-сервер: ' + (labels[auto.https_status] || auto.https_status) + '\n' +
         'XML-синхронизация: ' + (labels[auto.catalog_status] || auto.catalog_status) + ' · ' + (auto.catalog_message || '') + '\n' +
         'Позиций в сохранённом каталоге: ' + auto.catalog_offers + '\n' +

@@ -13,6 +13,7 @@ from kaspibot.services.seller_sync import utcnow
 from kaspibot.services.sync_job import launch
 from kaspibot.services.catalog_download import download_xml
 from kaspibot.services.seller_catalog import import_xml
+from kaspibot.services.catalog_source import refresh_source, source_status, save_status
 
 
 def tick(owner, boot=False):
@@ -45,13 +46,22 @@ def tick(owner, boot=False):
             state.catalog_message = 'Укажите KASPI_CATALOG_URL: API заказов не заменяет полный каталог.'
             db.session.commit()
         else:
+            publication = None
+            imported = False
             try:
+                if current_app.config.get('KASPI_CATALOG_EXPORT'):
+                    publication = refresh_source()
                 content = download_xml(url, allow_local=current_app.config['KASPI_ALLOW_LOCAL_CATALOG'],
                                        ca_bundle=current_app.config.get('KASPI_CATALOG_CA_BUNDLE'))
+                if publication and publication.content != content:
+                    raise ValueError('Источник XML: локальный сервер вернул другой файл; импорт отменён.')
                 try:
                     result = import_xml(content)
+                    imported = True
                 except ValueError as exc:
                     raise ValueError('XML: ' + str(exc)) from None
+                if publication:
+                    publication.accept()
                 state = db.session.get(KaspiAutoSyncState, 1)
                 snapshot = db.session.get(SellerCatalogImport, result['import_id'])
                 state.catalog_status = 'unchanged' if result['duplicate'] else 'imported'
@@ -61,6 +71,9 @@ def tick(owner, boot=False):
                 db.session.commit()
             except (ValueError, SQLAlchemyError) as exc:
                 db.session.rollback()
+                if publication and not imported:
+                    publication.rollback()
+                    save_status('failed', 'Импорт выгрузки не завершён; предыдущий XML восстановлен.')
                 state = db.session.get(KaspiAutoSyncState, 1)
                 state.catalog_status = 'failed'
                 state.catalog_message = str(exc) if isinstance(exc, ValueError) else 'Импорт: ошибка записи XML; прежний каталог сохранён.'
@@ -168,11 +181,12 @@ def status():
         result['catalog_imported_at'] = latest.imported_at.isoformat()
         result['catalog_offers'] = SellerCatalogOffer.query.filter_by(import_id=latest.id).count()
     result.setdefault('catalog_offers', 0)
+    result['source'] = source_status()
     result['https_status'] = 'not_checked'
     if result['catalog_status'] in ('imported', 'unchanged'):
         result['https_status'] = 'available'
     elif result['catalog_status'] == 'failed':
         prefix = (result.get('catalog_message') or '').split(':', 1)[0]
         result['https_status'] = {'URL': 'invalid_url', 'TLS': 'tls_error', 'Сеть': 'unavailable',
-                                  'XML': 'available', 'Импорт': 'available'}.get(prefix, 'response_error')
+                                  'XML': 'available', 'Импорт': 'available', 'Источник XML': 'not_checked'}.get(prefix, 'response_error')
     return result

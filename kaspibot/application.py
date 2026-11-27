@@ -40,8 +40,12 @@ def create_app(test_config=None):
     app.config['KASPI_ALLOW_LOCAL_CATALOG'] = os.environ.get('KASPI_ALLOW_LOCAL_CATALOG', local.get('KASPI_ALLOW_LOCAL_CATALOG', '0')) == '1'
     bundle = os.environ.get('KASPI_CATALOG_CA_BUNDLE', local.get('KASPI_CATALOG_CA_BUNDLE', '')).strip()
     app.config['KASPI_CATALOG_CA_BUNDLE'] = str((Path(app.root_path) / bundle).resolve()) if bundle else None
+    app.config['KASPI_CATALOG_EXPORT'] = os.environ.get('KASPI_CATALOG_EXPORT', local.get('KASPI_CATALOG_EXPORT', '0')) == '1'
+    app.config['KASPI_CATALOG_MERCHANT_ID'] = os.environ.get('KASPI_CATALOG_MERCHANT_ID', local.get('KASPI_CATALOG_MERCHANT_ID', ''))
     if test_config:
         app.config.update(test_config)
+        if app.testing and 'KASPI_CATALOG_EXPORT' not in test_config:
+            app.config['KASPI_CATALOG_EXPORT'] = False
     if not 60 <= app.config['KASPI_SYNC_INTERVAL_SECONDS'] <= 86400:
         raise ValueError('KASPI_SYNC_INTERVAL_SECONDS must be between 60 and 86400')
     if not app.secret_key:
