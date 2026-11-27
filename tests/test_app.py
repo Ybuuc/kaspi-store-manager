@@ -523,7 +523,13 @@ class AppTests(unittest.TestCase):
         restored_client = restored.test_client()
         self.assertEqual(restored_client.post("/management/login", data={"username": "employee",
                                                           "password": "correct-password"}).status_code, 302)
-        self.assertIn("Tea", restored_client.get("/management/products").get_data(as_text=True))
+        try:
+            self.assertIn("Tea", restored_client.get("/management/products").get_data(as_text=True))
+        finally:
+            from kaspibot.models import db
+            with restored.app_context():
+                db.session.remove()
+                db.engine.dispose()
 
 
 if __name__ == "__main__":

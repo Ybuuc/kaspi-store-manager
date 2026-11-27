@@ -10,10 +10,10 @@
 </form>
 {% if products %}
 <div class="table-wrap"><table>
-  <thead><tr><th>Атауы</th><th>SKU</th><th>Бағасы</th><th>Қойма қалдығы</th><th>Ескерту</th></tr></thead>
+  <thead><tr><th>Атауы</th><th>SKU</th><th>Локальная цена</th><th>Цена XML (город / дата)</th><th>Қойма қалдығы</th><th>Ескерту</th></tr></thead>
   <tbody>{% for product in products %}<tr>
     <td><a href="{{ url_for('management.product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></td>
-    <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{{ product['stock_qty'] }}</td>
+    <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{% set seller = catalog_by_product.get(product['id']) %}{% if seller %}{% for city,price in seller.prices.items() %}{{ city }}: {{ price }} ₸<br>{% endfor %}<small>XML · {{ catalog_snapshot.source_date }}</small>{% else %}Нет цены в последнем XML{% endif %}</td><td>{{ product['stock_qty'] }}</td>
     <td>{% if product['low_stock_threshold'] is not none and product['stock_qty'] < product['low_stock_threshold'] %}<span class="warning">Төмен қалдық</span>{% else %}—{% endif %}</td>
   </tr>{% endfor %}</tbody>
 </table></div>

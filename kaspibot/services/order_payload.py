@@ -94,7 +94,7 @@ def resolve_product(line):
     product=None
     for field,value in [('sku',sku),('kaspi_product_id',code)]:
         if value:
-            matches=Product.query.filter(db.func.lower(getattr(Product,field))==value.lower()).all()
+            matches=Product.query.filter(getattr(Product,field)==value).all()
             if len(matches)>1:
                 raise ProductMappingConflict('Неоднозначная привязка Kaspi к товару; нужна ручная проверка')
             if matches:
@@ -113,7 +113,7 @@ def resolve_product(line):
                 raise ProductMappingConflict('Неоднозначное название; товар не объединён автоматически')
             product=matches[0] if matches else None
     if product:
-        if sku and product.sku and normalize(sku)!=normalize(product.sku):
+        if sku and product.sku and sku!=product.sku:
             raise ProductMappingConflict('SKU Kaspi конфликтует с привязкой товара; прежняя карточка сохранена')
         if code and product.kaspi_product_id and code!=product.kaspi_product_id:
             raise ProductMappingConflict('Kaspi ID конфликтует с привязкой товара; прежняя карточка сохранена')

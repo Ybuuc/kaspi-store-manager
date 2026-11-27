@@ -3,6 +3,7 @@ import hashlib
 import json
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from sqlalchemy import inspect
 from xml.etree import ElementTree as ET
 
 from kaspibot.models import db, Product, KaspiOrderSync, SellerCatalogImport, SellerCatalogOffer
@@ -49,9 +50,9 @@ def parse_xml(content):
         if tag(node) != 'offer':
             continue
         sku = node.attrib.get('sku', '').strip()
-        if not sku or len(sku) > 120 or sku.casefold() in seen:
+        if not sku or len(sku) > 120 or sku in seen:
             raise ValueError('В XML пустой или повторный SKU')
-        seen.add(sku.casefold())
+        seen.add(sku)
         model = next((n.text.strip() for n in node if tag(n) == 'model' and n.text), '')
         brand = next((n.text.strip() for n in node if tag(n) == 'brand' and n.text), '')
         if not model:
@@ -86,14 +87,17 @@ def parse_xml(content):
 def import_xml(content):
     payload = parse_xml(content)  # Validate every row before the first mutation.
     sha = hashlib.sha256(content).hexdigest()
-    existing = SellerCatalogImport.query.filter_by(sha256=sha).first()
-    if existing:
-        return dict(import_id=existing.id, duplicate=True, offers=SellerCatalogOffer.query.filter_by(import_id=existing.id).count(), resolved=0)
-    previous = SellerCatalogImport.query.order_by(SellerCatalogImport.source_date.desc()).first()
-    if previous and (previous.merchant_id != payload['merchant_id'] or previous.source_date > payload['source_date']):
-        raise ValueError('Другой продавец или снимок старее уже загруженного; импорт отменён')
     created = resolved = 0
     try:
+        db.session.execute(db.text('BEGIN IMMEDIATE'))
+        previous = SellerCatalogImport.query.order_by(SellerCatalogImport.source_date.desc(), SellerCatalogImport.id.desc()).first()
+        if previous and (previous.merchant_id != payload['merchant_id'] or previous.source_date > payload['source_date']):
+            raise ValueError('Другой продавец или снимок старее уже загруженного; импорт отменён')
+        existing = SellerCatalogImport.query.filter_by(sha256=sha).first()
+        if existing:
+            result = dict(import_id=existing.id, duplicate=True, offers=SellerCatalogOffer.query.filter_by(import_id=existing.id).count(), resolved=0)
+            db.session.rollback()
+            return result
         snapshot = SellerCatalogImport(sha256=sha, source_date=payload['source_date'],
                                        merchant_id=payload['merchant_id'], raw_xml=content)
         db.session.add(snapshot)
@@ -101,12 +105,16 @@ def import_xml(content):
         by_sku = {}
         names = {p.name for p in Product.query.all()}
         for item in payload['offers']:
-            matches = Product.query.filter(db.func.lower(Product.sku) == item['sku'].lower()).all()
+            matches = Product.query.filter(Product.sku == item['sku']).all()
             if len(matches) > 1:
                 raise ValueError('Неоднозначный SKU в базе; импорт отменён')
             product = matches[0] if matches else None
             # A similar name/alias alone never identifies a seller SKU or size variant.
             if product is None:
+                # Existing archive identity enforces case-insensitive uniqueness. A case
+                # mismatch is a conflict to review, never evidence of an exact SKU match.
+                if Product.query.filter(db.func.lower(Product.sku) == item['sku'].lower()).first():
+                    raise ValueError('SKU отличается регистром от существующей карточки; требуется сверка, импорт отменён')
                 name = item['model']
                 if name in names:
                     name = f"{name} [SKU {item['sku']}]"
@@ -118,7 +126,7 @@ def import_xml(content):
                 db.session.flush()
                 names.add(name)
                 created += 1
-            by_sku[item['sku'].casefold()] = product
+            by_sku[item['sku']] = product
             db.session.add(SellerCatalogOffer(import_id=snapshot.id, product_id=product.id,
                 sku=item['sku'], model=item['model'], brand=item['brand'],
                 stocks_json=json.dumps(item['stocks'], ensure_ascii=False),
@@ -130,7 +138,7 @@ def import_xml(content):
                 continue
             if raw.get('source') != 'kaspi_api' or raw.get('mapping_status') != 'conflict':
                 continue
-            sku = str(((raw.get('merchant_product') or {}).get('attributes') or {}).get('code') or '').casefold()
+            sku = str(((raw.get('merchant_product') or {}).get('attributes') or {}).get('code') or '').strip()
             product = by_sku.get(sku)
             if not product or row.is_onway_created or row.is_sale_created or row.is_cancelled:
                 continue
@@ -150,6 +158,8 @@ def import_xml(content):
 
 
 def latest_catalog():
+    if not inspect(db.engine).has_table('seller_catalog_imports'):
+        return None, []
     snapshot = SellerCatalogImport.query.order_by(SellerCatalogImport.source_date.desc(), SellerCatalogImport.id.desc()).first()
     rows = []
     if snapshot:

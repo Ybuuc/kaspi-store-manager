@@ -135,13 +135,14 @@ class AutomaticSyncTests(unittest.TestCase):
             self.assertFalse(handle['thread'].is_alive())
             self.assertEqual(work.call_count, 1)
 
-    def test_download_rejects_redirects_large_responses_and_never_sends_kaspi_token(self):
+    @patch('kaspibot.services.catalog_download.socket.getaddrinfo', return_value=[(2, 1, 6, '', ('93.184.216.34', 443))])
+    def test_download_rejects_redirects_large_responses_and_never_sends_kaspi_token(self, _dns):
         response = Mock(status_code=200, headers={})
         response.iter_content.return_value = [FEED]
         response.__enter__ = Mock(return_value=response)
         response.__exit__ = Mock(return_value=False)
         url = 'https://feed.example/prices.xml?secret=fixture-secret'
-        with patch('kaspibot.services.catalog_download.requests.get', return_value=response) as get:
+        with patch('kaspibot.services.catalog_download.requests.Session.get', return_value=response) as get:
             self.assertEqual(download_xml(url), FEED)
             self.assertFalse(get.call_args.kwargs['allow_redirects'])
             self.assertNotIn('X-Auth-Token', get.call_args.kwargs['headers'])
@@ -154,7 +155,7 @@ class AutomaticSyncTests(unittest.TestCase):
             response.headers = {'Content-Length': str(17*1024*1024)}
             with self.assertRaises(ValueError):
                 download_xml(url)
-        with patch('kaspibot.services.catalog_download.requests.get', side_effect=requests.Timeout('secret-url')):
+        with patch('kaspibot.services.catalog_download.requests.Session.get', side_effect=requests.Timeout('secret-url')):
             with self.assertRaises(ValueError) as error:
                 download_xml(url)
             self.assertNotIn('secret-url', str(error.exception))

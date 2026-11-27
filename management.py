@@ -336,7 +336,10 @@ def init_management(app):
         if query:
             needle = query.casefold()
             rows = [row for row in rows if needle in row["name"].casefold()]
-        return render_template("products.html", products=rows, query=query)
+        from kaspibot.services.seller_catalog import latest_catalog
+        snapshot, offers = latest_catalog()
+        return render_template("products.html", products=rows, query=query, catalog_snapshot=snapshot,
+                               catalog_by_product={row['product_id']: row for row in offers})
 
     @bp.get("/orders")
     @login_required
@@ -380,7 +383,10 @@ def init_management(app):
     @bp.get("/products/<int:product_id>")
     @login_required
     def product_detail(product_id):
-        return render_template("product.html", product=product_by_id(product_id))
+        from kaspibot.services.seller_catalog import latest_catalog
+        snapshot, offers = latest_catalog()
+        return render_template("product.html", product=product_by_id(product_id), catalog_snapshot=snapshot,
+                               seller=next((row for row in offers if row['product_id'] == product_id), None))
 
     @bp.get("/products/<int:product_id>/price-history")
     @admin_required

@@ -474,7 +474,7 @@
       {% endwith %}
     </div>
 
-    {% if g.user and not config.DEMO_MODE %}<div class="alert alert-warning mt-3">Реальный кабинет: заказы обновляются кнопкой в разделе «Kaspi-заказы». Складские остатки и закупочные цены из архивной базы ещё не сверены с кабинетом; они не являются актуальным остатком Kaspi.</div>{% endif %}
+    {% if g.user and not config.DEMO_MODE %}<div class="alert alert-warning mt-3">Реальный кабинет: заказы читаются из API автоматически при включённой синхронизации; доступна и ручная проверка в разделе «Kaspi-заказы». Складские остатки и закупочные цены из архивной базы ещё не сверены с кабинетом; они не являются актуальным остатком Kaspi.</div>{% endif %}
     {% if g.user and g.user['role']=='admin' %}{% include 'kaspibot/automatic_status.html' %}{% endif %}
     <div class="content-card">
       {% block content %}{% endblock %}

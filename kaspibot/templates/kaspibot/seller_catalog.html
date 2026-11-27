@@ -9,7 +9,7 @@
 </form>
 {% if snapshot %}
 <p>Дата внутри файла: <b>{{ snapshot.source_date }}</b> (часовой пояс в файле не указан). Загружен {{ snapshot.imported_at }} UTC. Позиций: {{ rows|length }}.</p>
-<p>Снимок не обновляется автоматически. Отсутствие SKU в ACTIVE-выгрузке не удаляет карточку и не означает нулевой остаток.</p>
+<p>Приложение проверяет настроенный HTTPS-источник по расписанию. Содержимое файла должен обновлять источник магазина; повторное чтение неизменившегося XML не означает получение новых цен. Отсутствие SKU в ACTIVE-выгрузке не удаляет карточку и не означает нулевой остаток.</p>
 <div class="table-responsive"><table class="table table-sm"><thead><tr><th>SKU</th><th>Товар</th><th>Цена по городу</th><th>Склад / наличие / количество / предзаказ</th></tr></thead><tbody>
 {% for row in rows %}<tr><td><a href="{{ url_for('management.product_detail',product_id=row.product_id) }}">{{ row.sku }}</a></td><td>{{ row.model }}<br><small>{{ row.brand }}</small></td><td>{% for city,price in row.prices.items() %}{{ city }}: {{ price }} ₸<br>{% endfor %}</td><td>{% for stock in row.stocks %}{{ stock.store_id }} · {{ stock.available }} · {% if stock.quantity is none %}количество не указано{% else %}{{ stock.quantity }} шт.{% endif %} · предзаказ {{ stock.preorder_days }} дн.<br>{% endfor %}</td></tr>{% endfor %}
 </tbody></table></div>

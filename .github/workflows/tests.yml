@@ -3,7 +3,7 @@ name: Application tests
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, integration/archive-first-course]
 
 permissions:
   contents: read

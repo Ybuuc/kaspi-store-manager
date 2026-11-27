@@ -37,6 +37,9 @@ def create_app(test_config=None):
     app.config['KASPI_AUTO_SYNC'] = os.environ.get('KASPI_AUTO_SYNC', local.get('KASPI_AUTO_SYNC', '1')) == '1'
     app.config['KASPI_SYNC_INTERVAL_SECONDS'] = int(os.environ.get('KASPI_SYNC_INTERVAL_SECONDS', local.get('KASPI_SYNC_INTERVAL_SECONDS', '300')))
     app.config['KASPI_CATALOG_URL'] = os.environ.get('KASPI_CATALOG_URL', local.get('KASPI_CATALOG_URL', ''))
+    app.config['KASPI_ALLOW_LOCAL_CATALOG'] = os.environ.get('KASPI_ALLOW_LOCAL_CATALOG', local.get('KASPI_ALLOW_LOCAL_CATALOG', '0')) == '1'
+    bundle = os.environ.get('KASPI_CATALOG_CA_BUNDLE', local.get('KASPI_CATALOG_CA_BUNDLE', '')).strip()
+    app.config['KASPI_CATALOG_CA_BUNDLE'] = str((Path(app.root_path) / bundle).resolve()) if bundle else None
     if test_config:
         app.config.update(test_config)
     if not 60 <= app.config['KASPI_SYNC_INTERVAL_SECONDS'] <= 86400:

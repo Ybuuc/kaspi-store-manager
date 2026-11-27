@@ -12,3 +12,14 @@ backups
 data
 **/*.db
 **/*.sqlite3
+
+# Private loopback feed, TLS keys and process logs
+.local-catalog/
+.runtime/
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+/catalog.xml
+/ACTIVE*.xml

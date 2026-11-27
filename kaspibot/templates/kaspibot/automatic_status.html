@@ -6,6 +6,8 @@
   const box = document.getElementById('automaticSyncSummary');
   const labels = {imported:'загружен',unchanged:'файл не изменился',failed:'ошибка',
     not_configured:'не настроено',queued:'в очереди',running:'выполняется',
+    available:'доступен, TLS проверен',not_checked:'ещё не проверен',invalid_url:'неверный URL',
+    tls_error:'ошибка сертификата',unavailable:'недоступен',response_error:'ошибка ответа',
     success:'завершено',partial:'завершено частично',interrupted:'прервано'};
   let timer;
   async function refresh() {
@@ -17,7 +19,10 @@
       box.textContent = (auto.enabled ? (auto.running ? 'Работает' : 'Ожидает запуска') : 'Выключено') +
         ' · интервал ' + auto.interval_seconds + ' сек.\n' +
         'Заказы API: ' + (labels[auto.orders_status] || auto.orders_status) + ' · ' + (auto.orders_message || '') + '\n' +
-        'Каталог HTTPS: ' + (labels[auto.catalog_status] || auto.catalog_status) + ' · ' + (auto.catalog_message || '') + '\n' +
+        'HTTPS-сервер: ' + (labels[auto.https_status] || auto.https_status) + '\n' +
+        'XML-синхронизация: ' + (labels[auto.catalog_status] || auto.catalog_status) + ' · ' + (auto.catalog_message || '') + '\n' +
+        'Позиций в сохранённом каталоге: ' + auto.catalog_offers + '\n' +
+        'Последний импорт: ' + (auto.catalog_imported_at ? auto.catalog_imported_at + ' UTC' : 'не выполнен') + '\n' +
         'Дата XML: ' + (auto.catalog_source_date || 'не получен') +
         ' · последний успешный запрос XML: ' + (auto.catalog_checked_at ? auto.catalog_checked_at + ' UTC' : 'не выполнен') + '\n' +
         'Следующая проверка: ' + (auto.next_attempt_at ? auto.next_attempt_at + ' UTC' : 'при запуске') +
