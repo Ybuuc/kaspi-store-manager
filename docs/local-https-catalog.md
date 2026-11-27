@@ -14,8 +14,8 @@ No Windows startup task is installed.
 `--export-saved-catalog` recovers the latest genuine XML already stored in the
 working database and refuses to replace an existing file. Omit this option when
 supplying your own real `.local-catalog/catalog.xml`. It never generates products.
-Keep the entire `.local-catalog` directory private. Restrict its Windows ACL to
-your user and SYSTEM, particularly the two private PEM keys.
+Keep the entire `.local-catalog` directory private. The setup script restricts
+its Windows ACL to your user and SYSTEM before creating the private PEM keys.
 
 The generated certificate has SAN entries for localhost, 127.0.0.1 and ::1 and
 expires after 365 days. The private CA is trusted explicitly by this application's

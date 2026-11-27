@@ -12,7 +12,7 @@ def build():
     output.mkdir(exist_ok=True)
     sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
     names = subprocess.check_output(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'], cwd=root).decode().split('\0')
-    allowed = {'.py','.html','.css','.js','.json','.md','.toml','.txt','.yml','.yaml','.sql','.csv','.ipynb','.png','.excalidraw'}
+    allowed = {'.py','.ps1','.html','.css','.js','.json','.md','.toml','.txt','.yml','.yaml','.sql','.csv','.ipynb','.png','.excalidraw'}
     files = sorted({root / name for name in names if name and (root / name).is_file()
                     and (Path(name).suffix in allowed or Path(name).name in {'Dockerfile','.dockerignore','.gitignore','.env.example','requirements.lock'})
                     and not any(part in {'dist','instance','backups','.venv','__pycache__'} for part in Path(name).parts[:-1])})

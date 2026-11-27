@@ -1,5 +1,7 @@
 """Create an app-scoped local CA and SAN certificate; never install a system root."""
 import argparse
+import csv
+import subprocess
 import ipaddress
 import os
 import sqlite3
@@ -15,6 +17,15 @@ from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
 def provision(folder):
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
+    if os.name == 'nt':
+        # Protect keys before creating them; Windows chmod alone does not set an ACL.
+        identity = subprocess.check_output(['whoami', '/user', '/fo', 'csv', '/nh'], text=True)
+        sid = next(csv.reader(identity.strip().splitlines()))[1]
+        if not sid.startswith('S-1-'):
+            raise ValueError('Cannot determine the current Windows user SID.')
+        subprocess.run(['icacls', str(folder), '/inheritance:r', '/grant:r',
+                        f'*{sid}:(OI)(CI)F', '*S-1-5-18:(OI)(CI)F'],
+                       stdout=subprocess.DEVNULL, check=True)
     names = ['ca.pem', 'ca-key.pem', 'server.pem', 'server-key.pem']
     if any((folder/name).exists() for name in names):
         if not all((folder/name).is_file() for name in names):
