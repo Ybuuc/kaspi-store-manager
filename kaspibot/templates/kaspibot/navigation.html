@@ -34,4 +34,8 @@
     {% endif %}
   </nav>
   <div class="sidebar-footer"><span>{{ g.user['username'] }} · {{ 'Администратор' if g.user['role']=='admin' else 'Сотрудник' }}</span><form method="post" action="{{ url_for('management.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-secondary btn-sm" type="submit">Выйти</button></form></div>
+  <div id="sidebarResizer" class="sidebar-resizer" role="separator" tabindex="0"
+       aria-label="Ширина меню" aria-orientation="vertical" aria-controls="appSidebar"
+       aria-valuemin="240" aria-valuemax="480" aria-valuenow="272"
+       title="Потяните край меню. Стрелки ← → меняют ширину; двойной щелчок сбрасывает её."></div>
 </aside>

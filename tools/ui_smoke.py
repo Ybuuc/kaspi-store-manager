@@ -10,7 +10,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from werkzeug.serving import make_server
 from playwright.sync_api import sync_playwright
 from app import create_app
-from kaspibot.models import db
+from kaspibot.models import db, KaspiOrderSync
 from kaspibot.services.seller_catalog import import_xml
 
 
@@ -22,6 +22,14 @@ def run(screenshot, channel=None):
                         ['add-product','UI test tea','UI-1','2500.50','12']):
             result=runner.invoke(args=command)
             assert result.exit_code==0,(result.output,result.exception)
+        with app.app_context():
+            for index in range(3):
+                db.session.add(KaspiOrderSync(external_key=f'layout-{index}',order_code=f'UI-ORDER-{index}',
+                    customer_name='Тестовый покупатель' if index else 'ПокупательБезПробелов'*12,
+                    customer_phone='+7(000)000-00-00',
+                    title='Тестовый товар · чёрный размер L' if index else 'ОченьДлинноеНазваниеТовараБезПробелов'*7,
+                    qty=1,sale_sum=11547,state='ARCHIVE',status_text='COMPLETED',raw_json='{"source":"kaspi_api"}'))
+            db.session.commit()
         server=make_server('127.0.0.1',0,app,threaded=True)
         thread=threading.Thread(target=server.serve_forever,daemon=True)
         thread.start()
@@ -91,6 +99,85 @@ def run(screenshot, channel=None):
                 assert page.locator('#appSidebar').is_hidden()
                 mobile=screenshot.with_name(screenshot.stem+'-mobile'+screenshot.suffix)
                 page.screenshot(path=str(mobile),full_page=True)
+                # Orders must remain contained while the navigation width changes.
+                page.set_viewport_size({'width':1440,'height':1000})
+                page.goto(base+'/orders')
+                assert page.locator('.orders-table tbody tr').count()==3
+                if page.locator('#appSidebar').is_hidden():
+                    page.locator('#menuToggle').click()
+                def contained():
+                    assert page.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), 'Page overflow'
+                    assert page.locator('.orders-table').evaluate("el=>[...el.querySelectorAll('th,td')].every(cell=>cell.scrollWidth<=cell.clientWidth+1)"), 'Cell text overflow'
+                    outer=page.locator('.content-card').bounding_box()
+                    inner=page.locator('.orders-table-wrap').bounding_box()
+                    assert inner['x']>=outer['x'] and inner['x']+inner['width']<=outer['x']+outer['width']+1
+                def drag_edge(target):
+                    box=page.locator('#sidebarResizer').bounding_box()
+                    page.mouse.move(box['x']+box['width']/2,box['y']+160)
+                    page.mouse.down()
+                    destination=box['x']+box['width']/2+target-sidebar_width()
+                    page.mouse.move(destination,box['y']+160,steps=12)
+                    page.mouse.up()
+                def sidebar_width():
+                    return round(page.locator('#appSidebar').bounding_box()['width'])
+                initial=page.locator('.content-card').bounding_box()['width']
+                drag_edge(384)
+                assert sidebar_width()==384,sidebar_width()
+                assert page.locator('.content-card').bounding_box()['width']<initial-100
+                assert page.evaluate("getComputedStyle(document.body).paddingLeft")=='384px'
+                contained()
+                page.reload()
+                assert page.locator('#appSidebar').is_visible() and sidebar_width()==384
+                assert page.locator('#sidebarResizer').get_attribute('aria-valuenow')=='384'
+                page.keyboard.press('Escape')
+                assert page.evaluate("getComputedStyle(document.body).paddingLeft")=='0px'
+                contained()
+                page.locator('#menuToggle').click()
+                drag_edge(620)
+                assert sidebar_width()==480
+                contained()
+                assert page.locator('.orders-table-wrap').evaluate('el=>el.scrollWidth>el.clientWidth')
+                drag_edge(100)
+                assert sidebar_width()==240
+                page.locator('#sidebarResizer').dblclick(position={'x':5,'y':150})
+                assert sidebar_width()==272
+                page.locator('#sidebarResizer').focus()
+                page.keyboard.press('End')
+                assert sidebar_width()==480
+                page.keyboard.press('ArrowLeft')
+                assert sidebar_width()==464
+                page.keyboard.press('ArrowRight')
+                assert sidebar_width()==480
+                page.keyboard.press('Home')
+                assert sidebar_width()==240
+                page.keyboard.press('End')
+                for viewport in [1920,1536,1280,1200,1024]:
+                    page.set_viewport_size({'width':viewport,'height':1000})
+                    contained()
+                page.set_viewport_size({'width':1536,'height':1000})
+                orders=screenshot.with_name(screenshot.stem+'-orders'+screenshot.suffix)
+                page.screenshot(path=str(orders),full_page=True)
+                page.set_viewport_size({'width':390,'height':844})
+                page.goto(base+'/orders')
+                contained()
+                assert page.locator('#sidebarResizer').is_hidden()
+                page.locator('#menuToggle').click()
+                assert sidebar_width()==350
+                page.keyboard.press('Escape')
+                wrap=page.locator('.orders-table-wrap')
+                wrap.evaluate('el=>el.scrollLeft=el.scrollWidth')
+                assert wrap.evaluate('el=>el.scrollLeft>0')
+                wrap.evaluate('el=>el.scrollLeft=0')
+                orders_mobile=screenshot.with_name(screenshot.stem+'-orders-mobile'+screenshot.suffix)
+                page.screenshot(path=str(orders_mobile),full_page=True)
+                # Corrupt browser preferences are bounded as well.
+                page.evaluate("localStorage.setItem('ksm.navWidth','999999')")
+                page.set_viewport_size({'width':1440,'height':1000})
+                page.reload()
+                assert sidebar_width()==480
+                contained()
+                print('Orders layout PASS — long unbroken text, local table scroll, drag limits, live page resizing, persisted width, keyboard, 1920/1536/1280/1200/1024/390px.',flush=True)
+                print('Orders screenshots:',orders,orders_mobile,flush=True)
                 assert not errors,errors
                 print('Chrome',browser.version,': PASS — login, role navigation, Escape/focus, manual XML import, real timer refresh, preserved details, 390px layout; no JS errors.',flush=True)
                 print('Screenshots:',screenshot,mobile,flush=True)
