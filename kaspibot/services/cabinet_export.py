@@ -121,7 +121,26 @@ def export_from_page(context, page, merchant_id, timeout=90):
         if not any(header.is_visible() for header in headers):
             raise ExportError('вход выполнен в другой магазин; экспорт не применяется.', 'wrong_merchant')
         action.click()
-        page.get_by_text('Скачать прайс-лист в XML', exact=True).click()
+        # The cabinet can download its previous file even when the new export is
+        # rejected (for example HTTP 429). Require this click's successful trigger
+        # before accepting any downloaded bytes as a newly requested export.
+        downloads.clear()
+        bodies.clear()
+        links.clear()
+        observations.clear()
+        def is_trigger(response):
+            url = urlsplit(response.url)
+            return url.hostname == 'mc.shop.kaspi.kz' and url.path == EXPORT_PATH + 'trigger'
+        remaining_ms = max(1, min(15000, int((deadline-time.monotonic())*1000)))
+        with page.expect_response(is_trigger, timeout=remaining_ms) as triggered:
+            page.get_by_text('Скачать прайс-лист в XML', exact=True).click()
+        trigger_status = triggered.value.status
+        if trigger_status == 429:
+            raise ExportError('Kaspi ограничил частоту экспорта (HTTP 429). Сохранён предыдущий XML; следующая попытка по расписанию.', 'rate_limited')
+        if trigger_status in (401, 403):
+            raise ExportError('кабинет отклонил сессию экспорта; выполните локальный вход.', 'needs_login')
+        if not 200 <= trigger_status < 300:
+            raise ExportError('Kaspi не подтвердил создание новой выгрузки; предыдущий XML сохранён.', 'response_error')
         attempted = set()
         while time.monotonic() < deadline:
             if downloads:

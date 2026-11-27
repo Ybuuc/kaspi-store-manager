@@ -77,7 +77,7 @@ class SourceRetryTests(unittest.TestCase):
             self.assertEqual(run.call_count,2)
 
     def test_login_and_wrong_shop_failures_are_not_retried(self):
-        for code in ['needs_login','wrong_merchant','stale','failed']:
+        for code in ['needs_login','wrong_merchant','stale','failed','rate_limited','response_error']:
             with self.subTest(code=code),patch('kaspibot.services.cabinet_export._fetch_export_once',side_effect=ExportError('safe',code)) as run:
                 with self.assertRaises(ExportError):
                     fetch_export('fixture-session','123456')

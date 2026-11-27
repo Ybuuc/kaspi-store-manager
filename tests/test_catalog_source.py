@@ -187,19 +187,37 @@ class ExportBoundaryTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('KASPI_CATALOG_BROWSER_TEST') == '1', 'Opt-in installed Chrome browser smoke')
 class ExportBrowserSmoke(unittest.TestCase):
-    def test_real_chrome_receives_exact_export_bytes_without_any_kaspi_network(self):
+    def run_export(self, trigger_status):
         content = feed()
         fixture = '''<!doctype html><html><body><p hidden>ID - 123456</p><p>ID - 123456</p>
         <button onclick="document.getElementById('export').hidden=false">Действия с файлами</button>
-        <a id="export" hidden download="fixture.xml" href="data:application/xml;base64,PAYLOAD">Скачать прайс-лист в XML</a>
+        <a id="export" hidden href="#" onclick="event.preventDefault();
+        fetch('https://mc.shop.kaspi.kz/offers/api/v1/offer/export/trigger').then(() => {
+          const link=document.createElement('a');link.download='fixture.xml';
+          link.href='data:application/xml;base64,PAYLOAD';link.click();
+        });">Скачать прайс-лист в XML</a>
         </body></html>'''.replace('PAYLOAD', base64.b64encode(content).decode())
         with sync_playwright() as runtime:
             browser = runtime.chromium.launch(channel='chrome', headless=True)
             try:
                 context = browser.new_context(accept_downloads=True)
-                context.route('**/*', lambda route: route.fulfill(status=200,
-                    content_type='text/html; charset=utf-8', body=fixture))
-                received = export_from_page(context, context.new_page(), '123456', timeout=15)
-                self.assertEqual(received, content)
+                def serve(route):
+                    if route.request.url.endswith('/offer/export/trigger'):
+                        route.fulfill(status=trigger_status, content_type='application/json',
+                            headers={'Access-Control-Allow-Origin':'*'}, body='{}')
+                    else:
+                        route.fulfill(status=200, content_type='text/html; charset=utf-8', body=fixture)
+                context.route('**/*', serve)
+                return export_from_page(context, context.new_page(), '123456', timeout=15)
             finally:
                 browser.close()
+
+    def test_real_chrome_receives_exact_export_bytes_without_any_kaspi_network(self):
+        self.assertEqual(self.run_export(200), feed())
+
+    def test_rejected_trigger_does_not_accept_old_download_from_cabinet(self):
+        # Reproduce the real cabinet: a failed trigger still downloads an old file.
+        for http_status,code in [(429,'rate_limited'),(503,'response_error'),(401,'needs_login')]:
+            with self.subTest(status=http_status), self.assertRaises(ExportError) as error:
+                self.run_export(http_status)
+            self.assertEqual(error.exception.code, code)
