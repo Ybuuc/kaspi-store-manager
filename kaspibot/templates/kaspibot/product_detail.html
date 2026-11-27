@@ -3,7 +3,9 @@
 <p><a href="{{ url_for('management.product_detail', product_id=product.id) }}">SKU, цена, порог, архив и история изменений</a></p>
 
 
-<h4>{{ product.name }}</h4>
+<h4>{{ seller.model if seller else product.name }}</h4>
+<p class="muted">SKU: {{ product.sku or 'не указан' }}</p>
+{% set p=product %}{% include 'kaspibot/seller_metrics.html' %}
 
 {% if config.DEMO_MODE %}
 <p>
@@ -12,7 +14,7 @@
   Барлығы: <b>{{ (product.stock_qty or 0) + (product.in_transit_qty or 0) }}</b>
 </p>
 {% else %}
-<div class="alert alert-warning">Физические остатки, закупка и расходы этой карточки не сверены с кабинетом. Ниже сохранена локальная история; актуальные полученные заказы доступны в отчёте Kaspi.</div>
+<div class="catalog-note">Ниже — локальная история учёта. Заявленное количество XML и предзаказ не подтверждают физический остаток и закупочную цену.</div>
 {% endif %}
 
 <hr>

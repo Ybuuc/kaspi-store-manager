@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kazpi Stock MVP</title>
+  <title>{% block title %}Kaspi Stock{% endblock %}</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
 
@@ -417,6 +417,7 @@
     .management-panel dl {display:grid; grid-template-columns:220px 1fr; gap:8px;}
     .management-panel .narrow {max-width:580px; margin:auto;}
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app-shell.css') }}">
 <script>
     // Every JSON mutation uses the same session CSRF protection as HTML forms.
     const originalFetch = window.fetch.bind(window);
@@ -435,34 +436,14 @@
 <body>
   <div class="app-shell">
 
-    <div class="topbar">
-      <a class="brand" href="{{ url_for('kaspibot.index') }}" style="flex-shrink:0;min-width:160px">
-        <div class="brand-badge" style="flex-shrink:0">KS</div><div>Kaspi Stock<div class="muted" style="font-size:12px">Склад и заказы</div></div>
-      </a>
-      {% if g.user %}<nav class="navlinks" aria-label="Основные разделы">
-        <a href="{{ url_for('kaspibot.products') }}">Склад</a>
-        <a href="{{ url_for('kaspibot.incoming') }}">Поступления</a>
-        <a href="{{ url_for('kaspibot.stock_in') }}">Приёмка</a>
-        <a href="{{ url_for('kaspibot.onway') }}">В пути</a>
-        {% if g.user['role']=='admin' %}
-        <a href="{{ url_for('kaspibot_catalog.catalog') }}">XML-каталог</a>
-        <a href="{{ url_for('kaspibot.orders_page') }}">Kaspi-заказы</a>
-        <a href="{{ url_for('kaspibot.import_page') }}">Excel</a>
-        <a href="{{ url_for('kaspibot.report') }}">Отчёт Kaspi</a>
-        <a href="{{ url_for('kaspibot.chat_page') }}">Помощник</a>{% endif %}
-        <form method="post" action="{{ url_for('management.logout') }}" style="margin:0"><button class="btn btn-outline-secondary btn-sm" type="submit">Выход · {{ g.user['username'] }}</button></form>
-      </nav>{% endif %}
-    </div>
-    {% if g.user %}<nav class="navlinks" aria-label="Учёт и контроль" style="justify-content:flex-start;margin:10px 0;padding:8px;background:white;border-radius:12px;border:1px solid var(--line)">
-      <a href="{{ url_for('management.products') }}">Каталог и пороги</a>
-      <a href="{{ url_for('management.product_archive') }}">Архив товаров</a>
-      {% if config.DEMO_MODE %}<a href="{{ url_for('management.orders') }}">Учебные заказы</a>{% endif %}
-      {% if g.user['role']=='admin' %}
-      <a href="{{ url_for('management.inventory_report') }}">Сводка склада</a>
-      {% if config.DEMO_MODE %}<a href="{{ url_for('management.sales_report') }}">Учебная статистика</a>{% endif %}
-      <a href="{{ url_for('management.audit_report') }}">Журнал</a>
-      <a href="{{ url_for('management.admin_dashboard') }}">Сотрудники</a>{% endif %}
-    </nav>{% endif %}
+    <header class="topbar app-header">
+      <div class="header-start">
+        {% if g.user %}<button type="button" id="menuToggle" class="menu-toggle" aria-label="Открыть меню" aria-controls="appSidebar" aria-expanded="false"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Меню</span></button>{% endif %}
+        <a class="brand" href="{{ url_for('kaspibot.index') }}"><span class="brand-badge">KS</span><span>Kaspi Stock<small class="brand-caption">Управление магазином</small></span></a>
+      </div>
+      {% if g.user %}<span class="header-account">{{ 'Администратор' if g.user['role']=='admin' else 'Сотрудник' }}</span>{% endif %}
+    </header>
+    {% if g.user %}{% include 'kaspibot/navigation.html' %}{% endif %}
 
     <div class="flash-wrap">
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -474,7 +455,7 @@
       {% endwith %}
     </div>
 
-    {% if g.user and not config.DEMO_MODE %}<div class="alert alert-warning mt-3">Реальный кабинет: заказы читаются из API автоматически при включённой синхронизации; доступна и ручная проверка в разделе «Kaspi-заказы». Складские остатки и закупочные цены из архивной базы ещё не сверены с кабинетом; они не являются актуальным остатком Kaspi.</div>{% endif %}
+
     {% if g.user and g.user['role']=='admin' %}{% include 'kaspibot/automatic_status.html' %}{% endif %}
     <div class="content-card">
       {% block content %}{% endblock %}
@@ -483,5 +464,6 @@
   </div>
 
   <script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+  {% if g.user %}<script src="{{ url_for('static', filename='navigation.js') }}" defer></script>{% endif %}
 </body>
 </html>

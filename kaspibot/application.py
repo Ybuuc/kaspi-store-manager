@@ -85,7 +85,7 @@ def create_app(test_config=None):
             return redirect(url_for('management.login'))
         employee_routes = {'index', 'products', 'product_detail', 'product_edit', 'incoming',
                            'stock_in', 'onway', 'onway_add', 'onway_remove', 'onway_product_detail',
-                           'onway_item_cancel', 'api_products', 'api_products_create', 'api_products_update',
+                           'onway_item_cancel', 'api_products', 'api_catalog_version', 'api_products_create', 'api_products_update',
                            'api_products_delete', 'api_incoming', 'api_onway', 'api_incoming_items',
                            'api_onway_items', 'api_in_items', 'api_incoming_add', 'api_incoming_remove',
                            'api_onway_add', 'api_onway_remove', 'api_in_remove', 'api_in_receive'}

@@ -1,46 +1,6 @@
-<div class="alert alert-info mt-3" aria-live="polite">
-  <b>Автоматическое обновление</b><div id="automaticSyncSummary">Проверка состояния…</div>
-</div>
-<script>
-(() => {
-  const box = document.getElementById('automaticSyncSummary');
-  const labels = {imported:'загружен',unchanged:'файл не изменился',failed:'ошибка',
-    not_configured:'не настроено',queued:'в очереди',running:'выполняется',
-    available:'доступен, TLS проверен',not_checked:'ещё не проверен',invalid_url:'неверный URL',
-    tls_error:'ошибка сертификата',unavailable:'недоступен',response_error:'ошибка ответа',
-    disabled:'выключен',waiting:'ожидает проверки',needs_login:'нужен локальный вход',
-    exported:'получен из кабинета',wrong_merchant:'другой магазин',stale:'устаревшая выгрузка',
-    success:'завершено',partial:'завершено частично',interrupted:'прервано'};
-  let timer;
-  async function refresh() {
-    try {
-      const response = await fetch('/api/kaspi/status');
-      if (!response.ok) throw new Error();
-      const data = await response.json();
-      const auto = data.automatic;
-      box.textContent = (auto.enabled ? (auto.running ? 'Работает' : 'Ожидает запуска') : 'Выключено') +
-        ' · интервал ' + auto.interval_seconds + ' сек.\n' +
-        'Заказы API: ' + (labels[auto.orders_status] || auto.orders_status) + ' · ' + (auto.orders_message || '') + '\n' +
-        'Источник XML: ' + (labels[auto.source?.state] || auto.source?.state || 'не настроен') + ' · ' + (auto.source?.message || '') + '\n' +
-        'Последняя выгрузка из Kaspi: ' + (auto.source?.exported_at || 'не выполнена') + '\n' +
-        'HTTPS-сервер: ' + (labels[auto.https_status] || auto.https_status) + '\n' +
-        'XML-синхронизация: ' + (labels[auto.catalog_status] || auto.catalog_status) + ' · ' + (auto.catalog_message || '') + '\n' +
-        'Позиций в сохранённом каталоге: ' + auto.catalog_offers + '\n' +
-        'Последний импорт: ' + (auto.catalog_imported_at ? auto.catalog_imported_at + ' UTC' : 'не выполнен') + '\n' +
-        'Дата XML: ' + (auto.catalog_source_date || 'не получен') +
-        ' · последний успешный запрос XML: ' + (auto.catalog_checked_at ? auto.catalog_checked_at + ' UTC' : 'не выполнен') + '\n' +
-        'Следующая проверка: ' + (auto.next_attempt_at ? auto.next_attempt_at + ' UTC' : 'при запуске') +
-        (auto.startup_error ? '\n' + auto.startup_error : '');
-      box.style.whiteSpace = 'pre-line';
-    } catch (error) {
-      box.textContent = 'Не удалось проверить состояние автообновления. Сохранённые данные доступны.';
-    }
-    if (!document.hidden) timer = setTimeout(refresh, 5000);
-  }
-  document.addEventListener('visibilitychange', () => {
-    clearTimeout(timer);
-    if (!document.hidden) refresh();
-  });
-  refresh();
-})();
-</script>
+<section class="sync-panel" aria-label="Состояние синхронизации">
+  <div class="sync-top" id="automaticSyncSummary" role="status" aria-live="polite"><span class="sync-heading">Синхронизация</span><span id="syncXmlChip" class="status-chip">XML: проверка…</span><span id="syncApiChip" class="status-chip">API: проверка…</span></div>
+  <p class="sync-notice" id="syncNotice">Получение состояния источников…</p>
+  <details><summary>Подробнее о синхронизации</summary><dl id="syncDetails"><dt>Состояние</dt><dd>Проверка…</dd></dl></details>
+</section>
+<script src="{{ url_for('static',filename='sync-status.js') }}" defer></script>

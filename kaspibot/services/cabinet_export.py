@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from playwright.sync_api import sync_playwright, Error as BrowserError
+from playwright.sync_api import sync_playwright, Error as BrowserError, TimeoutError as BrowserTimeout
 
 LIMIT = 16 * 1024 * 1024
 CABINET = 'https://kaspi.kz/mc/#/products'
@@ -115,7 +115,7 @@ def export_from_page(context, page, merchant_id, timeout=90):
         except BrowserError:
             if 'login' in page.url or 'idmc.' in page.url:
                 raise ExportError('сессия кабинета истекла; выполните локальный вход заново.', 'needs_login') from None
-            raise ExportError('не найдена команда экспорта; кабинет мог изменить интерфейс.') from None
+            raise ExportError('страница экспорта не загрузилась вовремя; проверка будет повторена.', 'timeout') from None
         # Match the account displayed by the cabinet, not a guessed merchant endpoint.
         headers = page.get_by_text('ID - ' + merchant_id, exact=True).all()
         if not any(header.is_visible() for header in headers):
@@ -161,7 +161,7 @@ def export_from_page(context, page, merchant_id, timeout=90):
         page.remove_listener('download', on_download)
 
 
-def fetch_export(session_path, merchant_id, timeout=90):
+def _fetch_export_once(session_path, merchant_id, timeout=90):
     if not Path(session_path).is_file():
         raise ExportError('нужен вход в локальном окне: запустите tools/kaspi_catalog_login.py.', 'needs_login')
     if not merchant_id or not merchant_id.isascii() or not merchant_id.isdigit():
@@ -189,6 +189,24 @@ def fetch_export(session_path, merchant_id, timeout=90):
                 browser.close()
     except ExportError:
         raise
-    except (BrowserError, OSError, ValueError):
-        # Browser errors may embed cookies, script source, private URLs or response bodies.
+    except BrowserTimeout:
+        raise ExportError('Kaspi не ответил вовремя; прежний каталог сохранён.', 'timeout') from None
+    except BrowserError as error:
+        # Inspect only the error category; never expose an embedded URL/session.
+        if 'net::ERR_' in str(error):
+            raise ExportError('соединение с Kaspi временно недоступно.', 'network_error') from None
         raise ExportError('не удалось выполнить экспорт; проверьте локальный вход, Chrome и сеть.') from None
+    except (OSError, ValueError):
+        raise ExportError('не удалось прочитать локальную сессию или сохранить выгрузку.') from None
+
+
+def fetch_export(session_path, merchant_id, timeout=90):
+    deadline = time.monotonic() + timeout
+    for attempt in range(2):
+        remaining = max(1, int(deadline - time.monotonic()))
+        try:
+            return _fetch_export_once(session_path, merchant_id, timeout=remaining)
+        except ExportError as error:
+            if error.code not in ('timeout', 'network_error') or attempt or deadline-time.monotonic() < 20:
+                raise
+    raise ExportError('выгрузка не завершена; следующая попытка по расписанию.')

@@ -1,0 +1,10 @@
+  {% if seller %}
+  <div class="seller-panel">
+    <div class="seller-metrics">
+      <div class="metric-price"><div class="metric-label">Цена по XML</div>{% for city,price in seller.prices.items() %}<div class="metric-entry"><div class="metric-value price">{{ price }} ₸</div><span class="metric-subline">{{ 'Единая цена' if city=='default' else 'Город ' ~ city }}</span></div>{% endfor %}</div>
+      <div><div class="metric-label">Заявлено в Kaspi</div>{% for stock in seller.stocks %}<div class="metric-entry"><div class="metric-value">{% if stock.quantity is none %}Не указано{% else %}{{ stock.quantity }} шт.{% endif %}</div><span class="metric-subline"><abbr class="warehouse-code" title="Код склада: {{ stock.store_id }}">{{ stock.store_id.rsplit('_',1)[-1] }}</abbr> · {% if stock.available=='no' %}Недоступен{% elif stock.preorder_days %}Доступен под заказ{% else %}В продаже{% endif %}</span></div>{% endfor %}</div>
+      <div><div class="metric-label">Предзаказ</div>{% for stock in seller.stocks %}<div class="metric-entry"><div class="metric-value">{{ (stock.preorder_days ~ ' дн.') if stock.preorder_days else 'Без предзаказа' }}</div><span class="metric-subline">{{ stock.store_id.rsplit('_',1)[-1] }}</span></div>{% endfor %}</div>
+    </div>
+    <div class="seller-caption"><span>Сохранённый XML · {{ catalog_snapshot.source_date }}</span><span>{{ 'Физический остаток не подтверждён' if p.inventory_source=='unknown' else 'Физический склад — по локальному учёту' }}</span></div>
+  </div>
+  {% else %}<div class="source-missing">SKU отсутствует в последнем XML. Карточка сохранена; отсутствие в выгрузке не означает нулевой остаток.</div>{% endif %}

@@ -910,6 +910,15 @@ def products():
         ),
     )
 
+@bp.get('/api/products/catalog-version')
+def api_catalog_version():
+    from kaspibot.models import SellerCatalogImport
+    snapshot = SellerCatalogImport.query.order_by(SellerCatalogImport.source_date.desc(), SellerCatalogImport.id.desc()).first()
+    response = jsonify(revision=snapshot.id if snapshot else 0, source_date=snapshot.source_date if snapshot else None)
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
 @bp.route("/products/<int:product_id>", methods=["GET", "POST"])
 def product_detail(product_id: int):
     p = Product.query.get_or_404(product_id)
@@ -957,7 +966,11 @@ def product_detail(product_id: int):
 
     movements = q.order_by(StockMovement.created_at.desc()).limit(200).all()
 
+    from kaspibot.services.seller_catalog import latest_catalog
+    catalog_snapshot, catalog_rows = latest_catalog()
     return render_template("kaspibot/product_detail.html",
+        catalog_snapshot=catalog_snapshot,
+        seller=next((row for row in catalog_rows if row['product_id'] == p.id), None),
         product=p,
         aliases=aliases,
         movements=movements,
