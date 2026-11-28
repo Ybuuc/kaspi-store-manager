@@ -302,7 +302,7 @@ class BrowserLifecycleTests(unittest.TestCase):
                 handler=[]
                 context.route.side_effect=lambda _pattern,callback:handler.append(callback)
                 def callback():
-                    route=Mock(request=SimpleNamespace(method='GET',url='https://kaspi.kz/'))
+                    route=Mock(request=SimpleNamespace(method='GET',url='https://kaspi.kz/',resource_type='document'))
                     route.continue_.side_effect=BrowserError('Target page, context or browser has been closed')
                     handler[0](route)
                 context.unroute_all.side_effect=lambda **_kwargs:callback() if closing else None

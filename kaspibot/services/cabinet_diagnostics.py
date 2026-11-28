@@ -32,6 +32,7 @@ class CabinetDiagnostics:
         self.timings={}
         self.network_failures=set()
         self.script_errors=0
+        self.asset_cache={}
 
     def mark(self,stage):
         if stage in ('navigation_committed','cabinet_ready','merchant_verified','export_trigger_received','xml_received'):
@@ -77,6 +78,6 @@ class CabinetDiagnostics:
         try:
             atomic_write(path,json.dumps({'checked_at':datetime.now(timezone.utc).isoformat(),
                 'events':[{'dependency':kind,'result':status} for kind,status in sorted(self.events,key=str)],
-                'stage_seconds':self.timings,'network_categories':sorted(self.network_failures),'script_errors':self.script_errors}).encode())
+                'stage_seconds':self.timings,'network_categories':sorted(self.network_failures),'script_errors':self.script_errors,'asset_cache':self.asset_cache}).encode())
         except OSError:
             pass

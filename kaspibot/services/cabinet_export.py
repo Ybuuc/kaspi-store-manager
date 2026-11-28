@@ -232,24 +232,29 @@ def _fetch_export_once(session_path, merchant_id, timeout=180):
             browser = browser_runtime.chromium.launch(channel=None if channel=='chromium' else channel, headless=True)
             from kaspibot.services.cabinet_diagnostics import CabinetDiagnostics
             diagnostics=CabinetDiagnostics()
+            from kaspibot.services.cabinet_assets import CabinetAssets
+            assets=CabinetAssets(Path(session_path).parent/'asset-cache')
             context = None
             closing = False
             try:
                 context = browser.new_context(storage_state=str(session_path), accept_downloads=True,
-                                              viewport={'width': 1366, 'height': 900}, ignore_https_errors=False)
+                                              viewport={'width': 1366, 'height': 900}, ignore_https_errors=False, service_workers='block')
                 context.set_default_timeout(10000)
                 # Some observed cabinet READ operations use POST. Keep an exact allowlist.
                 def read_only(route):
                     try:
-                        if read_request_allowed(route.request):
-                            route.continue_()
-                        else:
+                        if not read_request_allowed(route.request):
                             diagnostics.blocked(route.request)
                             route.abort()
+                        elif route.request.resource_type in ('image','font','media'):
+                            route.abort()
+                        elif not assets.respond(route):
+                            route.continue_()
                     except BrowserError as error:
                         if not (closing and is_closed_error(error)):
                             raise
                 context.route('**/*', read_only)
+                context.on('requestfinished',assets.capture)
                 from kaspibot.services.cabinet_session import save_session
                 # A valid cabinet navigation may refresh auth even when export gets 429.
                 # Save only after export_from_page verifies this exact merchant.
@@ -258,6 +263,7 @@ def _fetch_export_once(session_path, merchant_id, timeout=180):
                 save_session(context,session_path)
                 return result
             finally:
+                diagnostics.asset_cache=dict(hits=assets.hits,saved=assets.saved)
                 diagnostics.save(Path(session_path).parent/"source-diagnostics.json")
                 closing=True
                 try:
@@ -265,6 +271,7 @@ def _fetch_export_once(session_path, merchant_id, timeout=180):
                         try:
                             # Drain in-flight routes while the context is alive, then close it.
                             context.unroute_all(behavior='wait')
+                            context.remove_listener('requestfinished',assets.capture)
                             context.close()
                         except BrowserError as error:
                             if not is_closed_error(error):
