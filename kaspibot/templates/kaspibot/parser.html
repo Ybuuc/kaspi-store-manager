@@ -2,15 +2,13 @@
 
 {% block content %}
 
-<h3>Парсер Kaspi</h3>
+<h3>{{ _("Парсер Kaspi") }}</h3>
 
 <p>
-  Сбор товаров и видимых предложений продавцов.
-  Рекомендуемая цена сохраняется для анализа;
-  цены в Kaspi и складские остатки не изменяются.
+  {{ _("Сбор товаров и видимых предложений продавцов. Рекомендуемая цена сохраняется для анализа; цены в Kaspi и складские остатки не изменяются.") }}
 </p>
 
-<a href="{{ url_for('kaspibot.products') }}">← Склад</a>
+<a href="{{ url_for('kaspibot.products') }}">{{ _("← Склад") }}</a>
 
 <form method="post" class="mt-3 mb-4"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input
@@ -22,7 +20,7 @@
   <div class="row g-3">
     <div class="col-md-3">
       <label for="merchant" class="form-label">
-        ID магазина
+        {{ _("ID магазина") }}
       </label>
 
       <input
@@ -37,7 +35,7 @@
 
     <div class="col-md-3">
       <label for="seller" class="form-label">
-        Точное имя продавца
+        {{ _("Точное имя продавца") }}
       </label>
 
       <input
@@ -51,7 +49,7 @@
 
     <div class="col-md-3">
       <label for="city" class="form-label">
-        Код города Kaspi (необязательно)
+        {{ _("Код города Kaspi (необязательно)") }}
       </label>
 
       <input
@@ -65,7 +63,7 @@
 
     <div class="col-md-3">
       <label for="pages" class="form-label">
-        Лимит страниц каталога
+        {{ _("Лимит страниц каталога") }}
       </label>
 
       <input
@@ -81,9 +79,7 @@
   </div>
 
   <p class="muted mt-2">
-    Без кода города используется город, выбранный сайтом.
-    Цены и доступность зависят от города;
-    список продавцов может быть неполным.
+    {{ _("Без кода города используется город, выбранный сайтом. Цены и доступность зависят от города; список продавцов может быть неполным.") }}
   </p>
 
   <label class="d-block my-3">
@@ -92,28 +88,23 @@
       name="headless"
       {% if config.headless %}checked{% endif %}
     >
-    Без окна браузера (обязательно для Docker)
+    {{ _("Без окна браузера (обязательно для Docker)") }}
   </label>
 
   <details class="mb-3">
     <summary>
-      Настройки рекомендуемых цен по Kaspi ID
+      {{ _("Настройки рекомендуемых цен по Kaspi ID") }}
     </summary>
 
     <p class="mt-2">
-      min_price / max_price — границы,
-      step — шаг в тенге,
-      allow_increase — разрешить повышение,
-      fixed_price — оставить цену.
-      По умолчанию: 2500–15000 ₸,
-      шаг 2 ₸, повышение разрешено.
+      {{ _("min_price / max_price — границы, step — шаг в тенге, allow_increase — разрешить повышение, fixed_price — оставить цену. По умолчанию: 2500–15000 ₸, шаг 2 ₸, повышение разрешено.") }}
     </p>
 
     <textarea
       name="settings"
       class="form-control font-monospace"
       rows="12"
-      aria-label="Настройки цен JSON"
+      aria-label="{{ _("Настройки цен JSON") }}"
     >{{ settings_text }}</textarea>
   </details>
 
@@ -122,7 +113,7 @@
     class="btn btn-primary"
     {% if active %}disabled{% endif %}
   >
-    Запустить парсер
+    {{ _("Запустить парсер") }}
   </button>
 
   {% if active %}
@@ -130,7 +121,7 @@
       class="ms-3"
       href="{{ url_for('kaspibot.parser.page', job_id=active.id) }}"
     >
-      Идёт проверка №{{ active.id }}
+      {{ _("Идёт проверка №") }}{{ active.id }}
     </a>
   {% endif %}
 </form>
@@ -147,7 +138,7 @@
 
   <div class="alert alert-info">
     <b>
-      Проверка №{{ job.id }} —
+      {{ _("Проверка №") }}{{ job.id }} —
       {{ statuses.get(job.status, job.status) }}
     </b>
 
@@ -157,16 +148,16 @@
 
     <br>
 
-    Обработано: {{ job.processed }}
-    · Ошибок: {{ job.errors }}
-    · Начало (UTC):
+    {{ _("Обработано:") }} {{ job.processed }}
+    {{ _("· Ошибок:") }} {{ job.errors }}
+    {{ _("· Начало (UTC):") }}
     {{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
 
     {% if job.status in ['queued', 'running'] %}
       <br>
 
       <a href="{{ url_for('kaspibot.parser.page', job_id=job.id) }}">
-        Обновить результаты
+        {{ _("Обновить результаты") }}
       </a>
     {% endif %}
   </div>
@@ -175,11 +166,11 @@
     <table class="table align-middle">
       <thead>
         <tr>
-          <th>Товар</th>
-          <th>Наша цена</th>
-          <th>Дешёвый конкурент</th>
-          <th>Рекомендуемая цена</th>
-          <th>Результат</th>
+          <th>{{ _("Товар") }}</th>
+          <th>{{ _("Наша цена") }}</th>
+          <th>{{ _("Дешёвый конкурент") }}</th>
+          <th>{{ _("Рекомендуемая цена") }}</th>
+          <th>{{ _("Результат") }}</th>
         </tr>
       </thead>
 
@@ -211,7 +202,7 @@
               {% if d.our_price is not none %}
                 {{ d.our_price }} ₸
               {% else %}
-                Не подтверждена
+                {{ _("Не подтверждена") }}
               {% endif %}
             </td>
 
@@ -264,7 +255,7 @@
 
                 <details>
                   <summary>
-                    Предложения ({{ d.competitors|length }})
+                    {{ _("Предложения (") }}{{ d.competitors|length }})
                   </summary>
 
                   {% for offer in d.competitors %}
@@ -282,7 +273,7 @@
         {% else %}
           <tr>
             <td colspan="5">
-              Результатов пока нет.
+              {{ _("Результатов пока нет.") }}
             </td>
           </tr>
         {% endfor %}
@@ -295,7 +286,7 @@
 {% if jobs %}
   <details class="mt-3">
     <summary>
-      Последние проверки
+      {{ _("Последние проверки") }}
     </summary>
 
     <ul>
@@ -304,7 +295,7 @@
           <a href="{{ url_for('kaspibot.parser.page', job_id=old.id) }}">
             №{{ old.id }}
             · {{ old.created_at.strftime('%Y-%m-%d %H:%M') }} UTC
-            · {{ old.processed }} товаров
+            · {{ old.processed }} {{ _("товаров") }}
           </a>
         </li>
       {% endfor %}

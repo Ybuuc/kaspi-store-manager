@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="kk">
+<html lang="{{ ui_lang }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -418,6 +418,8 @@
     .management-panel .narrow {max-width:580px; margin:auto;}
   </style>
   <link rel="stylesheet" href="{{ url_for('static', filename='app-shell.css') }}">
+<script>window.KSM_I18N={language:{{ ui_lang|tojson }},locale:{{ ui_locale|tojson }},messages:{{ ui_messages|tojson }}};</script>
+  <script src="{{ url_for('static',filename='i18n.js') }}"></script>
 <script>
     // Every JSON mutation uses the same session CSRF protection as HTML forms.
     const originalFetch = window.fetch.bind(window);
@@ -438,10 +440,10 @@
 
     <header class="topbar app-header">
       <div class="header-start">
-        {% if g.user %}<button type="button" id="menuToggle" class="menu-toggle" aria-label="Открыть меню" aria-controls="appSidebar" aria-expanded="false"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Меню</span></button>{% endif %}
-        <a class="brand" href="{{ url_for('kaspibot.index') }}"><span class="brand-badge">KS</span><span>Kaspi Stock<small class="brand-caption">Управление магазином</small></span></a>
+        {% if g.user %}<button type="button" id="menuToggle" class="menu-toggle" aria-label="{{ _("Открыть меню") }}" aria-controls="appSidebar" aria-expanded="false"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>{{ _("Меню") }}</span></button>{% endif %}
+        <a class="brand" href="{{ url_for('kaspibot.index') }}"><span class="brand-badge">KS</span><span>Kaspi Stock<small class="brand-caption">{{ _("Управление магазином") }}</small></span></a>
       </div>
-      {% if g.user %}<span class="header-account">{{ 'Администратор' if g.user['role']=='admin' else 'Сотрудник' }}</span>{% endif %}
+      <div class="header-controls">{% include 'kaspibot/language_switch.html' %}{% if g.user %}<span class="header-account">{{ _('Администратор') if g.user['role']=='admin' else _('Сотрудник') }}</span>{% endif %}</div>
     </header>
     {% if g.user %}{% include 'kaspibot/navigation.html' %}{% endif %}
 
@@ -449,7 +451,7 @@
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, msg in messages %}
-            <div class="flash {{ category }}">{{ msg }}</div>
+            <div class="flash {{ category }}">{{ _(msg) }}</div>
           {% endfor %}
         {% endif %}
       {% endwith %}

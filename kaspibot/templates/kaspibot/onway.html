@@ -1,28 +1,28 @@
 {% extends "kaspibot/base.html" %}
 {% block content %}
-<h3>Жолдағы тауарлар</h3>
-<p class="text-muted">Бұл жерде қолмен қосылған жолдағы тауарлар тұрады.</p>
+<h3>{{ _("Жолдағы тауарлар") }}</h3>
+<p class="text-muted">{{ _("Бұл жерде қолмен қосылған жолдағы тауарлар тұрады.") }}</p>
 
 <div class="mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
   <div>
-    <b>Жолда барлығы:</b> {{ total_onway_qty }} дана
-    <a class="btn btn-sm btn-primary ms-3" href="{{ url_for('kaspibot.onway_add') }}">Қосу (+1)</a>
+    <b>{{ _("Жолда барлығы:") }}</b> {{ total_onway_qty }} {{ _("дана") }}
+    <a class="btn btn-sm btn-primary ms-3" href="{{ url_for('kaspibot.onway_add') }}">{{ _("Қосу (+1)") }}</a>
   </div>
 
   <div class="text-end">
-    <div><b>Жолда жалпы сомасы:</b> {{ total_onway_sum }} тг</div>
-    <div><b>Жолда жалпы пайда:</b> {{ total_onway_profit }} тг</div>
+    <div><b>{{ _("Жолда жалпы сомасы:") }}</b> {{ total_onway_sum }} {{ _("тг") }}</div>
+    <div><b>{{ _("Жолда жалпы пайда:") }}</b> {{ total_onway_profit }} {{ _("тг") }}</div>
   </div>
 </div>
 
 <table class="table table-sm">
   <thead>
     <tr>
-      <th>Тауар</th>
-      <th class="text-end">Жолда (дана)</th>
-      <th class="text-end">Таза пайда (тг)</th>
-      <th class="text-end">Жолда сомасы (тг)</th>
-      <th class="text-end">Әрекет</th>
+      <th>{{ _("Тауар") }}</th>
+      <th class="text-end">{{ _("Жолда (дана)") }}</th>
+      <th class="text-end">{{ _("Таза пайда (тг)") }}</th>
+      <th class="text-end">{{ _("Жолда сомасы (тг)") }}</th>
+      <th class="text-end">{{ _("Әрекет") }}</th>
     </tr>
   </thead>
   <tbody>

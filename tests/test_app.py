@@ -15,6 +15,7 @@ class AppTests(unittest.TestCase):
         self.database = os.path.join(self.tempdir.name, "app.sqlite3")
         self.app = create_app({"TESTING": True, "SECRET_KEY": "test-only-secret", "DATABASE": self.database})
         self.client = self.app.test_client()
+        self.client.set_cookie("ksm_language", "kk")  # Existing management assertions use Kazakh.
         result = self.app.test_cli_runner().invoke(args=["init-db"])
         self.assertEqual(result.exit_code, 0, result.output)
         with closing(sqlite3.connect(self.database)) as db, db:
@@ -117,7 +118,7 @@ class AppTests(unittest.TestCase):
             self.assertEqual(result.exit_code, 0, result.output)
         page = self.client.get("/management/orders").get_data(as_text=True)
         for value in ("2026-01-15", "2026-01-16", "2500.00", "1200.50", "Жаңа",
-                      "Орындалды", "Оқу дерегі", ">1<", ">2<"):
+                      "Орындалды", "Оқу деректері", ">1<", ">2<"):
             self.assertIn(value, page)
         self.assertLess(page.index("2026-01-16"), page.index("2026-01-15"))
         filtered = self.client.get("/management/orders?status=Жаңа").get_data(as_text=True)
@@ -225,13 +226,13 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.client.post("/management/products/1/threshold", data={"threshold": "5", "csrf_token": "bad"}).status_code, 400)
         self.assertEqual(self.client.post("/management/products/999/threshold", data={"threshold": "5", "csrf_token": token}).status_code, 404)
         self.assertEqual(self.client.post("/management/products/1/threshold", data={"threshold": "5", "csrf_token": token}).status_code, 302)
-        self.assertIn("<span class=\"warning\">Төмен қалдық</span>", self.client.get("/management/products").get_data(as_text=True))
-        self.assertIn("Төмен қалдық: тауар саны", self.client.get("/management/products/1").get_data(as_text=True))
-        self.assertNotIn("Төмен қалдық: тауар саны", self.client.get("/management/products/2").get_data(as_text=True))
+        self.assertIn("<span class=\"warning\">Қалдық аз</span>", self.client.get("/management/products").get_data(as_text=True))
+        self.assertIn("Аз қалдық: тауар саны", self.client.get("/management/products/1").get_data(as_text=True))
+        self.assertNotIn("Аз қалдық: тауар саны", self.client.get("/management/products/2").get_data(as_text=True))
         self.assertEqual(self.client.post("/management/products/1/threshold", data={"threshold": "2", "csrf_token": token}).status_code, 302)
         self.assertNotIn("<span class=\"warning\">", self.client.get("/management/products").get_data(as_text=True))
         self.assertEqual(self.client.post("/management/products/1/stock_qty", data={"stock_qty": "1", "csrf_token": token}).status_code, 302)
-        self.assertIn("Төмен қалдық: тауар саны", self.client.get("/management/products/1").get_data(as_text=True))
+        self.assertIn("Аз қалдық: тауар саны", self.client.get("/management/products/1").get_data(as_text=True))
         self.assertEqual(self.client.post("/management/products/1/threshold", data={"threshold": "", "csrf_token": token}).status_code, 302)
         self.assertNotIn("<span class=\"warning\">", self.client.get("/management/products").get_data(as_text=True))
         self.assertEqual(self.client.post("/management/products/1/threshold", data={"threshold": "", "csrf_token": token}).status_code, 302)
@@ -243,7 +244,7 @@ class AppTests(unittest.TestCase):
         self.client.post("/management/products/1/archive", data={"csrf_token": token})
         self.assertEqual(self.client.get("/management/products/1/threshold").status_code, 409)
         self.assertEqual(self.client.post("/management/products/1/threshold", data={"threshold": "5", "csrf_token": token}).status_code, 409)
-        self.assertNotIn("Төмен қалдық: тауар саны", self.client.get("/management/products/1").get_data(as_text=True))
+        self.assertNotIn("Аз қалдық: тауар саны", self.client.get("/management/products/1").get_data(as_text=True))
 
     def test_10000_product_search_under_one_second(self):
         with closing(sqlite3.connect(self.database)) as db, db:
@@ -272,7 +273,7 @@ class AppTests(unittest.TestCase):
         self.assertNotIn("TEA-1", self.client.get("/management/products").get_data(as_text=True))
         self.assertNotIn("TEA-1", self.client.get("/management/products?q=Шай").get_data(as_text=True))
         self.assertIn("TEA-1", self.client.get("/management/products/archive").get_data(as_text=True))
-        self.assertIn("Архивтен қайтару", self.client.get("/management/products/1").get_data(as_text=True))
+        self.assertIn("Мұрағаттан қайтару", self.client.get("/management/products/1").get_data(as_text=True))
         self.assertEqual(self.client.get("/management/products/1/edit").status_code, 409)
         self.assertEqual(self.client.post("/management/products/1/stock_qty", data={"stock_qty": "4", "csrf_token": token}).status_code, 409)
         self.assertEqual(self.client.post("/management/products/1/archive", data={"csrf_token": token}).status_code, 409)
@@ -392,7 +393,7 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.client.get("/management/reports/inventory").status_code, 403)
         self.assertEqual(self.client.post(path, data={"csrf_token": token, "role": "employee"}).status_code, 403)
         page = self.client.get("/management/products").get_data(as_text=True)
-        self.assertNotIn("Қойма есебі", page)
+        self.assertNotIn('href="/management/reports/inventory"', page)
         self.assertNotIn("Әкімші</a>", page)
 
     def test_price_history_shows_chronological_actor_and_legacy_edits(self):

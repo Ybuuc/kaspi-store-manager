@@ -16,6 +16,7 @@ from playwright.sync_api import sync_playwright, Error as BrowserError
 from sqlalchemy.exc import SQLAlchemyError
 from tools.setup_local_catalog import provision
 from kaspibot.services.catalog_source import atomic_write, refresh_source
+from kaspibot.services.cabinet_session import save_session
 from kaspibot.services.cabinet_export import export_from_page, ExportError, CABINET
 from kaspibot.services.catalog_download import download_xml
 from kaspibot.services.seller_catalog import import_xml
@@ -77,15 +78,14 @@ def main():
                 page.wait_for_timeout(1000)
             else:
                 raise ExportError('время ожидания входа истекло.', 'needs_login')
-            # Saved only in the ACL-protected local directory; never copied from another browser.
-            state = context.storage_state()
-            atomic_write(session_file, json.dumps(state).encode())
-            progress('authenticated', 'Локальная сессия сохранена. Проверяется первая настоящая XML-выгрузка.')
+            progress('authenticated', 'Вход обнаружен. Проверяется магазин и первая настоящая XML-выгрузка.')
             with app.app_context():
                 try:
                     from kaspibot.services import sync_schedule as schedule
                     schedule.put('xml',state='running',message='Проверка выгрузки после входа.')
-                    content = export_from_page(context, page, merchant)
+                    content = export_from_page(context, page, merchant,
+                        on_authenticated=lambda:save_session(context,session_file))
+                    save_session(context,session_file)
                 except ExportError as error:
                     if error.code=='rate_limited':
                         from kaspibot.services.sync_schedule import defer

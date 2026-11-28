@@ -1,8 +1,8 @@
 {% extends "kaspibot/base.html" %}
 {% block content %}
-<h3>Жолда (Excel импорт)</h3>
+<h3>{{ _("Жолда (Excel импорт)") }}</h3>
 <p class="text-muted">
-ActiveOrders.xlsx файлын жүктеңіз. Біз тек <b>“Передан курьеру”</b> статусын аламыз.
+{{ _("ActiveOrders.xlsx файлын жүктеңіз. Біз тек") }} <b>{{ _("“Передан курьеру”") }}</b> {{ _("статусын аламыз.") }}
 </p>
 
 <form method="post" enctype="multipart/form-data" class="row g-2"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -10,7 +10,7 @@ ActiveOrders.xlsx файлын жүктеңіз. Біз тек <b>“Перед�
     <input type="file" name="file" class="form-control" required>
   </div>
   <div class="col-md-2">
-    <button class="btn btn-primary w-100">Импорт</button>
+    <button class="btn btn-primary w-100">{{ _("Импорт") }}</button>
   </div>
 </form>
 {% endblock %}

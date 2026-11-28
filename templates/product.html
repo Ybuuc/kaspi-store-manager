@@ -1,29 +1,29 @@
 {% extends 'management_base.html' %}
 {% block title %}{{ product['name'] }} · Kaspi Store Manager{% endblock %}
 {% block management_content %}
-<a href="{{ url_for('management.product_archive' if product['archived_at'] else 'management.products') }}">← {{ 'Архив' if product['archived_at'] else 'Тауарлар тізімі' }}</a>
+<a href="{{ url_for('management.product_archive' if product['archived_at'] else 'management.products') }}">← {{ _('Архив') if product['archived_at'] else _('Тауарлар тізімі') }}</a>
 <section class="panel"><h1>{{ product['name'] }}</h1>
-  {% if product['archived_at'] %}<p>Архивтегі тауар</p>{% endif %}
+  {% if product['archived_at'] %}<p>{{ _("Архивтегі тауар") }}</p>{% endif %}
   <dl><dt>SKU</dt><dd>{{ product['sku'] }}</dd>
-  <dt>Санат</dt><dd>{{ product['category_name'] }}</dd>
-  <dt>Локальная цена карточки</dt><dd>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</dd>
-  <dt>Цена XML</dt><dd>{% if seller %}{% for city,price in seller.prices.items() %}{{ city }}: {{ price }} ₸<br>{% endfor %}Источник: XML · {{ catalog_snapshot.source_date }}<br>{{ seller.model }} · {{ seller.brand }}{% else %}Нет цены в последнем XML{% endif %}</dd>
-  <dt>Қойма қалдығы</dt><dd>{{ product['stock_qty'] }}</dd>
-  <dt>Төмен қалдық шегі</dt><dd>{{ product['low_stock_threshold'] if product['low_stock_threshold'] is not none else 'Орнатылмаған' }}</dd></dl>
-  {% if g.user['role'] == 'admin' %}<p><a href="{{ url_for('management.price_history', product_id=product['id']) }}">Баға тарихы</a></p>{% endif %}
+  <dt>{{ _("Санат") }}</dt><dd>{{ product['category_name'] }}</dd>
+  <dt>{{ _("Локальная цена карточки") }}</dt><dd>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</dd>
+  <dt>{{ _("Цена XML") }}</dt><dd>{% if seller %}{% for city,price in seller.prices.items() %}{{ city }}: {{ price }} ₸<br>{% endfor %}{{ _("Источник: XML ·") }} {{ catalog_snapshot.source_date }}<br>{{ seller.model }} · {{ seller.brand }}{% else %}{{ _("Нет цены в последнем XML") }}{% endif %}</dd>
+  <dt>{{ _("Қойма қалдығы") }}</dt><dd>{{ product['stock_qty'] }}</dd>
+  <dt>{{ _("Төмен қалдық шегі") }}</dt><dd>{{ product['low_stock_threshold'] if product['low_stock_threshold'] is not none else _('Орнатылмаған') }}</dd></dl>
+  {% if g.user['role'] == 'admin' %}<p><a href="{{ url_for('management.price_history', product_id=product['id']) }}">{{ _("Баға тарихы") }}</a></p>{% endif %}
   {% if not product['archived_at'] and product['low_stock_threshold'] is not none and product['stock_qty'] < product['low_stock_threshold'] %}
-  <p class="warning" role="alert">Төмен қалдық: тауар саны белгіленген шектен аз.</p>
+  <p class="warning" role="alert">{{ _("Төмен қалдық: тауар саны белгіленген шектен аз.") }}</p>
   {% endif %}
   {% if product['archived_at'] %}
   <form action="{{ url_for('management.product_archive_restore', product_id=product['id']) }}" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit">Архивтен қайтару</button>
+    <button type="submit">{{ _("Архивтен қайтару") }}</button>
   </form>
   {% else %}
-  <p><a href="{{ url_for('management.product_edit', product_id=product['id']) }}">Тауарды өзгерту</a> · <a href="{{ url_for('management.product_price', product_id=product['id']) }}">Бағаны өзгерту</a> · <a href="{{ url_for('management.product_stock', product_id=product['id']) }}">Қалдықты өзгерту</a> · <a href="{{ url_for('management.product_threshold', product_id=product['id']) }}">Төмен қалдық шегін орнату</a></p>
+  <p><a href="{{ url_for('management.product_edit', product_id=product['id']) }}">{{ _("Тауарды өзгерту") }}</a> · <a href="{{ url_for('management.product_price', product_id=product['id']) }}">{{ _("Бағаны өзгерту") }}</a> · <a href="{{ url_for('management.product_stock', product_id=product['id']) }}">{{ _("Қалдықты өзгерту") }}</a> · <a href="{{ url_for('management.product_threshold', product_id=product['id']) }}">{{ _("Төмен қалдық шегін орнату") }}</a></p>
   <form action="{{ url_for('management.product_archive_add', product_id=product['id']) }}" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit">Архивке жіберу</button>
+    <button type="submit">{{ _("Архивке жіберу") }}</button>
   </form>
   {% endif %}
 </section>

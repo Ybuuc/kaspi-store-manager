@@ -1,9 +1,9 @@
 {% extends "kaspibot/base.html" %}
 {% block content %}
-<h3>Жолда импорт нәтижесі</h3>
+<h3>{{ _("Жолда импорт нәтижесі") }}</h3>
 
 {% if applied %}
-  <h5>Қолданылды</h5>
+  <h5>{{ _("Қолданылды") }}</h5>
   <ul>
     {% for pid, qty in applied %}
       <li>Product ID {{ pid }}: +{{ qty }}</li>
@@ -12,13 +12,13 @@
 {% endif %}
 
 {% if unknown %}
-  <h5 class="text-danger">Табылмағандар (alias жоқ)</h5>
+  <h5 class="text-danger">{{ _("Табылмағандар (alias жоқ)") }}</h5>
   <ul>
     {% for a, q in unknown %}
-      <li>{{ a }} — {{ q }} дана</li>
+      <li>{{ a }} — {{ q }} {{ _("дана") }}</li>
     {% endfor %}
   </ul>
 {% endif %}
 
-<a class="btn btn-outline-secondary" href="{{ url_for('kaspibot.onway') }}">Жолда бетіне қайту</a>
+<a class="btn btn-outline-secondary" href="{{ url_for('kaspibot.onway') }}">{{ _("Жолда бетіне қайту") }}</a>
 {% endblock %}

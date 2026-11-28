@@ -1,28 +1,28 @@
 {% extends 'management_base.html' %}
-{% block title %}Тапсырыстар · Kaspi Store Manager{% endblock %}
+{% block title %}{{ _("Тапсырыстар · Kaspi Store Manager") }}{% endblock %}
 {% block management_content %}
-<h1>Тапсырыстар</h1>
-<p>Kaspi интеграциясы әлі қосылмаған. Бұл бетте әзірге оқу деректері көрсетіледі.</p>
+<h1>{{ _("Тапсырыстар") }}</h1>
+<p>{{ _("Kaspi интеграциясы әлі қосылмаған. Бұл бетте әзірге оқу деректері көрсетіледі.") }}</p>
 <form method="get" action="{{ url_for('management.orders') }}" class="search">
-  <label for="status">Статус бойынша сүзгі</label>
-  <input id="status" name="status" value="{{ status }}" placeholder="Статус">
-  <button type="submit">Сүзу</button>
-  {% if status %}<a href="{{ url_for('management.orders') }}">Тазарту</a>{% endif %}
+  <label for="status">{{ _("Статус бойынша сүзгі") }}</label>
+  <input id="status" name="status" value="{{ status }}" placeholder="{{ _("Статус") }}">
+  <button type="submit">{{ _("Сүзу") }}</button>
+  {% if status %}<a href="{{ url_for('management.orders') }}">{{ _("Тазарту") }}</a>{% endif %}
 </form>
 {% if orders %}
 <div class="table-wrap"><table>
-  <thead><tr><th>ID</th><th>Күні</th><th>Сомасы</th><th>Статус</th><th>Дерек</th><th>Статусты өзгерту</th></tr></thead>
+  <thead><tr><th>ID</th><th>{{ _("Күні") }}</th><th>{{ _("Сомасы") }}</th><th>{{ _("Статус") }}</th><th>{{ _("Дерек") }}</th><th>{{ _("Статусты өзгерту") }}</th></tr></thead>
   <tbody>{% for order in orders %}<tr>
     <td>{{ order['id'] }}</td><td>{{ order['ordered_on'] }}</td>
     <td>{{ '%.2f'|format(order['amount_cents'] / 100) }} ₸</td>
-    <td>{{ order['status'] }}</td><td>{{ 'Оқу дерегі' if order['source'] == 'demo' else 'Kaspi' }}</td>
+    <td>{{ _(order['status']) }}</td><td>{{ _('Оқу дерегі') if order['source'] == 'demo' else 'Kaspi' }}</td>
     <td>{% if transitions.get(order['status']) %}<form action="{{ url_for('management.change_order_status', order_id=order['id']) }}" method="post">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <select name="status" aria-label="{{ order['id'] }} тапсырыс статусы">
-        {% for next_status in transitions[order['status']] %}<option value="{{ next_status }}">{{ next_status }}</option>{% endfor %}
-      </select><button type="submit">Сақтау</button>
-    </form>{% else %}Өзгерту мүмкін емес{% endif %}</td>
+      <select name="status" aria-label="{{ order['id'] }} {{ _("тапсырыс статусы") }}">
+        {% for next_status in transitions[order['status']] %}<option value="{{ next_status }}">{{ _(next_status) }}</option>{% endfor %}
+      </select><button type="submit">{{ _("Сақтау") }}</button>
+    </form>{% else %}{{ _("Өзгерту мүмкін емес") }}{% endif %}</td>
   </tr>{% endfor %}</tbody>
 </table></div>
-{% else %}<p class="empty">{% if status %}Осы статус бойынша тапсырыс табылмады.{% else %}Әзірге тапсырыстар жоқ.{% endif %}</p>{% endif %}
+{% else %}<p class="empty">{% if status %}{{ _("Осы статус бойынша тапсырыс табылмады.") }}{% else %}{{ _("Әзірге тапсырыстар жоқ.") }}{% endif %}</p>{% endif %}
 {% endblock %}

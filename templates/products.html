@@ -1,21 +1,21 @@
 {% extends 'management_base.html' %}
-{% block title %}Тауарлар · Kaspi Store Manager{% endblock %}
+{% block title %}{{ _("Тауарлар · Kaspi Store Manager") }}{% endblock %}
 {% block management_content %}
-<h1>Тауарлар</h1>
-<p><a href="{{ url_for('management.product_new') }}">+ Жаңа тауар</a> · <a href="{{ url_for('management.product_archive') }}">Архив</a></p>
+<h1>{{ _("Тауарлар") }}</h1>
+<p><a href="{{ url_for('management.product_new') }}">{{ _("+ Жаңа тауар") }}</a> · <a href="{{ url_for('management.product_archive') }}">{{ _("Архив") }}</a></p>
 <form method="get" action="{{ url_for('management.products') }}" class="search">
-  <label for="q">Атауы бойынша іздеу</label>
-  <input id="q" name="q" value="{{ query }}" placeholder="Тауар атауы">
-  <button type="submit">Іздеу</button>
+  <label for="q">{{ _("Атауы бойынша іздеу") }}</label>
+  <input id="q" name="q" value="{{ query }}" placeholder="{{ _("Тауар атауы") }}">
+  <button type="submit">{{ _("Іздеу") }}</button>
 </form>
 {% if products %}
 <div class="table-wrap"><table>
-  <thead><tr><th>Атауы</th><th>SKU</th><th>Локальная цена</th><th>Цена XML (город / дата)</th><th>Қойма қалдығы</th><th>Ескерту</th></tr></thead>
+  <thead><tr><th>{{ _("Атауы") }}</th><th>SKU</th><th>{{ _("Локальная цена") }}</th><th>{{ _("Цена XML (город / дата)") }}</th><th>{{ _("Қойма қалдығы") }}</th><th>{{ _("Ескерту") }}</th></tr></thead>
   <tbody>{% for product in products %}<tr>
     <td><a href="{{ url_for('management.product_detail', product_id=product['id']) }}">{{ product['name'] }}</a></td>
-    <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{% set seller = catalog_by_product.get(product['id']) %}{% if seller %}{% for city,price in seller.prices.items() %}{{ city }}: {{ price }} ₸<br>{% endfor %}<small>XML · {{ catalog_snapshot.source_date }}</small>{% else %}Нет цены в последнем XML{% endif %}</td><td>{{ product['stock_qty'] }}</td>
-    <td>{% if product['low_stock_threshold'] is not none and product['stock_qty'] < product['low_stock_threshold'] %}<span class="warning">Төмен қалдық</span>{% else %}—{% endif %}</td>
+    <td>{{ product['sku'] }}</td><td>{{ '%.2f'|format(product['price_cents'] / 100) }} ₸</td><td>{% set seller = catalog_by_product.get(product['id']) %}{% if seller %}{% for city,price in seller.prices.items() %}{{ city }}: {{ price }} ₸<br>{% endfor %}<small>XML · {{ catalog_snapshot.source_date }}</small>{% else %}{{ _("Нет цены в последнем XML") }}{% endif %}</td><td>{{ product['stock_qty'] }}</td>
+    <td>{% if product['low_stock_threshold'] is not none and product['stock_qty'] < product['low_stock_threshold'] %}<span class="warning">{{ _("Төмен қалдық") }}</span>{% else %}—{% endif %}</td>
   </tr>{% endfor %}</tbody>
 </table></div>
-{% else %}<p class="empty">{% if query %}Сұрауға сәйкес тауар табылмады.{% else %}Әзірге тауарлар жоқ.{% endif %}</p>{% endif %}
+{% else %}<p class="empty">{% if query %}{{ _("Сұрауға сәйкес тауар табылмады.") }}{% else %}{{ _("Әзірге тауарлар жоқ.") }}{% endif %}</p>{% endif %}
 {% endblock %}

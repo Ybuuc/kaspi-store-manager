@@ -197,6 +197,29 @@ def run(screenshot, channel=None):
                 print('Sync panel PASS — API 5 min, XML 30 min, rate limit deadline, partial API, saved XML and safe error details.',flush=True)
                 print('Orders layout PASS — long unbroken text, local table scroll, drag limits, live page resizing, persisted width, keyboard, 1920/1536/1280/1200/1024/390px.',flush=True)
                 print('Orders screenshots:',orders,orders_mobile,flush=True)
+                page.locator('#language-kk').click()
+                assert page.locator('html').get_attribute('lang')=='kk'
+                assert page.locator('#ordersHeading').inner_text()=='Kaspi тапсырыстары'
+                page.locator('#syncXmlChip').filter(has_text='429').wait_for()
+                assert 'ішінара сәтті' in page.locator('#syncApiChip').inner_text()
+                page.goto(base+'/products?q=UI-XML')
+                assert page.locator('.page-heading h1').inner_text()=='Тауарлар мен қалдықтар'
+                assert 'Тестовый товар · размер L' in page.locator('.algatop-title').inner_text()
+                page.reload()
+                assert page.locator('html').get_attribute('lang')=='kk'
+                page.locator('#menuToggle').click()
+                if page.locator('#appSidebar').is_hidden():
+                    page.locator('#menuToggle').click()
+                page.screenshot(path=str(screenshot.with_name(screenshot.stem+'-kk'+screenshot.suffix)))
+                page.set_viewport_size({'width':390,'height':844})
+                page.keyboard.press('Escape')
+                assert page.evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth')
+                page.screenshot(path=str(screenshot.with_name(screenshot.stem+'-kk-mobile'+screenshot.suffix)))
+                page.locator('#language-ru').click()
+                assert page.locator('html').get_attribute('lang')=='ru'
+                assert 'q=UI-XML' in page.url
+                assert page.locator('.page-heading h1').inner_text()=='Товары и остатки'
+                print('RU/KK PASS — persisted language, dynamic sync labels, preserved query/product data, desktop and mobile.',flush=True)
                 assert not errors,errors
                 print('Chrome',browser.version,': PASS — login, role navigation, Escape/focus, manual XML import, real timer refresh, preserved details, 390px layout; no JS errors.',flush=True)
                 print('Screenshots:',screenshot,mobile,flush=True)

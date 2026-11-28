@@ -79,13 +79,15 @@ def is_xml(content):
     return isinstance(content, bytes) and b'<kaspi_catalog' in content[:4096].replace(b'\x00', b'')
 
 
-def export_from_page(context, page, merchant_id, timeout=90):
+def export_from_page(context, page, merchant_id, timeout=90, on_authenticated=None, diagnostics=None):
     """Click only the documented export control; never edit or upload seller data."""
     from kaspibot.services.seller_catalog import parse_xml
     from flask import has_app_context
     if has_app_context():
         from kaspibot.services.sync_schedule import check
         check('xml')
+    from kaspibot.services.cabinet_diagnostics import CabinetDiagnostics
+    diagnostics=diagnostics or CabinetDiagnostics()
     deadline = time.monotonic() + timeout
     downloads, bodies, links, observations = [], [], [], []
 
@@ -113,6 +115,7 @@ def export_from_page(context, page, merchant_id, timeout=90):
         except (ValueError,TypeError):
             pass
 
+    page.on('response', diagnostics.response)
     page.on('response', observe)
     def on_download(download):
         downloads.append(download)
@@ -123,6 +126,9 @@ def export_from_page(context, page, merchant_id, timeout=90):
         try:
             action.wait_for(state='visible', timeout=20000)
         except BrowserTimeout:
+            failure=diagnostics.failure()
+            if failure is not None:
+                raise failure from None
             if 'login' in page.url or 'idmc.' in page.url:
                 raise ExportError('сессия кабинета истекла; выполните локальный вход заново.', 'needs_login') from None
             raise ExportError('страница экспорта не загрузилась вовремя; проверка будет повторена.', 'timeout') from None
@@ -130,6 +136,8 @@ def export_from_page(context, page, merchant_id, timeout=90):
         headers = page.get_by_text('ID - ' + merchant_id, exact=True).all()
         if not any(header.is_visible() for header in headers):
             raise ExportError('вход выполнен в другой магазин; экспорт не применяется.', 'wrong_merchant')
+        if on_authenticated is not None:
+            on_authenticated()
         action.click()
         # The cabinet can download its previous file even when the new export is
         # rejected (for example HTTP 429). Require this click's successful trigger
@@ -186,6 +194,7 @@ def export_from_page(context, page, merchant_id, timeout=90):
             raise ExportError('XML принадлежит другому магазину; прежний файл сохранён.', 'wrong_merchant')
         return content
     finally:
+        page.remove_listener('response', diagnostics.response)
         page.remove_listener('response', observe)
         page.remove_listener('download', on_download)
 
@@ -204,6 +213,8 @@ def _fetch_export_once(session_path, merchant_id, timeout=90):
             from flask import current_app,has_app_context
             channel=current_app.config['KASPI_CATALOG_BROWSER_CHANNEL'] if has_app_context() else ('chrome' if os.name=='nt' else 'chromium')
             browser = browser_runtime.chromium.launch(channel=None if channel=='chromium' else channel, headless=True)
+            from kaspibot.services.cabinet_diagnostics import CabinetDiagnostics
+            diagnostics=CabinetDiagnostics()
             context = None
             closing = False
             try:
@@ -216,17 +227,21 @@ def _fetch_export_once(session_path, merchant_id, timeout=90):
                         if read_request_allowed(route.request):
                             route.continue_()
                         else:
+                            diagnostics.blocked(route.request)
                             route.abort()
                     except BrowserError as error:
                         if not (closing and is_closed_error(error)):
                             raise
                 context.route('**/*', read_only)
-                result = export_from_page(context, context.new_page(), merchant_id, timeout)
-                # Persist session refreshes without copying another browser's credentials.
-                from kaspibot.services.catalog_source import atomic_write
-                atomic_write(Path(session_path), json.dumps(context.storage_state()).encode())
+                from kaspibot.services.cabinet_session import save_session
+                # A valid cabinet navigation may refresh auth even when export gets 429.
+                # Save only after export_from_page verifies this exact merchant.
+                result = export_from_page(context, context.new_page(), merchant_id, timeout,
+                    on_authenticated=lambda:save_session(context,session_path),diagnostics=diagnostics)
+                save_session(context,session_path)
                 return result
             finally:
+                diagnostics.save(Path(session_path).parent/"source-diagnostics.json")
                 closing=True
                 try:
                     if context is not None:

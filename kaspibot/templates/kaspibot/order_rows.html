@@ -1,6 +1,6 @@
 <table class="table">
-  <thead><tr><th>Заказ</th><th>Статус</th><th>Дата</th></tr></thead>
+  <thead><tr><th>{{ _("Заказ") }}</th><th>{{ _("Статус") }}</th><th>{{ _("Дата") }}</th></tr></thead>
   <tbody>{% for row in rows %}
     <tr><td><a href="{{ url_for('kaspibot.order_detail_page', order_code=row.order_code) }}">{{ row.order_code }}</a></td><td>{{ row.status_text or row.state }}</td><td>{{ row.created_at or '' }}</td></tr>
-  {% else %}<tr><td colspan="3">Заказов пока нет.</td></tr>{% endfor %}</tbody>
+  {% else %}<tr><td colspan="3">{{ _("Заказов пока нет.") }}</td></tr>{% endfor %}</tbody>
 </table>

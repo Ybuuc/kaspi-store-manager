@@ -1,31 +1,29 @@
 {% extends "kaspibot/base.html" %}
 {% block content %}
-<p><a href="{{ url_for('management.product_detail', product_id=product.id) }}">SKU, цена, порог, архив и история изменений</a></p>
+<p><a href="{{ url_for('management.product_detail', product_id=product.id) }}">{{ _("SKU, цена, порог, архив и история изменений") }}</a></p>
 
 
 <h4>{{ seller.model if seller else product.name }}</h4>
-<p class="muted">SKU: {{ product.sku or 'не указан' }}</p>
+<p class="muted">SKU: {{ product.sku or _('не указан') }}</p>
 {% set p=product %}{% include 'kaspibot/seller_metrics.html' %}
 
 {% if config.DEMO_MODE %}
 <p>
-  Қоймада: <b>{{ product.stock_qty }}</b> |
-  Жолда: <b>{{ product.in_transit_qty or 0 }}</b> |
-  Барлығы: <b>{{ (product.stock_qty or 0) + (product.in_transit_qty or 0) }}</b>
+  {{ _("Қоймада:") }} <b>{{ product.stock_qty }}</b> {{ _("| Жолда:") }} <b>{{ product.in_transit_qty or 0 }}</b> {{ _("| Барлығы:") }} <b>{{ (product.stock_qty or 0) + (product.in_transit_qty or 0) }}</b>
 </p>
 {% else %}
-<div class="catalog-note">Ниже — локальная история учёта. Заявленное количество XML и предзаказ не подтверждают физический остаток и закупочную цену.</div>
+<div class="catalog-note">{{ _("Ниже — локальная история учёта. Заявленное количество XML и предзаказ не подтверждают физический остаток и закупочную цену.") }}</div>
 {% endif %}
 
 <hr>
 
-<h5>Карточка атаулары (alias)</h5>
+<h5>{{ _("Карточка атаулары (alias)") }}</h5>
 <form class="row g-2 mb-2" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="col-md-6">
-    <input class="form-control" name="alias" placeholder="Мысалы: аяқ киім / аяк киім">
+    <input class="form-control" name="alias" placeholder="{{ _("Мысалы: аяқ киім / аяк киім") }}">
   </div>
   <div class="col-md-2">
-    <button class="btn btn-secondary w-100">Қосу</button>
+    <button class="btn btn-secondary w-100">{{ _("Қосу") }}</button>
   </div>
 </form>
 
@@ -37,37 +35,37 @@
 
 <hr>
 
-<h5>Соңғы қозғалыстар</h5>
+<h5>{{ _("Соңғы қозғалыстар") }}</h5>
 
 <form class="row g-2 mb-2" method="get"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="col-md-3">
-    <label class="form-label">Басталу күні</label>
+    <label class="form-label">{{ _("Басталу күні") }}</label>
     <input type="date" class="form-control" name="start" value="{{ start or '' }}">
   </div>
   <div class="col-md-3">
-    <label class="form-label">Аяқталу күні</label>
+    <label class="form-label">{{ _("Аяқталу күні") }}</label>
     <input type="date" class="form-control" name="end" value="{{ end or '' }}">
   </div>
   <div class="col-md-2 d-flex align-items-end">
-    <button class="btn btn-primary w-100">Көрсету</button>
+    <button class="btn btn-primary w-100">{{ _("Көрсету") }}</button>
   </div>
   <div class="col-md-2 d-flex align-items-end">
-    <a class="btn btn-outline-secondary w-100" href="{{ url_for('kaspibot.product_detail', product_id=product.id) }}">Тазалау</a>
+    <a class="btn btn-outline-secondary w-100" href="{{ url_for('kaspibot.product_detail', product_id=product.id) }}">{{ _("Тазалау") }}</a>
   </div>
 </form>
 
 <table class="table table-sm">
   <thead>
     <tr>
-      <th>Уақыты</th>
-      <th>Түрі</th>
-      <th>Өзгеріс</th>
-      <th>Сатылды (түсім)</th>
-      <th>Комиссия</th>
-      <th>Доставка</th>
-      <th>Закуп</th>
-      <th>Пайда</th>
-      <th>Ескерту</th>
+      <th>{{ _("Уақыты") }}</th>
+      <th>{{ _("Түрі") }}</th>
+      <th>{{ _("Өзгеріс") }}</th>
+      <th>{{ _("Сатылды (түсім)") }}</th>
+      <th>{{ _("Комиссия") }}</th>
+      <th>{{ _("Доставка") }}</th>
+      <th>{{ _("Закуп") }}</th>
+      <th>{{ _("Пайда") }}</th>
+      <th>{{ _("Ескерту") }}</th>
     </tr>
   </thead>
   <tbody>

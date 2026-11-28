@@ -5,17 +5,17 @@
 
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
     <div>
-      <h2 style="margin:0;">Заказ №{{ head.order_code }}</h2>
+      <h2 style="margin:0;">{{ _("Заказ №") }}{{ head.order_code }}</h2>
       <div style="margin-top:8px; color:#666;">
-        Клиент: <b>{{ head.customer_name or "-" }}</b>
+        {{ _("Клиент:") }} <b>{{ head.customer_name or "-" }}</b>
         &nbsp; | &nbsp;
-        Телефон: <b>{{ head.customer_phone or "-" }}</b>
+        {{ _("Телефон:") }} <b>{{ head.customer_phone or "-" }}</b>
       </div>
     </div>
 
     <a href="{{ url_for('kaspibot.orders_page') }}"
        style="text-decoration:none; padding:10px 14px; border-radius:12px; background:#f3f4f6; color:#222; font-weight:700;">
-      Артқа
+      {{ _("Артқа") }}
     </a>
   </div>
 
@@ -33,9 +33,9 @@
       <thead>
         <tr style="text-align:left; border-bottom:1px solid #ddd;">
           <th style="padding:12px;">Entry ID</th>
-          <th style="padding:12px;">Тауар</th>
-          <th style="padding:12px;">Саны</th>
-          <th style="padding:12px;">Сумма</th>
+          <th style="padding:12px;">{{ _("Тауар") }}</th>
+          <th style="padding:12px;">{{ _("Саны") }}</th>
+          <th style="padding:12px;">{{ _("Сумма") }}</th>
           <th style="padding:12px;">State</th>
           <th style="padding:12px;">Status Text</th>
         </tr>

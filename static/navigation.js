@@ -29,7 +29,7 @@
     backdrop.hidden=!open;
     document.body.classList.toggle('nav-open',open);
     toggle.setAttribute('aria-expanded',String(open));
-    toggle.setAttribute('aria-label',open?'Закрыть меню':'Открыть меню');
+    toggle.setAttribute('aria-label',open?window.KSMi18n.t('Закрыть меню'):window.KSMi18n.t('Открыть меню'));
     if(focus) (open?closeButton:toggle).focus();
     if(!isMobile()) { try { localStorage.setItem('ksm.navOpen',String(open)); } catch(_) {} }
   }

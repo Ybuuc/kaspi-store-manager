@@ -86,10 +86,13 @@ def create_app(test_config=None):
     from kaspibot.catalog_routes import register as register_catalog
     register_catalog(app)
 
+    from kaspibot.i18n import install as install_i18n
+    install_i18n(app)
+
     @app.before_request
     def access_control():
         g.request_id = secrets.token_hex(12)
-        if request.endpoint in ('management.login', 'static', 'health'):
+        if request.endpoint in ('management.login', 'static', 'health', 'set_language'):
             return None
         if g.user is None:
             if request.is_json:

@@ -26,7 +26,9 @@ KASPI_ALLOW_LOCAL_CATALOG=1
 KASPI_CATALOG_URL=https://localhost:8443/catalog.xml
 KASPI_CATALOG_CA_BUNDLE=.local-catalog/ca.pem
 KASPI_AUTO_SYNC=1
-KASPI_SYNC_INTERVAL_SECONDS=300
+KASPI_API_SYNC_INTERVAL_SECONDS=300
+KASPI_XML_SYNC_INTERVAL_SECONDS=1800
+KASPI_XML_MAX_BACKOFF_SECONDS=21600
 ```
 
 From `C:\kaspibot`, with the local HTTPS server running:
@@ -47,7 +49,7 @@ session by running the same helper; password and SMS automation is not used.
 ## Scheduled refresh and preservation
 
 The existing SQLite lease covers export, publication and import in the same
-300-second cycle, so no second scheduler or Windows startup task is added.
+XML cycle (30 minutes by default; API orders run independently every 5 minutes), so no second scheduler or Windows startup task is added.
 Before publication, the full XML is validated and its merchant/date checked
 against the last good database snapshot. A temporary file, fsync and same-folder
 atomic replace prevent a partially written public catalogue. The exact bytes
@@ -61,14 +63,12 @@ The source uses only its own browser session. Scheduled mode uses an exact allow
 (the getMerchant/getOrderCounters GraphQL queries, offer lists/filters and an
 empty-body configuration read), plus the export-job trigger. GraphQL mutations,
 configuration values and offer edits/uploads remain blocked. The export job
-does not modify seller data. Refreshed session state is saved locally after
-a successful export. TLS/hostname checking stays on. Signed file links are never
+does not modify seller data. Refreshed session state, including IndexedDB, is saved atomically after the exact merchant is verified, before requesting the export, and again after success. An export error therefore does not discard a navigation-time session refresh. The login helper uses the same checkpoints. TLS/hostname checking stays on. Signed file links are never
 logged, are followed without redirects, and are limited to the observed Kaspi
 hosts. Unexpected responses/HTML, another merchant, old XML, large files and
 timeouts preserve the previous successful catalogue.
 
-A check every five minutes is not a guarantee that Kaspi regenerates the export
-every five minutes. The source date and unchanged-file result remain visible;
+A scheduled check is not a guarantee that Kaspi regenerates the export at that frequency. The source date and unchanged-file result remain visible;
 the application never rewrites the XML date to pretend the contents are newer.
 Original card identity, physical stock, costs, reserves and movements remain
 separate from declared XML availability. Removed-from-sale products absent from
@@ -82,10 +82,10 @@ the ACTIVE export are retained in the database.
 файл: такой XML не публикуется и не считается успешным свежим экспортом.
 Статус показывает «лимит экспорта Kaspi», прежний снимок и его настоящая дата
 остаются доступными. Повторная попытка выполняется по расписанию; 429 не
-повторяется немедленно. Ответы 401/403 требуют входа, другие неуспешные ответы
+повторяется немедленно. HTTP 401 означает отклонение авторизации. HTTP 403 требует проверки доступа, а не автоматически нового входа; другие неуспешные ответы
 также сохраняют прежний файл.
 
-Интервал 300 секунд означает частоту попыток. Получение нового снимка зависит
+API заказов проверяется каждые 300 секунд, XML — каждые 1800 секунд при отсутствии серверного cooldown. Интервал означает частоту попыток. Получение нового снимка зависит
 от доступности Kaspi и принятия запроса экспорта. Если Kaspi подтвердил запрос,
 но вернул те же байты, дата снимка не подменяется текущим временем.
 
@@ -93,3 +93,23 @@ the ACTIVE export are retained in the database.
 и обновляет карточки после появления нового XML. Поиск и раскрытые блоки учёта
 сохраняются. Цена XML, заявленное количество и предзаказ показаны отдельно от
 физического склада и закупочной цены; они не пересчитывают складской учёт.
+
+
+## Диагностика загрузки кабинета
+
+Обезличенный `.local-catalog/source-diagnostics.json` хранит только время,
+категории зависимостей (авторизация, магазин, список товаров, экспорт) и HTTP-коды
+или факт блокировки локальным фильтром. URL, параметры, тела запросов, токены и
+контактные данные туда не записываются. Это локальный файл вне Git.
+
+Ошибка до появления кнопки экспорта проверяется на HTTP 401, 403, 429 и блокировку
+необходимого запроса фильтром. Тайм-аут без этих признаков не доказывает истечение
+сессии. Служебные POST-запросы авторизации не разрешаются вслепую: сначала нужно
+наблюсти и проверить конкретную операцию. Нельзя расширять фильтр до всех POST.
+Серверный Retry-After учитывается и при 429 во время загрузки кабинета.
+
+Сохранение IndexedDB устраняет неполноту снимка, но не доказывает, что именно
+этот магазин использует IndexedDB для входа. sessionStorage по-прежнему не входит
+в снимок. Если кабинет использует его для авторизации, потребуется отдельное
+подтверждённое сохранение/восстановление этого состояния. Без длительной проверки
+нельзя обещать бессрочную сессию или надёжность в процентах.

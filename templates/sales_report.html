@@ -1,14 +1,14 @@
 {% extends 'management_base.html' %}
-{% block title %}Сату статистикасы · Kaspi Store Manager{% endblock %}
+{% block title %}{{ _("Сату статистикасы · Kaspi Store Manager") }}{% endblock %}
 {% block management_content %}
-<section class="panel"><h1>Сату статистикасы</h1>
-  <form method="get"><label>Бастап <input type="date" name="from" value="{{ start }}" required></label>
-    <label>Дейін <input type="date" name="to" value="{{ end }}" required></label>
-    <button type="submit">Көрсету</button></form>
-  {% if start %}<p>{{ start }} – {{ end }} аралығындағы сақталған тапсырыстар:</p>
-  <dl><dt>Тапсырыстар саны (барлық статустар)</dt><dd>{{ summary['order_count'] }}</dd>
-  <dt>Орындалған тапсырыстар сомасы</dt><dd>{{ '%.2f'|format(summary['total_cents'] / 100) }} ₸</dd></dl>
-  {% else %}<p>Есепті көру үшін күндер диапазонын таңдаңыз.</p>{% endif %}
-  <p>Қазір тапсырыстар оқу деректерімен енгізіледі. Сомаға тек «Орындалды» күйіндегі тапсырыстар кіреді; бұл нақты Kaspi сатылымы емес.</p>
+<section class="panel"><h1>{{ _("Сату статистикасы") }}</h1>
+  <form method="get"><label>{{ _("Бастап") }} <input type="date" name="from" value="{{ start }}" required></label>
+    <label>{{ _("Дейін") }} <input type="date" name="to" value="{{ end }}" required></label>
+    <button type="submit">{{ _("Көрсету") }}</button></form>
+  {% if start %}<p>{{ start }} – {{ end }} {{ _("аралығындағы сақталған тапсырыстар:") }}</p>
+  <dl><dt>{{ _("Тапсырыстар саны (барлық статустар)") }}</dt><dd>{{ summary['order_count'] }}</dd>
+  <dt>{{ _("Орындалған тапсырыстар сомасы") }}</dt><dd>{{ '%.2f'|format(summary['total_cents'] / 100) }} ₸</dd></dl>
+  {% else %}<p>{{ _("Есепті көру үшін күндер диапазонын таңдаңыз.") }}</p>{% endif %}
+  <p>{{ _("Қазір тапсырыстар оқу деректерімен енгізіледі. Сомаға тек «Орындалды» күйіндегі тапсырыстар кіреді; бұл нақты Kaspi сатылымы емес.") }}</p>
 </section>
 {% endblock %}

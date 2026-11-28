@@ -1,20 +1,17 @@
 {% extends "kaspibot/base.html" %}
 {% block content %}
 
-<h3>Жолда: {{ product.name }}</h3>
+<h3>{{ _("Жолда:") }} {{ product.name }}</h3>
 <p class="text-muted">
-  Бұл жерде осы тауардың жолда тұрған 1-даналық позициялары және есептері көрсетіледі.
-  (Комиссия 12% + доставка шкаласы + закуп)
+  {{ _("Бұл жерде осы тауардың жолда тұрған 1-даналық позициялары және есептері көрсетіледі. (Комиссия 12% + доставка шкаласы + закуп)") }}
 </p>
 
 <div class="mb-3">
-  <div><b>Жалпы сомасы:</b> {{ total_sum }} тг</div>
-  <div><b>Жалпы таза пайда:</b> {{ total_profit }} тг</div>
+  <div><b>{{ _("Жалпы сомасы:") }}</b> {{ total_sum }} {{ _("тг") }}</div>
+  <div><b>{{ _("Жалпы таза пайда:") }}</b> {{ total_profit }} {{ _("тг") }}</div>
 
   <div class="text-muted" style="margin-top:10px;">
-    Барлығы: комиссия = {{ total_commission }} тг,
-    доставка = {{ total_delivery }} тг,
-    закуп (әр данасына) = {{ product.purchase_price }} тг
+    {{ _("Барлығы: комиссия =") }} {{ total_commission }} {{ _("тг, доставка =") }} {{ total_delivery }} {{ _("тг, закуп (әр данасына) =") }} {{ product.purchase_price }} {{ _("тг") }}
   </div>
 </div>
 
@@ -22,10 +19,10 @@
   <thead>
     <tr>
       <th style="width:60px;">#</th>
-      <th style="width:220px;">Қосылған уақыты</th>
-      <th class="text-end">Таза пайда (тг)</th>
-      <th class="text-end" style="width:140px;">Баға (тг)</th>
-      <th class="text-end" style="width:110px;">Әрекет</th> <!-- ✅ Бағаның оң жағында -->
+      <th style="width:220px;">{{ _("Қосылған уақыты") }}</th>
+      <th class="text-end">{{ _("Таза пайда (тг)") }}</th>
+      <th class="text-end" style="width:140px;">{{ _("Баға (тг)") }}</th>
+      <th class="text-end" style="width:110px;">{{ _("Әрекет") }}</th> <!-- ✅ Бағаның оң жағында -->
     </tr>
   </thead>
 
@@ -39,9 +36,7 @@
         <td class="text-end">
           <div><b>{{ row.profit }}</b></div>
           <div class="text-muted" style="font-size:12px;">
-            -12%: {{ row.commission }},
-            доставка: {{ row.delivery }},
-            закуп: {{ row.purchase_price }}
+            -12%: {{ row.commission }}{{ _(", доставка:") }} {{ row.delivery }}{{ _(", закуп:") }} {{ row.purchase_price }}
           </div>
         </td>
 
@@ -57,6 +52,6 @@
   </tbody>
 </table>
 
-<a class="btn btn-secondary" href="{{ url_for('kaspibot.onway') }}">Артқа</a>
+<a class="btn btn-secondary" href="{{ url_for('kaspibot.onway') }}">{{ _("Артқа") }}</a>
 
 {% endblock %}

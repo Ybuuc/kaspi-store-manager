@@ -1,31 +1,31 @@
 {% extends "kaspibot/base.html" %}
-{% block title %}Заказы Kaspi · Kaspi Stock{% endblock %}
+{% block title %}{{ _("Заказы Kaspi · Kaspi Stock") }}{% endblock %}
 {% block content %}
 <section class="orders-page" aria-labelledby="ordersHeading">
   <div class="page-heading">
-    <h1 id="ordersHeading">Заказы Kaspi</h1>
-    <button id="syncKaspiBtn" type="button" class="btn btn-primary btn-sm">Обновить заказы</button>
+    <h1 id="ordersHeading">{{ _("Заказы Kaspi") }}</h1>
+    <button id="syncKaspiBtn" type="button" class="btn btn-primary btn-sm">{{ _("Обновить заказы") }}</button>
   </div>
-  <p class="orders-intro">Источник — API кабинета Kaspi. При ошибке соединения доступна сохранённая копия. Старые записи выделены до повторного чтения API.</p>
-  <nav class="orders-views" aria-label="Выбор заказов">
-    {% for value,label in [('all','Все полученные'),('active','В работе'),('archived','Завершённые / архив'),('legacy','До сверки')] %}
+  <p class="orders-intro">{{ _("Источник — API кабинета Kaspi. При ошибке соединения доступна сохранённая копия. Старые записи выделены до повторного чтения API.") }}</p>
+  <nav class="orders-views" aria-label="{{ _("Выбор заказов") }}">
+    {% for value,label in [('all',_('Все полученные')),('active',_('В работе')),('archived',_('Завершённые / архив')),('legacy',_('До сверки'))] %}
     <a href="{{ url_for('kaspibot.orders_page',bucket=value) }}"{% if bucket==value %} aria-current="page"{% endif %}>{{ label }} <b>{{ counts[value] }}</b></a>
     {% endfor %}
   </nav>
-  {% if bucket=='legacy' %}<div class="alert alert-warning">Это старая копия из архива. Актуальность по реальному кабинету пока не подтверждена.</div>{% endif %}
+  {% if bucket=='legacy' %}<div class="alert alert-warning">{{ _("Это старая копия из архива. Актуальность по реальному кабинету пока не подтверждена.") }}</div>{% endif %}
   <div id="syncHistory" class="orders-sync-history" role="status"></div>
   <div id="syncStatus" class="orders-sync-status" role="status"></div>
-  <nav class="orders-buckets" aria-label="Этап обработки заказа">
-    {% for value,label in [('preorder','Предзаказ'),('packing','Упаковка'),('transmission','Передача'),('transmitted','Переданы на доставку'),('cancelled_delivery','Отменены при доставке'),('unknown','Не определено'),('other','Другие способы доставки')] %}
+  <nav class="orders-buckets" aria-label="{{ _("Этап обработки заказа") }}">
+    {% for value,label in [('preorder',_('Предзаказ')),('packing',_('Упаковка')),('transmission',_('Передача')),('transmitted',_('Переданы на доставку')),('cancelled_delivery',_('Отменены при доставке')),('unknown',_('Не определено')),('other',_('Другие способы доставки'))] %}
     <a href="{{ url_for('kaspibot.orders_page',bucket=value) }}"{% if value=='unknown' %} class="needs-review"{% endif %}{% if bucket==value %} aria-current="page"{% endif %}><span>{{ label }}</span><b>{{ counts[value] }}</b></a>
     {% endfor %}
   </nav>
-  <p class="orders-scroll-note" id="ordersScrollHint">Если таблица не помещается, прокрутите её по горизонтали внутри рамки.</p>
-  <div class="orders-table-wrap" role="region" aria-label="Список заказов" aria-describedby="ordersScrollHint" tabindex="0">
+  <p class="orders-scroll-note" id="ordersScrollHint">{{ _("Если таблица не помещается, прокрутите её по горизонтали внутри рамки.") }}</p>
+  <div class="orders-table-wrap" role="region" aria-label="{{ _("Список заказов") }}" aria-describedby="ordersScrollHint" tabindex="0">
     <table class="orders-table">
-      <caption class="visually-hidden">Полученные заказы Kaspi</caption>
+      <caption class="visually-hidden">{{ _("Полученные заказы Kaspi") }}</caption>
       <colgroup><col style="width:12%"><col style="width:13%"><col style="width:13%"><col style="width:22%"><col style="width:6%"><col style="width:10%"><col style="width:12%"><col style="width:12%"></colgroup>
-      <thead><tr><th scope="col">Заказ</th><th scope="col">Клиент</th><th scope="col">Телефон</th><th scope="col">Товар</th><th scope="col" class="order-quantity">Кол-во</th><th scope="col" class="order-amount">Сумма, ₸</th><th scope="col">Состояние API</th><th scope="col">Статус API</th></tr></thead>
+      <thead><tr><th scope="col">{{ _("Заказ") }}</th><th scope="col">{{ _("Клиент") }}</th><th scope="col">{{ _("Телефон") }}</th><th scope="col">{{ _("Товар") }}</th><th scope="col" class="order-quantity">{{ _("Кол-во") }}</th><th scope="col" class="order-amount">{{ _("Сумма, ₸") }}</th><th scope="col">{{ _("Состояние API") }}</th><th scope="col">{{ _("Статус API") }}</th></tr></thead>
       <tbody>
       {% for r in rows %}
       <tr>
@@ -34,7 +34,7 @@
         <td class="order-quantity">{{ r.qty or 0 }}</td><td class="order-amount">{{ r.sale_sum or 0 }}</td>
         <td class="order-api-state">{{ r.state or '-' }}</td><td class="order-api-state">{{ r.status_text or '-' }}</td>
       </tr>
-      {% else %}<tr><td colspan="8" class="orders-empty">В этом разделе пока нет заказов.</td></tr>{% endfor %}
+      {% else %}<tr><td colspan="8" class="orders-empty">{{ _("В этом разделе пока нет заказов.") }}</td></tr>{% endfor %}
       </tbody>
     </table>
   </div>
@@ -45,17 +45,17 @@
 
   fetch('/api/kaspi/status').then(r => r.json()).then(data => {
     const run = data.last_run;
-    document.getElementById('syncHistory').textContent = !data.configured ? 'API-токен не настроен.' : !run ? 'Успешная синхронизация ещё не подтверждена.' :
-      'Последний запуск: ' + run.status + ' · ' + (run.finished_at || run.started_at) + ' UTC · заказов: ' + run.orders + ' · ошибок: ' + run.errors + ' · ' + (run.message || '');
+    document.getElementById('syncHistory').textContent = !data.configured ? window.KSMi18n.t('API-токен не настроен.') : !run ? window.KSMi18n.t('Успешная синхронизация ещё не подтверждена.') :
+      window.KSMi18n.t('Последний запуск: ') + run.status + ' · ' + (run.finished_at || run.started_at) + window.KSMi18n.t(' UTC · заказов: ') + run.orders + window.KSMi18n.t(' · ошибок: ') + run.errors + ' · ' + (run.message || '');
   });
   if (syncBtn) {
     syncBtn.addEventListener("click", async () => {
       const oldText = syncBtn.innerText;
 
       syncBtn.disabled = true;
-      syncBtn.innerText = "Жаңартылып жатыр...";
+      syncBtn.innerText = window.KSMi18n.t("Жаңартылып жатыр...");
       syncBtn.style.opacity = "0.7";
-      syncStatus.innerText = "Kaspi-ден мәліметтер жүктеліп жатыр...";
+      syncStatus.innerText = window.KSMi18n.t("Kaspi-ден мәліметтер жүктеліп жатыр...");
 
       try {
         const resp = await fetch("/api/kaspi/sync-orders", {
@@ -68,37 +68,37 @@
         const data = await resp.json();
 
         if (!resp.ok || !data.ok) {
-          syncStatus.innerText = "Қате: " + (data.error || 'Синхронизация неполная') + '\n' + (data.errors || []).map(item => item.message).join('\n');
+          syncStatus.innerText = window.KSMi18n.t("Қате: ") + (data.error || window.KSMi18n.t('Синхронизация неполная')) + '\n' + (data.errors || []).map(item => item.message).join('\n');
           syncBtn.disabled = false;
           syncBtn.innerText = oldText;
           syncBtn.style.opacity = "1";
           return;
         }
 
-        syncStatus.innerText = 'Синхронизация выполняется в фоне. Страницу можно оставить открытой.';
+        syncStatus.innerText = window.KSMi18n.t('Синхронизация выполняется в фоне. Страницу можно оставить открытой.');
         const timer = setInterval(async () => {
           try {
             const state = await (await fetch('/api/kaspi/status')).json();
             const run = state.last_run;
             if (!run) return;
-            syncStatus.textContent = 'Состояние: ' + run.status + ' · ' + (run.message || '') + ' · ' + (run.error_details || []).slice(0,3).map(e => e.message).join('; ');
+            syncStatus.textContent = window.KSMi18n.t('Состояние: ') + run.status + ' · ' + (run.message || '') + ' · ' + (run.error_details || []).slice(0,3).map(e => e.message).join('; ');
             if (!['queued', 'running'].includes(run.status)) {
               clearInterval(timer);
               syncBtn.disabled = false;
               syncBtn.innerText = oldText;
               syncBtn.style.opacity = '1';
               if (run.status === 'success') location.reload();
-              else syncStatus.textContent += ' Обновите страницу, чтобы увидеть полученную часть данных.';
+              else syncStatus.textContent += window.KSMi18n.t(' Обновите страницу, чтобы увидеть полученную часть данных.');
             }
           } catch (error) {
             clearInterval(timer);
-            syncStatus.textContent = 'Не удалось прочитать состояние. Обновите страницу; повторный запуск не создаёт дублей.';
+            syncStatus.textContent = window.KSMi18n.t('Не удалось прочитать состояние. Обновите страницу; повторный запуск не создаёт дублей.');
             syncBtn.disabled = false;
           }
         }, 2000);
 
       } catch (err) {
-        syncStatus.innerText = "Қате: " + err;
+        syncStatus.innerText = window.KSMi18n.t("Қате: ") + err;
         syncBtn.disabled = false;
         syncBtn.innerText = oldText;
         syncBtn.style.opacity = "1";

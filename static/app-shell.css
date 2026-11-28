@@ -168,3 +168,10 @@ body.nav-resizing,body.nav-resizing * { cursor:col-resize!important; user-select
   .orders-views { gap:6px; }
   .orders-views a { padding:7px 9px; font-size:12px; }
 }
+
+.header-controls { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+.language-switch { display:flex; gap:2px; margin:0; padding:2px; border:1px solid var(--line); border-radius:10px; background:#f7f9fd; }
+.language-switch button { min-width:42px; min-height:38px; padding:4px 7px; border:0; border-radius:7px; background:transparent; color:#59677b; font:600 12px system-ui,sans-serif; cursor:pointer; }
+.language-switch button[aria-pressed=true] { color:#214ec6; background:white; box-shadow:0 1px 4px #23354e16; }
+.language-switch button:hover { background:#eaf0ff; }
+@media(max-width:700px) { .header-controls {gap:4px;} .language-switch button {min-width:38px; min-height:40px; padding:4px;} }

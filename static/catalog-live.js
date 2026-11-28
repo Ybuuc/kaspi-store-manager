@@ -23,10 +23,10 @@
         const expanded=new Set([...current.querySelectorAll('article')].filter(el=>el.querySelector('details[open]')).map(el=>el.dataset.productId));
         next.querySelectorAll('article').forEach(el=>{if(expanded.has(el.dataset.productId)) el.querySelector('details').open=true;});
         current.replaceWith(next);
-        message.textContent=next.dataset.sourceDate?'Показан XML от '+next.dataset.sourceDate+'.':'XML ещё не импортирован.';
-      } else if(force) { message.textContent='Нового снимка XML пока нет.'; }
+        message.textContent=next.dataset.sourceDate?window.KSMi18n.t('Показан XML от ')+next.dataset.sourceDate+'.':window.KSMi18n.t('XML ещё не импортирован.');
+      } else if(force) { message.textContent=window.KSMi18n.t('Нового снимка XML пока нет.'); }
     } catch(_) {
-      message.textContent='Не удалось проверить новые данные. Показан последний сохранённый снимок.';
+      message.textContent=window.KSMi18n.t('Не удалось проверить новые данные. Показан последний сохранённый снимок.');
     } finally {
       busy=false;
       if(!document.hidden) timer=setTimeout(refresh,30000);
