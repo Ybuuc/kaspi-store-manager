@@ -10,6 +10,7 @@
     {% if g.user['role']=='admin' %}
     {{ navlink('kaspibot_catalog.catalog',_('XML-каталог')) }}
     {{ navlink('kaspibot.orders_page',_('Заказы Kaspi')) }}
+    {{ navlink('kaspibot.attention',_('Требует внимания')) }}
     {% endif %}
     <p class="sidebar-group">{{ _("Учёт склада") }}</p>
     {{ navlink('kaspibot.incoming',_('Поступления')) }}

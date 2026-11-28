@@ -2,12 +2,14 @@
 {% block title %}{{ _("Товары и остатки · Kaspi Stock") }}{% endblock %}
 {% block content %}
 <div class="page-heading"><div><h1>{{ _("Товары и остатки") }}</h1><p>{{ _("Цены и заявленное количество из Kaspi, учёт склада — отдельно.") }}</p></div><div class="catalog-actions"><a class="btn btn-outline-primary btn-sm" href="{{ url_for('management.product_new') }}">{{ _("+ Новый товар") }}</a>{% if g.user['role']=='admin' %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for('kaspibot_catalog.catalog') }}">{{ _("XML-каталог") }}</a>{% endif %}</div></div>
-<form method="get" class="catalog-search"><label for="q">{{ _("Поиск товара") }}</label><input class="form-control" id="q" name="q" value="{{ request.args.get('q','') }}" placeholder="{{ _("Название или точный SKU") }}"><button class="btn btn-primary" type="submit">{{ _("Найти") }}</button><button class="btn btn-outline-secondary" type="button" id="catalogRefresh" aria-label="{{ _("Обновить карточки") }}" title="{{ _("Показать последние импортированные данные") }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 1 0-2 6M20 4v7h-7"/></svg><span class="refresh-label">{{ _("Обновить карточки") }}</span></button></form>
+<form method="get" class="catalog-search"><input type="hidden" name="view" value="{{ catalog_view }}">{% for key,value in filters.items() %}{% if value %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}<label for="q">{{ _("Поиск товара") }}</label><input class="form-control" id="q" name="q" value="{{ request.args.get('q','') }}" placeholder="{{ _("Название или точный SKU") }}"><button class="btn btn-primary" type="submit">{{ _("Найти") }}</button><button class="btn btn-outline-secondary" type="button" id="catalogRefresh" aria-label="{{ _("Обновить карточки") }}" title="{{ _("Показать последние импортированные данные") }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 1 0-2 6M20 4v7h-7"/></svg><span class="refresh-label">{{ _("Обновить карточки") }}</span></button></form>
+{% include 'kaspibot/catalog_toolbar.html' %}
 <p class="catalog-refresh-note" id="catalogLiveMessage" role="status" aria-live="polite">{{ _("Карточки обновятся автоматически после нового импорта XML.") }}</p>
 <div id="productResults" data-catalog-version="{{ catalog_snapshot.id if catalog_snapshot else 0 }}" data-source-date="{{ catalog_snapshot.source_date if catalog_snapshot else '' }}">
-<div class="catalog-meta"><span>{{ _("Всего карточек:") }} <b>{{ total_products }}</b></span><span>{{ _("Показано:") }} <b>{{ visible_products }}</b></span><span class="photo-count">{{ _("С фото:") }} <b>{{ with_photo }}</b></span>{% if with_parser %}<span>{{ _("С проверкой парсера:") }} <b>{{ with_parser }}</b></span>{% endif %}</div>
-{% for p in products if p.inventory_source != 'unknown' and p.available_qty >= 0 and p.low_stock_threshold is not none and p.available_qty < p.low_stock_threshold %}<div class="alert alert-warning">{{ _("Низкий доступный остаток:") }} {{ p.name }} · {{ p.available_qty }} / {{ p.low_stock_threshold }}</div>{% endfor %}
+<div class="catalog-meta"><span>{{ _("Найдено:") }} <b>{{ paging.matched }}</b></span><span>{{ _("Всего карточек:") }} <b>{{ total_products }}</b></span><span>{{ _("Показано:") }} <b>{{ visible_products }}</b></span><span class="photo-count">{{ _("С фото:") }} <b>{{ with_photo }}</b></span>{% if with_parser %}<span>{{ _("С проверкой парсера:") }} <b>{{ with_parser }}</b></span>{% endif %}</div>
+{% if low_count %}<a class="low-stock-summary" href="{{ view_url(stock='low',page=1) }}">{{ _('Низкий остаток по учёту:') }} <b>{{ low_count }}</b> →</a>{% endif %}
 <div class="catalog-note">{{ _("Остатки XML — заявленные. Физический склад и закупка ведутся отдельно.") }}</div>
+{% if catalog_view=='table' %}{% include 'kaspibot/catalog_table.html' %}{% else %}
 <div class="algatop-list">
 {% for p in products %}
 {% set seller = catalog_by_product.get(p.id) %}
@@ -31,6 +33,8 @@
 </article>
 {% else %}<div class="empty-box"><b>{{ _("Товары не найдены") }}</b><p class="muted mb-0">{{ _("Попробуйте другое название или SKU.") }}</p></div>{% endfor %}
 </div>
+{% endif %}
+{% include 'kaspibot/pagination.html' %}
 </div>
 {% if g.user['role']=='admin' %}<details class="catalog-tools"><summary>{{ _("Дополнительные инструменты") }}</summary><a href="{{ url_for('kaspibot.parser.page') }}">{{ _("Парсер Kaspi") }}</a><form method="post" action="{{ url_for('kaspibot.products_import_algatop_json') }}" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label for="photoImport">{{ _("Импорт фото и данных") }}</label><input id="photoImport" type="file" name="file" accept=".json,application/json" class="form-control" style="max-width:320px" required><button class="btn btn-outline-secondary btn-sm" type="submit">{{ _("Импортировать JSON") }}</button></form>{% if config.DEMO_MODE %}<p>{{ _("Сумма локального склада:") }} {{ total_value }} ₸</p>{% endif %}</details>{% endif %}
 <script src="{{ url_for('static',filename='catalog-live.js') }}" defer></script>

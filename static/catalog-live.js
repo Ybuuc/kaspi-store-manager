@@ -23,6 +23,7 @@
         const expanded=new Set([...current.querySelectorAll('article')].filter(el=>el.querySelector('details[open]')).map(el=>el.dataset.productId));
         next.querySelectorAll('article').forEach(el=>{if(expanded.has(el.dataset.productId)) el.querySelector('details').open=true;});
         current.replaceWith(next);
+        document.dispatchEvent(new Event('catalog:updated'));
         message.textContent=next.dataset.sourceDate?window.KSMi18n.t('Показан XML от ')+next.dataset.sourceDate+'.':window.KSMi18n.t('XML ещё не импортирован.');
       } else if(force) { message.textContent=window.KSMi18n.t('Нового снимка XML пока нет.'); }
     } catch(_) {

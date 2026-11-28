@@ -94,7 +94,7 @@ TLS и постоянный том с SQLite и `.local-catalog` (включая
 
 ```sh
 python -m playwright install --with-deps chromium
-gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 2 --timeout 120 --graceful-timeout 120 wsgi:app
+gunicorn --bind 0.0.0.0:5000 --workers 1 --threads 2 --timeout 120 --graceful-timeout 210 wsgi:app
 ```
 
 Не используйте `--preload`: координатор должен создаваться внутри worker.

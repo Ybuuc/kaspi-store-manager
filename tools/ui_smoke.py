@@ -110,6 +110,9 @@ def run(screenshot, channel=None):
                 def contained():
                     assert page.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), 'Page overflow'
                     assert page.locator('.orders-table').evaluate("el=>[...el.querySelectorAll('th,td')].every(cell=>cell.scrollWidth<=cell.clientWidth+1)"), 'Cell text overflow'
+                    if page.viewport_size['width']<=700:
+                        assert page.locator('.order-mobile-card').count()==3
+                        return
                     outer=page.locator('.content-card').bounding_box()
                     inner=page.locator('.orders-table-wrap').bounding_box()
                     assert inner['x']>=outer['x'] and inner['x']+inner['width']<=outer['x']+outer['width']+1
@@ -166,10 +169,9 @@ def run(screenshot, channel=None):
                 page.locator('#menuToggle').click()
                 assert sidebar_width()==350
                 page.keyboard.press('Escape')
-                wrap=page.locator('.orders-table-wrap')
-                wrap.evaluate('el=>el.scrollLeft=el.scrollWidth')
-                assert wrap.evaluate('el=>el.scrollLeft>0')
-                wrap.evaluate('el=>el.scrollLeft=0')
+                assert page.locator('.orders-table-wrap').is_hidden()
+                assert page.locator('.order-mobile-card').first.is_visible()
+                assert page.locator('.order-mobile-card details').first.get_attribute('open') is None
                 orders_mobile=screenshot.with_name(screenshot.stem+'-orders-mobile'+screenshot.suffix)
                 page.screenshot(path=str(orders_mobile),full_page=True)
                 # Corrupt browser preferences are bounded as well.
@@ -221,6 +223,21 @@ def run(screenshot, channel=None):
                 assert page.locator('.page-heading h1').inner_text()=='Товары и остатки'
                 print('RU/KK PASS — persisted language, dynamic sync labels, preserved query/product data, desktop and mobile.',flush=True)
                 assert not errors,errors
+                page.goto(base+'/products?q=UI-XML&view=table')
+                page.locator('.column-picker summary').click()
+                page.locator('[data-column-toggle=physical]').uncheck()
+                page.locator('#compactMode').check()
+                page.reload()
+                assert page.locator('#catalogTable th[data-column=physical]').is_hidden()
+                assert page.locator('#compactMode').is_checked()
+                with app.app_context():
+                    import_xml(content.replace(b'17:00',b'17:10').replace(b'4999',b'5899'))
+                page.get_by_text('5899 ₸',exact=True).wait_for(timeout=45000)
+                assert page.locator('#catalogTable th[data-column=physical]').is_hidden()
+                assert page.locator('#compactMode').is_checked()
+                assert 'q=UI-XML' in page.url and 'view=table' in page.url
+                assert page.evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth')
+                print('Table preferences/live refresh PASS — view, columns, density, query and new price preserved after real XML timer.',flush=True)
                 print('Chrome',browser.version,': PASS — login, role navigation, Escape/focus, manual XML import, real timer refresh, preserved details, 390px layout; no JS errors.',flush=True)
                 print('Screenshots:',screenshot,mobile,flush=True)
                 browser.close()

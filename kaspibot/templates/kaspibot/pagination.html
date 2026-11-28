@@ -1,0 +1,4 @@
+{% if paging.pages>1 %}<nav class="workspace-pagination" aria-label="{{ _('Страницы') }}">
+{% if paging.page>1 %}<a class="btn btn-outline-secondary btn-sm" href="{{ view_url(page=paging.page-1) }}">← {{ _('Назад') }}</a>{% endif %}
+<span>{{ _('Страница') }} <b>{{ paging.page }}</b> / {{ paging.pages }}</span>
+{% if paging.page<paging.pages %}<a class="btn btn-outline-secondary btn-sm" href="{{ view_url(page=paging.page+1) }}">{{ _('Далее') }} →</a>{% endif %}</nav>{% endif %}

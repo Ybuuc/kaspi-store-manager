@@ -1,6 +1,7 @@
 services:
   web:
     build: .
+    stop_grace_period: 220s
     ports:
       - "127.0.0.1:5000:5000"
     environment:

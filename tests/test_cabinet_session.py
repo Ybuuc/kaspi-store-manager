@@ -101,3 +101,43 @@ class CabinetDiagnosticsTests(unittest.TestCase):
             request=SimpleNamespace(url='https://mc.shop.kaspi.kz/bff/offer-view/v2/list')
             diag.response(SimpleNamespace(request=request,status=status,headers={}))
             self.assertEqual(diag.failure().code,expected)
+
+
+class ColdCabinetReadinessTests(unittest.TestCase):
+    def test_slow_module_startup_keeps_valid_session_and_stays_inside_cycle_budget(self):
+        from kaspibot.services.cabinet_export import export_from_page
+        from playwright.sync_api import TimeoutError as BrowserTimeout
+        payload=b'<kaspi_catalog date="2026-11-28 18:00"><merchantid>123456</merchantid><offers><offer sku="FIXTURE"><model>Fixture</model><brand>Fixture</brand><availabilities><availability storeId="PP1" available="yes" stockCount="1"/></availabilities><price>1</price></offer></offers></kaspi_catalog>'
+        clock=[0]
+        from unittest.mock import MagicMock
+        page=MagicMock()
+        events={}
+        page.on.side_effect=lambda event,callback:events.update({event:callback})
+        def navigate(*_args,**kwargs):
+            if kwargs['wait_until']!='commit':
+                raise BrowserTimeout('fixture: module startup exceeds navigation timeout')
+        page.goto.side_effect=navigate
+        action=page.get_by_role.return_value
+        def ready(**kwargs):
+            if kwargs['timeout']<70000:
+                raise BrowserTimeout('fixture: valid cabinet needs 70 seconds')
+            clock[0]=70
+        action.wait_for.side_effect=ready
+        header=Mock()
+        header.is_visible.return_value=True
+        merchant=Mock()
+        merchant.all.return_value=[header]
+        link=Mock()
+        page.get_by_text.side_effect=lambda text,**kwargs:merchant if text.startswith('ID - ') else link
+        download=Mock()
+        download.save_as.side_effect=lambda path:Path(path).write_bytes(payload)
+        link.click.side_effect=lambda:events['download'](download)
+        expected=page.expect_response.return_value.__enter__.return_value
+        expected.value.status=200
+        checkpoint=Mock()
+        with patch('kaspibot.services.cabinet_export.time.monotonic',side_effect=lambda:clock[0]):
+            self.assertEqual(export_from_page(Mock(),page,'123456',timeout=180,on_authenticated=checkpoint),payload)
+        self.assertEqual(page.goto.call_args.kwargs['wait_until'],'commit')
+        self.assertEqual(action.wait_for.call_args.kwargs['timeout'],120000)
+        self.assertLessEqual(page.expect_response.call_args.kwargs['timeout'],15000)
+        checkpoint.assert_called_once()

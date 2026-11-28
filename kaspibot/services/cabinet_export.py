@@ -79,7 +79,7 @@ def is_xml(content):
     return isinstance(content, bytes) and b'<kaspi_catalog' in content[:4096].replace(b'\x00', b'')
 
 
-def export_from_page(context, page, merchant_id, timeout=90, on_authenticated=None, diagnostics=None):
+def export_from_page(context, page, merchant_id, timeout=180, on_authenticated=None, diagnostics=None):
     """Click only the documented export control; never edit or upload seller data."""
     from kaspibot.services.seller_catalog import parse_xml
     from flask import has_app_context
@@ -115,16 +115,24 @@ def export_from_page(context, page, merchant_id, timeout=90, on_authenticated=No
         except (ValueError,TypeError):
             pass
 
+    page.on('requestfailed', diagnostics.request_failed)
+    page.on('pageerror', diagnostics.script_error)
     page.on('response', diagnostics.response)
     page.on('response', observe)
     def on_download(download):
         downloads.append(download)
     page.on('download', on_download)
     try:
-        page.goto(CABINET, wait_until='domcontentloaded', timeout=min(timeout*1000, 30000))
+        # A cold cabinet loads many module chunks. DOMContentLoaded can wait for
+        # these imports, so a 30-second document wait incorrectly rejected valid auth.
+        page.goto(CABINET, wait_until='commit', timeout=min(timeout*1000, 30000))
+        diagnostics.mark('navigation_committed')
         action = page.get_by_role('button', name='Действия с файлами')
         try:
-            action.wait_for(state='visible', timeout=20000)
+            # Reserve time for trigger/download while keeping the entire cycle bounded.
+            readiness_ms=max(1,min(120000,int((deadline-time.monotonic()-min(30,timeout/3))*1000)))
+            action.wait_for(state='visible', timeout=readiness_ms)
+            diagnostics.mark('cabinet_ready')
         except BrowserTimeout:
             failure=diagnostics.failure()
             if failure is not None:
@@ -136,6 +144,7 @@ def export_from_page(context, page, merchant_id, timeout=90, on_authenticated=No
         headers = page.get_by_text('ID - ' + merchant_id, exact=True).all()
         if not any(header.is_visible() for header in headers):
             raise ExportError('вход выполнен в другой магазин; экспорт не применяется.', 'wrong_merchant')
+        diagnostics.mark('merchant_verified')
         if on_authenticated is not None:
             on_authenticated()
         action.click()
@@ -152,6 +161,7 @@ def export_from_page(context, page, merchant_id, timeout=90, on_authenticated=No
         remaining_ms = max(1, min(15000, int((deadline-time.monotonic())*1000)))
         with page.expect_response(is_trigger, timeout=remaining_ms) as triggered:
             page.get_by_text('Скачать прайс-лист в XML', exact=True).click()
+        diagnostics.mark('export_trigger_received')
         trigger_status = triggered.value.status
         if trigger_status == 429:
             raise ExportError('Kaspi ограничил частоту экспорта (HTTP 429). Сохранён предыдущий XML; следующая попытка по расписанию.', 'rate_limited',triggered.value.headers.get('retry-after'))
@@ -196,8 +206,11 @@ def export_from_page(context, page, merchant_id, timeout=90, on_authenticated=No
         payload = parse_xml(content)
         if payload['merchant_id'] != merchant_id:
             raise ExportError('XML принадлежит другому магазину; прежний файл сохранён.', 'wrong_merchant')
+        diagnostics.mark('xml_received')
         return content
     finally:
+        page.remove_listener('requestfailed', diagnostics.request_failed)
+        page.remove_listener('pageerror', diagnostics.script_error)
         page.remove_listener('response', diagnostics.response)
         page.remove_listener('response', observe)
         page.remove_listener('download', on_download)
@@ -207,7 +220,7 @@ def is_closed_error(error):
     return 'Target page, context or browser has been closed' in str(error) or 'Browser has been closed' in str(error)
 
 
-def _fetch_export_once(session_path, merchant_id, timeout=90):
+def _fetch_export_once(session_path, merchant_id, timeout=180):
     if not Path(session_path).is_file():
         raise ExportError('нужен вход в локальном окне: запустите tools/kaspi_catalog_login.py.', 'needs_login')
     if not merchant_id or not merchant_id.isascii() or not merchant_id.isdigit():
@@ -277,7 +290,7 @@ def _fetch_export_once(session_path, merchant_id, timeout=90):
         raise ExportError('не удалось прочитать локальную сессию или сохранить выгрузку.') from None
 
 
-def fetch_export(session_path, merchant_id, timeout=90):
+def fetch_export(session_path, merchant_id, timeout=180):
     deadline = time.monotonic() + timeout
     for attempt in range(2):
         remaining = max(1, int(deadline - time.monotonic()))

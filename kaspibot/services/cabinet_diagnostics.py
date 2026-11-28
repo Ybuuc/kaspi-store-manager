@@ -1,5 +1,7 @@
 """Credential-free cabinet dependency diagnostics; never persist URLs or payloads."""
 from urllib.parse import urlsplit
+import re
+import time
 
 
 def dependency(request):
@@ -26,6 +28,23 @@ class CabinetDiagnostics:
     def __init__(self):
         self.events=set()
         self.rate_header=None
+        self.started=time.monotonic()
+        self.timings={}
+        self.network_failures=set()
+        self.script_errors=0
+
+    def mark(self,stage):
+        if stage in ('navigation_committed','cabinet_ready','merchant_verified','export_trigger_received','xml_received'):
+            self.timings[stage]=round(time.monotonic()-self.started,2)
+
+    def request_failed(self,request):
+        # ERR_* is a browser category only; never record the URL or failure text.
+        for code in re.findall(r'ERR_[A-Z_]+',request.failure or ''):
+            if code!='ERR_FAILED':
+                self.network_failures.add(code)
+
+    def script_error(self,_error):
+        self.script_errors+=1
 
     def blocked(self,request):
         self.events.add((dependency(request),'blocked'))
@@ -57,6 +76,7 @@ class CabinetDiagnostics:
         from kaspibot.services.catalog_source import atomic_write
         try:
             atomic_write(path,json.dumps({'checked_at':datetime.now(timezone.utc).isoformat(),
-                'events':[{'dependency':kind,'result':status} for kind,status in sorted(self.events,key=str)]}).encode())
+                'events':[{'dependency':kind,'result':status} for kind,status in sorted(self.events,key=str)],
+                'stage_seconds':self.timings,'network_categories':sorted(self.network_failures),'script_errors':self.script_errors}).encode())
         except OSError:
             pass

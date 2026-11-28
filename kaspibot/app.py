@@ -739,8 +739,15 @@ def orders_page():
         for name, items in buckets.items()
     }
 
+    from kaspibot.services.workspace_view import page_items,view_url
+    search=request.args.get('q','').strip().casefold()
+    selected=[row for row in buckets[bucket] if not search or any(search in str(value or '').casefold() for value in (row.order_code,row.customer_name,row.title))]
+    page,paging=page_items(selected)
     return render_template("kaspibot/orders.html",
-        rows=buckets[bucket],
+        rows=page,paging=paging,view_url=view_url,
+        order_labels={row.id:{'preorder':'Предзаказ','packing':'Упаковка','transmission':'Передача',
+            'transmitted':'Переданы на доставку','cancelled_delivery':'Отменены при доставке',
+            'unknown':'Не определено','other':'Другие способы доставки'}.get(_kaspi_order_bucket(row),'Архив') for row in page},
         bucket=bucket,
         counts=counts,
     )
@@ -858,57 +865,38 @@ def products():
         flash("Тауар қосылды", "success")
         return redirect(url_for("kaspibot.products"))
 
-    query = request.args.get("q", "").strip().casefold()
-    products_list = (
-        Product.query
-        .filter(Product.is_active == True, Product.archived_at.is_(None))
-        .order_by(Product.name.asc())
-        .all()
-    )
-
-    if query:
-        products_list = [p for p in products_list if query in p.name.casefold() or query in (p.sku or "").casefold()]
-
-    # Складтың жалпы сомасы: қолжетімді саны × закуп.
-    total_value = 0
-
-    for p in products_list:
-        stock_qty = int(p.stock_qty or 0)
-
-        onway_qty = int(
-            getattr(p, "onway_qty", 0) or 0
-        )
-
-        available = max(
-            0,
-            stock_qty - onway_qty,
-        )
-
-        total_value += (
-            available * int(p.purchase_price or 0)
-        )
-
-    observations = latest_observations()
-
     from kaspibot.services.seller_catalog import latest_catalog
-    catalog_snapshot, catalog_rows = latest_catalog()
-    return render_template("kaspibot/products.html",
-        catalog_snapshot=catalog_snapshot,
-        catalog_by_product={row['product_id']: row for row in catalog_rows},
-        products=products_list,
-        total_value=total_value,
-        parser_results=observations,
-        total_products=Product.query.count(),
-        visible_products=len(products_list),
-        with_photo=sum(
-            1 for p in products_list
-            if str(p.image_url or "").strip()
-        ),
-        with_parser=sum(
-            1 for p in products_list
-            if observations.get(p.id) is not None
-        ),
-    )
+    from kaspibot.services.workspace_view import catalogue
+    from flask import make_response
+    catalog_snapshot,catalog_rows=latest_catalog()
+    active=Product.query.filter(Product.is_active == True,Product.archived_at.is_(None)).order_by(Product.name.asc(),Product.id.asc()).all()
+    context=catalogue(active,catalog_rows)
+    observations=latest_observations()
+    response=make_response(render_template('kaspibot/products.html',**context,catalog_snapshot=catalog_snapshot,
+        total_products=len(active),total_value=sum(max(0,int(p.stock_qty or 0)-int(p.onway_qty or 0))*int(p.purchase_price or 0) for p in active),
+        parser_results=observations,with_photo=sum(bool(p.image_url) for p in context['products']),
+        with_parser=sum(p.id in observations for p in context['products'])))
+    if request.args.get('view') in ('cards','table'):
+        response.set_cookie('ksm_catalog_view',context['catalog_view'],max_age=365*86400,httponly=True,
+            secure=current_app.config['SESSION_COOKIE_SECURE'],samesite='Lax')
+    return response
+
+
+@bp.get('/attention')
+def attention():
+    from kaspibot.services.workspace_view import attention_items
+    from kaspibot.services.automatic_sync import status
+    from kaspibot.services.reconciliation import public_errors
+    from kaspibot.models import KaspiSyncRun
+    products={product.id:product for product in Product.query.order_by(Product.name,Product.id).all()}
+    rows=KaspiOrderSync.query.order_by(KaspiOrderSync.updated_at.desc(),KaspiOrderSync.id.desc()).all()
+    latest=KaspiSyncRun.query.order_by(KaspiSyncRun.id.desc()).first()
+    try:
+        errors=json.loads(latest.errors_json or '[]') if latest else []
+    except (ValueError,TypeError):
+        errors=[]
+    return render_template('kaspibot/attention.html',**attention_items(rows,products),channels=status()['channels'],api_errors=public_errors(errors))
+
 
 @bp.get('/api/products/catalog-version')
 def api_catalog_version():

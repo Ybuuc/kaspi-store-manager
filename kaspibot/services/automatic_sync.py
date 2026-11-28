@@ -164,7 +164,7 @@ def tick(owner,boot=False,background=False):
 _START_LOCK=threading.Lock()
 
 
-def stop(app,timeout=100):
+def stop(app,timeout=200):
     handle=app.extensions.get('kaspi_auto_sync')
     if not handle:
         return

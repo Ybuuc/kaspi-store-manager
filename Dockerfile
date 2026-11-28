@@ -7,4 +7,4 @@ RUN useradd --create-home --uid 10001 app && mkdir -p /app/instance /app/backups
 COPY --chown=app:app . .
 USER app
 EXPOSE 5000
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--timeout", "120", "wsgi:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--timeout", "120", "--graceful-timeout", "210", "wsgi:app"]
