@@ -1,0 +1,61 @@
+{% extends "kaspibot/base.html" %}
+{% block content %}
+<h3>{{ _("Келе жатыр") }}</h3>
+<p class="text-muted">{{ _("Бұл жерде заказ берілген, бірақ складқа келмеген тауарлар тұрады.") }}</p>
+
+<form method="post" style="max-width:1100px;"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div style="display:flex; gap:12px; align-items:end; flex-wrap:wrap;">
+    <div style="flex:1; min-width:320px;">
+      <label style="display:block; margin-bottom:6px;">{{ _("Тауар") }}</label>
+      <select name="product_id" class="form-select" required>
+        <option value="">{{ _("Тауар таңдаңыз...") }}</option>
+        {% for p in products %}
+          <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="min-width:160px;">
+      <label style="display:block; margin-bottom:6px;">{{ _("Саны") }}</label>
+      <input name="qty" type="number" min="1" class="form-control" required>
+    </div>
+
+    <div style="min-width:240px;">
+      <label style="display:block; margin-bottom:6px;">{{ _("Сатып алынған бағасы (тг)") }}</label>
+      <input name="purchase_price" type="number" min="1" class="form-control" required>
+    </div>
+
+    <div style="min-width:160px;">
+      <button class="btn btn-primary" type="submit">{{ _("Қосу") }}</button>
+    </div>
+  </div>
+</form>
+
+<hr>
+
+<div class="mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+  <div><b>{{ _("Келе жатқан барлығы:") }}</b> {{ total_incoming_qty }} {{ _("дана") }}</div>
+  <div class="text-end"><b>{{ _("Келе жатқан жалпы бағасы:") }}</b> {{ total_incoming_cost }} {{ _("тг") }}</div>
+</div>
+
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>{{ _("Тауар") }}</th>
+      <th class="text-end">{{ _("Келе жатыр (дана)") }}</th>
+      <th class="text-end">{{ _("Жалпы бағасы (тг)") }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+      <tr>
+        <td>
+          <a href="{{ url_for('kaspibot.product_detail', product_id=r.product_id) }}">{{ r.name }}</a>
+        </td>
+        <td class="text-end">{{ r.qty }}</td>
+        <td class="text-end">{{ r.cost }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,13 @@
+<div class="workspace-toolbar"><div class="view-switch" aria-label="{{ _('Вид каталога') }}">
+<a href="{{ view_url(view='cards',page=1) }}" {% if catalog_view=='cards' %}aria-current="page"{% endif %}>{{ _('Карточки') }}</a>
+<a href="{{ view_url(view='table',page=1) }}" {% if catalog_view=='table' %}aria-current="page"{% endif %}>{{ _('Таблица') }}</a></div>
+<div class="workspace-preferences"><label class="compact-toggle"><input type="checkbox" id="compactMode"> {{ _('Компактно') }}</label>
+{% if catalog_view=='table' %}<details class="column-picker"><summary>{{ _('Колонки') }}</summary><div>
+{% for key,label in [('photo','Фото'),('price','Цена XML'),('declared','Заявлено в Kaspi'),('physical','Физический остаток · учёт'),('preorder','Предзаказ')] %}
+<label><input type="checkbox" data-column-toggle="{{ key }}" checked> {{ _(label) }}</label>{% endfor %}</div></details>{% endif %}</div></div>
+<form method="get" class="workspace-filters" id="catalogFilters"><input type="hidden" name="q" value="{{ request.args.get('q','') }}"><input type="hidden" name="view" value="{{ catalog_view }}">
+<label>{{ _('Склад Kaspi') }}<select name="store" class="form-select"><option value="">{{ _('Все склады') }}</option>{% for store in stores %}<option value="{{ store }}" {% if filters.store==store %}selected{% endif %}>{{ store.rsplit('_',1)[-1] }}</option>{% endfor %}</select></label>
+<label>{{ _('Город цены') }}<select name="city" class="form-select"><option value="">{{ _('Все города') }}</option>{% for city in cities %}<option value="{{ city }}" {% if filters.city==city %}selected{% endif %}>{{ _('Единая цена') if city=='default' else city }}</option>{% endfor %}</select></label>
+<label>{{ _('Предзаказ') }}<select name="preorder" class="form-select"><option value="">{{ _('Любой') }}</option><option value="yes" {% if filters.preorder=='yes' %}selected{% endif %}>{{ _('С предзаказом') }}</option><option value="no" {% if filters.preorder=='no' %}selected{% endif %}>{{ _('Без предзаказа') }}</option></select></label>
+<label>{{ _('Локальный учёт') }}<select name="stock" class="form-select"><option value="">{{ _('Любой') }}</option>{% for value,label in [('known','Подтверждённый учёт'),('unknown','Без подтверждения'),('low','Низкий остаток')] %}<option value="{{ value }}" {% if filters.stock==value %}selected{% endif %}>{{ _(label) }}</option>{% endfor %}</select></label>
+<button class="btn btn-outline-primary" type="submit">{{ _('Применить') }}</button>{% if filters.values()|select|list %}<a class="text-link" href="{{ view_url(store=None,city=None,preorder=None,stock=None,page=1) }}">{{ _('Сбросить фильтры') }}</a>{% endif %}</form>

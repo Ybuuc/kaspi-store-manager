@@ -1,0 +1,48 @@
+{% extends "kaspibot/base.html" %}
+{% block content %}
+
+<h4>{{ _("ActiveOrders нәтижесі") }}</h4>
+
+{% if applied %}
+  <div class="alert alert-success">
+    {{ _("Резерв есептелді. Склад бетіне кіріп “Резерв / Қолжетімді” бағандарын көре аласыз.") }}
+  </div>
+
+  <h5>{{ _("Тауарлар бойынша резерв қосылды") }}</h5>
+  <table class="table table-sm">
+    <thead><tr><th>{{ _("Тауар") }}</th><th>{{ _("Резерв (дана)") }}</th></tr></thead>
+    <tbody>
+      {% for name, qty in applied %}
+        <tr><td>{{ name }}</td><td>{{ qty }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="alert alert-warning">{{ _("Резервке түсетін заказ табылмады.") }}</div>
+{% endif %}
+
+{% if unknown %}
+  <div class="alert alert-warning">
+    {{ _("Кейбір жолдар тауарға байланбады (alias жоқ). Оларды ProductAlias ретінде қосу керек.") }}
+  </div>
+
+  <table class="table table-sm">
+    <thead><tr><th>{{ _("Кілт (Артикул/Атауы)") }}</th><th>{{ _("Резерв") }}</th></tr></thead>
+    <tbody>
+      {% for key, qty in unknown %}
+        <tr><td>{{ key }}</td><td>{{ qty }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+{% if unknown_rows %}
+  <details class="mt-3">
+    <summary>{{ _("Техникалық ескертпелер (қате жолдар)") }}</summary>
+    <pre class="mt-2">{{ unknown_rows|join('\n') }}</pre>
+  </details>
+{% endif %}
+
+<a class="btn btn-secondary mt-3" href="{{ url_for('kaspibot.products') }}">{{ _("Складқа қайту") }}</a>
+
+{% endblock %}

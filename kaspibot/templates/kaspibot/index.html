@@ -1,0 +1,9 @@
+{% extends "kaspibot/base.html" %}
+{% block content %}
+<h2>Kaspi Stock</h2>
+<p>{{ _("Синхронизация читает заказы и связанные карточки из реального кабинета продавца. Обновление не меняет заказы в Kaspi.") }}</p>
+<a class="btn btn-primary" href="{{ url_for('kaspibot.orders_page') }}">{{ _("Заказы и состояние подключения") }}</a>
+<a class="btn btn-outline-primary" href="{{ url_for('kaspibot.report') }}">{{ _("Отчёт из API") }}</a>
+<a class="btn btn-outline-secondary" href="{{ url_for('kaspibot.products') }}">{{ _("Сохранённый каталог") }}</a>
+<p class="mt-3">{{ _("Пока подключение и сверка не завершены, приложение не показывает расчётную прибыль и архивные суммы как текущие данные кабинета. Остатки требуют фактической выгрузки продавца.") }}</p>
+{% endblock %}

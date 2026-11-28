@@ -1,10 +1,10 @@
-{% extends 'base.html' %}
-{% block title %}Қойма есебі · Kaspi Store Manager{% endblock %}
-{% block content %}
-<section class="panel"><h1>Қойма есебі</h1>
-  <p>Есеп ағымдағы белсенді тауарлар бойынша есептеледі. Архивтегі тауарлар кірмейді.</p>
-  <dl><dt>Жалпы тауар саны</dt><dd>{{ summary['total_products'] }}</dd>
-  <dt>Төмен қалдықтағы тауарлар саны</dt><dd>{{ summary['low_stock_count'] }}</dd></dl>
-  <p>Төмен қалдық — тауар қалдығы оған орнатылған жеке шектен аз. Шегі орнатылмаған тауар бұл санға кірмейді.</p>
+{% extends 'management_base.html' %}
+{% block title %}{{ _("Қойма есебі · Kaspi Store Manager") }}{% endblock %}
+{% block management_content %}
+<section class="panel"><h1>{{ _("Қойма есебі") }}</h1>
+  <p>{{ _("Есеп ағымдағы белсенді тауарлар бойынша есептеледі. Архивтегі тауарлар кірмейді.") }}</p>
+  <dl><dt>{{ _("Жалпы тауар саны") }}</dt><dd>{{ summary['total_products'] }}</dd>
+  <dt>{{ _("Төмен қалдықтағы тауарлар саны") }}</dt><dd>{{ summary['low_stock_count'] }}</dd></dl>
+  <p>{{ _("Төмен қалдық — тауар қалдығы оған орнатылған жеке шектен аз. Шегі орнатылмаған тауар бұл санға кірмейді.") }}</p>
 </section>
 {% endblock %}

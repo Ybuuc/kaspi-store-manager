@@ -1,0 +1,56 @@
+{% extends "kaspibot/base.html" %}
+{% block content %}
+<h3>{{ _("Импорт нәтижесі") }}</h3>
+
+{% if blocked %}
+  <p style="color:#b00;"><b>{{ _("Тоқтатылды:") }}</b> {{ _("Кейбір карточка атаулары (alias) складта байланыспаған.") }}</p>
+
+  <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse; width:100%; max-width:900px;">
+    <thead>
+      <tr>
+        <th>{{ _("Карточка атауы (alias)") }}</th>
+        <th>{{ _("Саны") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a, q in unknown %}
+      <tr>
+        <td>{{ a }}</td>
+        <td>{{ q }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top:14px;">
+    <a class="btn btn-secondary" href="{{ url_for('kaspibot.import_page') }}">{{ _("Артқа (қайта импорт)") }}</a>
+    <a class="btn btn-primary" href="{{ url_for('kaspibot.products') }}">{{ _("Складқа өту") }}</a>
+  </div>
+
+{% else %}
+  <p style="color:green;"><b>{{ _("ОК:") }}</b> {{ _("Сатылымдар қолданылды.") }}</p>
+
+  <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse; width:100%; max-width:900px;">
+    <thead>
+      <tr>
+        <th>Product ID</th>
+        <th>{{ _("Сатылды (дана)") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pid, qty in applied %}
+      <tr>
+        <td>{{ pid }}</td>
+        <td>{{ qty }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top:14px;">
+    <a class="btn btn-primary" href="{{ url_for('kaspibot.products') }}">{{ _("Складқа қайту") }}</a>
+    <a class="btn btn-secondary" href="{{ url_for('kaspibot.import_page') }}">{{ _("Тағы импорт") }}</a>
+  </div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "kaspibot/base.html" %}
+{% block content %}
+
+<h2>{{ _("Отчет (күндік / айлық)") }}</h2>
+
+<form method="get" action="{{ url_for('kaspibot.report') }}" style="max-width:1100px;"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div style="display:flex; gap:12px; align-items:end; flex-wrap:wrap;">
+    <div>
+      <label>{{ _("Басталу күні") }}</label><br>
+      <input type="date" name="start" value="{{ start }}" style="padding:10px; width:220px;">
+    </div>
+    <div>
+      <label>{{ _("Аяқталу күні") }}</label><br>
+      <input type="date" name="end" value="{{ end }}" style="padding:10px; width:220px;">
+    </div>
+
+    <div>
+      <button class="btn btn-primary" type="submit">{{ _("Көрсету") }}</button>
+      <a class="btn btn-success"
+         href="{{ url_for('kaspibot.report_export', start=start, end=end) }}"
+         style="margin-left:8px;">{{ _("Excel экспорт") }}</a>
+    </div>
+  </div>
+</form>
+
+<hr>
+
+<div style="margin:10px 0;">
+  <b>{{ _("Барлығы сатылды:") }}</b> {{ totals.qty }} {{ _("дана") }} <br>
+  <b>{{ _("Түсім:") }}</b> {{ totals.revenue }} {{ _("тг |") }}
+  <b>{{ _("Комиссия (12%):") }}</b> {{ totals.commission }} {{ _("тг |") }}
+  <b>{{ _("Доставка:") }}</b> {{ totals.delivery }} {{ _("тг |") }}
+  <b>{{ _("Закуп:") }}</b> {{ totals.cogs }} {{ _("тг |") }}
+  <b>{{ _("Таза пайда:") }}</b> {{ totals.profit }} {{ _("тг") }}
+</div>
+
+<div style="display:flex; gap:30px; align-items:flex-start; flex-wrap:wrap;">
+
+  <div style="flex:1; min-width:520px;">
+    <h3>{{ _("Тауар бойынша") }}</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>{{ _("Тауар") }}</th>
+          <th>{{ _("Сатылды") }}</th>
+          <th>{{ _("Түсім") }}</th>
+          <th>{{ _("Комиссия") }}</th>
+          <th>{{ _("Доставка") }}</th>
+          <th>{{ _("Закуп") }}</th>
+          <th>{{ _("Таза пайда") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in prod_rows %}
+        <tr>
+          <td>{{ r.name }}</td>
+          <td>{{ r.qty }}</td>
+          <td>{{ r.revenue }}</td>
+          <td>{{ r.commission }}</td>
+          <td>{{ r.delivery }}</td>
+          <td>{{ r.cogs }}</td>
+          <td><b>{{ r.profit }}</b></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="flex:1; min-width:420px;">
+    <h3>{{ _("Күн бойынша") }}</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>{{ _("Күн") }}</th>
+          <th>{{ _("Сатылды") }}</th>
+          <th>{{ _("Түсім") }}</th>
+          <th>{{ _("Таза пайда") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in day_rows %}
+        <tr>
+          <td>{{ r.day }}</td>
+          <td>{{ r.qty }}</td>
+          <td>{{ r.revenue }}</td>
+          <td><b>{{ r.profit }}</b></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{% endblock %}

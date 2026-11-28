@@ -1,11 +1,11 @@
-{% extends 'base.html' %}
-{% block title %}Өзгерістер журналы · Kaspi Store Manager{% endblock %}
-{% block content %}
-<section class="panel"><h1>Өзгерістер журналы</h1>
-  {% if entries %}<table><thead><tr><th>Уақыты (UTC)</th><th>Пайдаланушы</th><th>Тауар</th><th>Әрекет</th><th>Бұрын</th><th>Кейін</th></tr></thead><tbody>
-  {% for entry in entries %}<tr><td>{{ entry['occurred_at'] }}</td><td>{{ entry['username'] }}</td><td>{{ entry['name'] }} ({{ entry['sku'] }})</td><td>{{ entry['action'] }}</td><td>{{ entry['old_value'] or '—' }}</td><td>{{ entry['new_value'] }}</td></tr>{% endfor %}
-  </tbody></table>{% else %}<p>Журнал әзірге бос.</p>{% endif %}
-  <p>{% if page > 1 %}<a href="{{ url_for('audit_report', page=page-1) }}">← Алдыңғы бет</a>{% endif %}
-  {% if has_next %}<a href="{{ url_for('audit_report', page=page+1) }}">Келесі бет →</a>{% endif %}</p>
+{% extends 'management_base.html' %}
+{% block title %}{{ _("Өзгерістер журналы · Kaspi Store Manager") }}{% endblock %}
+{% block management_content %}
+<section class="panel"><h1>{{ _("Өзгерістер журналы") }}</h1>
+  {% if entries %}<table><thead><tr><th>{{ _("Уақыты (UTC)") }}</th><th>{{ _("Пайдаланушы") }}</th><th>{{ _("Тауар") }}</th><th>{{ _("Әрекет") }}</th><th>{{ _("Бұрын") }}</th><th>{{ _("Кейін") }}</th></tr></thead><tbody>
+  {% for entry in entries %}<tr><td>{{ entry['occurred_at'] }}</td><td>{{ entry['username'] }}</td><td>{{ entry['name'] }} ({{ entry['sku'] }})</td><td>{{ _(entry['action']) }}</td><td>{{ entry['old_value'] or '—' }}</td><td>{{ entry['new_value'] }}</td></tr>{% endfor %}
+  </tbody></table>{% else %}<p>{{ _("Журнал әзірге бос.") }}</p>{% endif %}
+  <p>{% if page > 1 %}<a href="{{ url_for('management.audit_report', page=page-1) }}">{{ _("← Алдыңғы бет") }}</a>{% endif %}
+  {% if has_next %}<a href="{{ url_for('management.audit_report', page=page+1) }}">{{ _("Келесі бет →") }}</a>{% endif %}</p>
 </section>
 {% endblock %}

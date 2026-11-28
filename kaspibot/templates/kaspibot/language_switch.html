@@ -1,0 +1,6 @@
+<form method="post" action="{{ url_for('set_language') }}" class="language-switch" aria-label="{{ _('Язык интерфейса') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+  <button type="submit" id="language-ru" name="language" value="ru" lang="ru" title="Русский" aria-pressed="{{ 'true' if ui_lang=='ru' else 'false' }}">РУС</button>
+  <button type="submit" id="language-kk" name="language" value="kk" lang="kk" title="Қазақша" aria-pressed="{{ 'true' if ui_lang=='kk' else 'false' }}">ҚАЗ</button>
+</form>

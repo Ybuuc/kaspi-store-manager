@@ -1,20 +1,20 @@
-{% extends 'base.html' %}
-{% block title %}Әкімші · Kaspi Store Manager{% endblock %}
-{% block content %}
-<section class="panel"><h1>Қызметкерлер рөлдері</h1>
-  <p>Тіркелген пайдаланушылар саны: {{ users|length }}</p>
-  <table><thead><tr><th>Пайдаланушы</th><th>Рөл</th><th>Өзгерту</th></tr></thead><tbody>
+{% extends 'management_base.html' %}
+{% block title %}{{ _("Әкімші · Kaspi Store Manager") }}{% endblock %}
+{% block management_content %}
+<section class="panel"><h1>{{ _("Қызметкерлер рөлдері") }}</h1>
+  <p>{{ _("Тіркелген пайдаланушылар саны:") }} {{ users|length }}</p>
+  <table><thead><tr><th>{{ _("Пайдаланушы") }}</th><th>{{ _("Рөл") }}</th><th>{{ _("Өзгерту") }}</th></tr></thead><tbody>
   {% for user in users %}
-  <tr><td>{{ user['username'] }}</td><td>{{ user['role'] }}</td><td>
+  <tr><td>{{ user['username'] }}</td><td>{{ _(user['role']) }}</td><td>
     {% if user['id'] != g.user['id'] %}
-    <form action="{{ url_for('change_user_role', user_id=user['id']) }}" method="post">
+    <form action="{{ url_for('management.change_user_role', user_id=user['id']) }}" method="post">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <select name="role" aria-label="{{ user['username'] }} рөлі">
-        <option value="employee" {% if user['role'] == 'employee' %}selected{% endif %}>Employee</option>
-        <option value="admin" {% if user['role'] == 'admin' %}selected{% endif %}>Admin</option>
-      </select><button type="submit">Сақтау</button>
+      <select name="role" aria-label="{{ user['username'] }} {{ _("рөлі") }}">
+        <option value="employee" {% if user['role'] == 'employee' %}selected{% endif %}>{{ _('employee') }}</option>
+        <option value="admin" {% if user['role'] == 'admin' %}selected{% endif %}>{{ _('admin') }}</option>
+      </select><button type="submit">{{ _("Сақтау") }}</button>
     </form>
-    {% else %}Өз рөліңізді өзгертуге болмайды{% endif %}
+    {% else %}{{ _("Өз рөліңізді өзгертуге болмайды") }}{% endif %}
   </td></tr>
   {% endfor %}
   </tbody></table>

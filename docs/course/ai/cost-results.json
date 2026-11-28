@@ -1,0 +1,24 @@
+{
+  "tokenizer": "cl100k_base; proxy only, NOT Gemini native billing tokenizer",
+  "measured_eval_mean_input": 11.333333333333334,
+  "measured_reference_mean_output": 21.3,
+  "excludes": "system prompt, retrieval, thinking tokens and actual generated output",
+  "official_api_rates_usd_per_million": {
+    "input": 0.3,
+    "output": 2.5,
+    "model": "gemini-3.5-flash-lite",
+    "source": "https://aistudio.google.com/docs/pricing#gemini-3.5-flash-lite",
+    "checked": "2026-11-19"
+  },
+  "measured_proxy_10000_requests_usd": 0.5665,
+  "planning_assumptions": {
+    "requests_month": 10000,
+    "input_tokens": 800,
+    "output_tokens": 200,
+    "gpu_usd_month": 300,
+    "gpu_rate_status": "assumption, not official quote"
+  },
+  "planning_usd": 7.4,
+  "planning_10x_usd": 74.0,
+  "gpu_break_even_requests": 405405.4054054054
+}

@@ -7,3 +7,26 @@ __pycache__/
 instance/
 dist/
 .ruff_cache/
+
+.env
+*.db
+*.sqlite3
+
+/backups/
+/data/
+
+# Local shop files and TLS material must never be published.
+.idea/
+/.local-catalog/
+/.runtime/
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+*.sqlite
+*.db-*
+*.sqlite3-*
+*.log
+/catalog.xml
+/ACTIVE*.xml

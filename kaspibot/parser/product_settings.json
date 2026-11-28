@@ -1,0 +1,86 @@
+{
+  "173386584": {
+    "min_price": 2500,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "115405933": {
+    "min_price": 10000,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "171728712": {
+    "min_price": 2500,
+    "max_price": 8000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": true
+  },
+  "143116372": {
+    "min_price": 2500,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "172424121": {
+    "min_price": 2500,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "154172979": {
+    "min_price": 2500,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "123823454": {
+    "min_price": 2500,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "172368100": {
+    "min_price": 2500,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "172367674": {
+    "min_price": 2500,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "172841208": {
+    "min_price": 2500,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "172368599": {
+    "min_price": 2500,
+    "max_price": 15000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": false
+  },
+  "151786710": {
+    "min_price": 2500,
+    "max_price": 6000,
+    "step": 2,
+    "allow_increase": true,
+    "fixed_price": true
+  }
+}

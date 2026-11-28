@@ -1,0 +1,40 @@
+services:
+  web:
+    build: .
+    stop_grace_period: 220s
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      KASPIBOT_DATABASE: /app/instance/app.db
+      KSM_SECRET_KEY: ${KSM_SECRET_KEY:?Set KSM_SECRET_KEY in .env}
+      AI_PROVIDER: ${AI_PROVIDER:-off}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-}
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      KASPI_AUTO_SYNC: ${KASPI_AUTO_SYNC:-1}
+      KASPI_SYNC_INTERVAL_SECONDS: ${KASPI_SYNC_INTERVAL_SECONDS:-300}
+      KASPI_CATALOG_URL: ${KASPI_CATALOG_URL:-}
+      KASPI_HISTORY_DAYS: ${KASPI_HISTORY_DAYS:-14}
+      KSM_DEMO_MODE: ${KSM_DEMO_MODE:-0}
+      KASPI_API_TOKEN: ${KASPI_API_TOKEN:-}
+    volumes:
+      - app-data:/app/instance
+  backups:
+    profiles: [operations]
+    build: .
+    command: [python, tools/backup_archive.py, --database, /app/instance/app.db, --output, /app/backups, --interval-seconds, "86400"]
+    volumes:
+      - app-data:/app/instance
+      - app-backups:/app/backups
+  monitoring:
+    profiles: [operations]
+    image: louislam/uptime-kuma:2
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - kuma-data:/app/data
+volumes:
+  app-data:
+  app-backups:
+  kuma-data:

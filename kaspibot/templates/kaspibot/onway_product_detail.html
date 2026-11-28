@@ -1,0 +1,57 @@
+{% extends "kaspibot/base.html" %}
+{% block content %}
+
+<h3>{{ _("Жолда:") }} {{ product.name }}</h3>
+<p class="text-muted">
+  {{ _("Бұл жерде осы тауардың жолда тұрған 1-даналық позициялары және есептері көрсетіледі. (Комиссия 12% + доставка шкаласы + закуп)") }}
+</p>
+
+<div class="mb-3">
+  <div><b>{{ _("Жалпы сомасы:") }}</b> {{ total_sum }} {{ _("тг") }}</div>
+  <div><b>{{ _("Жалпы таза пайда:") }}</b> {{ total_profit }} {{ _("тг") }}</div>
+
+  <div class="text-muted" style="margin-top:10px;">
+    {{ _("Барлығы: комиссия =") }} {{ total_commission }} {{ _("тг, доставка =") }} {{ total_delivery }} {{ _("тг, закуп (әр данасына) =") }} {{ product.purchase_price }} {{ _("тг") }}
+  </div>
+</div>
+
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th style="width:60px;">#</th>
+      <th style="width:220px;">{{ _("Қосылған уақыты") }}</th>
+      <th class="text-end">{{ _("Таза пайда (тг)") }}</th>
+      <th class="text-end" style="width:140px;">{{ _("Баға (тг)") }}</th>
+      <th class="text-end" style="width:110px;">{{ _("Әрекет") }}</th> <!-- ✅ Бағаның оң жағында -->
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for row in rows %}
+      <tr>
+        <td>{{ loop.index }}</td>
+
+        <td>{{ row.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+
+        <td class="text-end">
+          <div><b>{{ row.profit }}</b></div>
+          <div class="text-muted" style="font-size:12px;">
+            -12%: {{ row.commission }}{{ _(", доставка:") }} {{ row.delivery }}{{ _(", закуп:") }} {{ row.purchase_price }}
+          </div>
+        </td>
+
+        <td class="text-end"><b>{{ row.sale_price }}</b></td>
+
+        <td class="text-end">
+          <form method="post" action="{{ url_for('kaspibot.onway_item_cancel', item_id=row.id) }}" style="display:inline;"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-danger" type="submit">-1</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a class="btn btn-secondary" href="{{ url_for('kaspibot.onway') }}">{{ _("Артқа") }}</a>
+
+{% endblock %}
