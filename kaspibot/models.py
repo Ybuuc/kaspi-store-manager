@@ -724,3 +724,23 @@ class KaspiAutoSyncState(db.Model):
     orders_status = db.Column(db.String(30), nullable=False, default='not_configured')
     orders_message = db.Column(db.Text, nullable=True)
     orders_run_id = db.Column(db.Integer, nullable=True)
+
+
+class SyncSchedule(db.Model):
+    """Independent durable source schedules; no shop identities or credentials."""
+    __tablename__ = 'sync_schedules'
+    source = db.Column(db.String(8), primary_key=True)
+    state = db.Column(db.String(30), nullable=False, default='waiting')
+    last_attempt_at = db.Column(db.DateTime)
+    last_success_at = db.Column(db.DateTime)
+    last_data_at = db.Column(db.DateTime)
+    next_attempt_at = db.Column(db.DateTime)
+    cooldown_until = db.Column(db.DateTime)
+    failures = db.Column(db.Integer, nullable=False, default=0)
+    message = db.Column(db.Text)
+    records = db.Column(db.Integer, nullable=False, default=0)
+    errors = db.Column(db.Integer, nullable=False, default=0)
+    lease_owner = db.Column(db.String(40))
+    lease_until = db.Column(db.DateTime)
+    heartbeat_at = db.Column(db.DateTime)
+    run_id = db.Column(db.Integer)

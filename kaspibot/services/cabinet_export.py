@@ -3,6 +3,8 @@ import json
 import re
 import tempfile
 import time
+import random
+import os
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -14,9 +16,10 @@ EXPORT_PATH = '/offers/api/v1/offer/export/'
 
 
 class ExportError(ValueError):
-    def __init__(self, message, code='failed'):
+    def __init__(self, message, code='failed', retry_after=None):
         super().__init__('Источник XML: ' + message)
         self.code = code
+        self.retry_after = retry_after
 
 
 def allowed_file_url(value):
@@ -79,6 +82,10 @@ def is_xml(content):
 def export_from_page(context, page, merchant_id, timeout=90):
     """Click only the documented export control; never edit or upload seller data."""
     from kaspibot.services.seller_catalog import parse_xml
+    from flask import has_app_context
+    if has_app_context():
+        from kaspibot.services.sync_schedule import check
+        check('xml')
     deadline = time.monotonic() + timeout
     downloads, bodies, links, observations = [], [], [], []
 
@@ -100,7 +107,10 @@ def export_from_page(context, page, merchant_id, timeout=90):
                 payload = json.loads(data)
                 observations[-1]['fields'] = list(payload) if isinstance(payload, dict) else type(payload).__name__
                 links.extend(download_links(payload))
-        except (BrowserError, ValueError, TypeError):
+        except BrowserError as error:
+            if not (page.is_closed() and is_closed_error(error)):
+                raise
+        except (ValueError,TypeError):
             pass
 
     page.on('response', observe)
@@ -112,7 +122,7 @@ def export_from_page(context, page, merchant_id, timeout=90):
         action = page.get_by_role('button', name='Действия с файлами')
         try:
             action.wait_for(state='visible', timeout=20000)
-        except BrowserError:
+        except BrowserTimeout:
             if 'login' in page.url or 'idmc.' in page.url:
                 raise ExportError('сессия кабинета истекла; выполните локальный вход заново.', 'needs_login') from None
             raise ExportError('страница экспорта не загрузилась вовремя; проверка будет повторена.', 'timeout') from None
@@ -136,7 +146,7 @@ def export_from_page(context, page, merchant_id, timeout=90):
             page.get_by_text('Скачать прайс-лист в XML', exact=True).click()
         trigger_status = triggered.value.status
         if trigger_status == 429:
-            raise ExportError('Kaspi ограничил частоту экспорта (HTTP 429). Сохранён предыдущий XML; следующая попытка по расписанию.', 'rate_limited')
+            raise ExportError('Kaspi ограничил частоту экспорта (HTTP 429). Сохранён предыдущий XML; следующая попытка по расписанию.', 'rate_limited',triggered.value.headers.get('retry-after'))
         if trigger_status in (401, 403):
             raise ExportError('кабинет отклонил сессию экспорта; выполните локальный вход.', 'needs_login')
         if not 200 <= trigger_status < 300:
@@ -167,7 +177,7 @@ def export_from_page(context, page, merchant_id, timeout=90):
                 raise ExportError('кабинет отклонил сессию экспорта; выполните локальный вход.', 'needs_login')
             page.wait_for_timeout(250)
         if not bodies:
-            error = ExportError('Kaspi не вернул XML за отведённое время; прежний файл сохранён.')
+            error = ExportError('Kaspi не вернул XML за отведённое время; прежний файл сохранён.','timeout')
             error.observations = observations
             raise error
         content = bodies[0]
@@ -180,6 +190,10 @@ def export_from_page(context, page, merchant_id, timeout=90):
         page.remove_listener('download', on_download)
 
 
+def is_closed_error(error):
+    return 'Target page, context or browser has been closed' in str(error) or 'Browser has been closed' in str(error)
+
+
 def _fetch_export_once(session_path, merchant_id, timeout=90):
     if not Path(session_path).is_file():
         raise ExportError('нужен вход в локальном окне: запустите tools/kaspi_catalog_login.py.', 'needs_login')
@@ -187,17 +201,25 @@ def _fetch_export_once(session_path, merchant_id, timeout=90):
         raise ExportError('настройте KASPI_CATALOG_MERCHANT_ID.')
     try:
         with sync_playwright() as browser_runtime:
-            browser = browser_runtime.chromium.launch(channel='chrome', headless=True)
+            from flask import current_app,has_app_context
+            channel=current_app.config['KASPI_CATALOG_BROWSER_CHANNEL'] if has_app_context() else ('chrome' if os.name=='nt' else 'chromium')
+            browser = browser_runtime.chromium.launch(channel=None if channel=='chromium' else channel, headless=True)
+            context = None
+            closing = False
             try:
                 context = browser.new_context(storage_state=str(session_path), accept_downloads=True,
                                               viewport={'width': 1366, 'height': 900}, ignore_https_errors=False)
                 context.set_default_timeout(10000)
                 # Some observed cabinet READ operations use POST. Keep an exact allowlist.
                 def read_only(route):
-                    if read_request_allowed(route.request):
-                        route.continue_()
-                    else:
-                        route.abort()
+                    try:
+                        if read_request_allowed(route.request):
+                            route.continue_()
+                        else:
+                            route.abort()
+                    except BrowserError as error:
+                        if not (closing and is_closed_error(error)):
+                            raise
                 context.route('**/*', read_only)
                 result = export_from_page(context, context.new_page(), merchant_id, timeout)
                 # Persist session refreshes without copying another browser's credentials.
@@ -205,12 +227,29 @@ def _fetch_export_once(session_path, merchant_id, timeout=90):
                 atomic_write(Path(session_path), json.dumps(context.storage_state()).encode())
                 return result
             finally:
-                browser.close()
+                closing=True
+                try:
+                    if context is not None:
+                        try:
+                            # Drain in-flight routes while the context is alive, then close it.
+                            context.unroute_all(behavior='wait')
+                            context.close()
+                        except BrowserError as error:
+                            if not is_closed_error(error):
+                                raise
+                finally:
+                    try:
+                        browser.close()
+                    except BrowserError as error:
+                        if not is_closed_error(error):
+                            raise
     except ExportError:
         raise
     except BrowserTimeout:
         raise ExportError('Kaspi не ответил вовремя; прежний каталог сохранён.', 'timeout') from None
     except BrowserError as error:
+        if is_closed_error(error):
+            raise ExportError('Браузер экспорта был закрыт; сохранённый XML доступен.','interrupted') from None
         # Inspect only the error category; never expose an embedded URL/session.
         if 'net::ERR_' in str(error):
             raise ExportError('соединение с Kaspi временно недоступно.', 'network_error') from None
@@ -228,4 +267,5 @@ def fetch_export(session_path, merchant_id, timeout=90):
         except ExportError as error:
             if error.code not in ('timeout', 'network_error') or attempt or deadline-time.monotonic() < 20:
                 raise
+            time.sleep(1+random.uniform(0,.5))
     raise ExportError('выгрузка не завершена; следующая попытка по расписанию.')

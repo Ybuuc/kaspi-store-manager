@@ -4,7 +4,7 @@ from decimal import Decimal, InvalidOperation
 import json
 from flask import g
 
-from kaspibot.models import db, Product, ProductAlias
+from kaspibot.models import db, Product, ProductAlias, StockMovement, OnwayItem
 from kaspibot.services.kaspi_api import get_order_entry_product, get_merchant_product
 
 
@@ -91,16 +91,23 @@ def resolve_product(line):
     sku=line['merchant_sku']
     code=line.get('kaspi_code')
     title=line['title']
+    if sku and not Product.query.filter_by(sku=sku).first() and Product.query.filter(db.func.lower(Product.sku)==sku.lower()).first():
+        raise ProductMappingConflict('SKU отличается регистром; нужна сверка.')
     product=None
+    public_code_claimed=False
     for field,value in [('sku',sku),('kaspi_product_id',code)]:
         if value:
             matches=Product.query.filter(getattr(Product,field)==value).all()
             if len(matches)>1:
                 raise ProductMappingConflict('Неоднозначная привязка Kaspi к товару; нужна ручная проверка')
             if matches:
+                if field=='kaspi_product_id' and sku and matches[0].sku and matches[0].sku!=sku:
+                    # A public product code cannot override a distinct observed merchant SKU.
+                    public_code_claimed=True
+                    break
                 product=matches[0]
                 break
-    if product is None and title:
+    if product is None and title and not public_code_claimed:
         aliases=ProductAlias.query.filter_by(alias=normalize(title)).all()
         ids={row.product_id for row in aliases}
         if len(ids)>1:
@@ -112,13 +119,22 @@ def resolve_product(line):
             if len(matches)>1:
                 raise ProductMappingConflict('Неоднозначное название; товар не объединён автоматически')
             product=matches[0] if matches else None
+    if product and sku and product.sku and sku!=product.sku:
+        # An alias/name collision is not an identity match: retain its owner and
+        # create a separate unknown-stock card for the explicitly observed SKU.
+        product=None
+        public_code_claimed=True
     if product:
-        if sku and product.sku and sku!=product.sku:
-            raise ProductMappingConflict('SKU Kaspi конфликтует с привязкой товара; прежняя карточка сохранена')
-        if code and product.kaspi_product_id and code!=product.kaspi_product_id:
+        if not sku and code and product.kaspi_product_id and code!=product.kaspi_product_id:
             raise ProductMappingConflict('Kaspi ID конфликтует с привязкой товара; прежняя карточка сохранена')
     elif title and (sku or code):
-        product=Product(name=title,sku=sku or None,kaspi_product_id=code or None,
+        name=title
+        names={normalize(existing.name) for existing in Product.query.all()}
+        if normalize(name) in names:
+            name=f'{title} [SKU {sku or code}]'
+        if normalize(name) in names:
+            raise ProductMappingConflict('Имя карточки SKU занято; требуется сверка, существующая карточка сохранена.')
+        product=Product(name=name,sku=sku or None,kaspi_product_id=None if public_code_claimed else code or None,
                         purchase_price=0,stock_qty=0,reserved_qty=0,onway_qty=0,
                         inventory_source='unknown')
         db.session.add(product)
@@ -138,3 +154,9 @@ def resolve_product(line):
     product.kaspi_raw_json=json.dumps(line['raw_json'],ensure_ascii=False)
     # Orders do not establish current offer price, purchase cost or physical stock.
     return product
+
+
+def history_protected(row):
+    return bool(row.is_onway_created or row.is_sale_created or row.is_cancelled
+        or StockMovement.query.filter_by(external_code=row.external_key).first()
+        or OnwayItem.query.filter_by(kaspi_order_key=row.external_key).first())

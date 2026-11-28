@@ -7,7 +7,7 @@ from unittest.mock import patch, Mock
 
 import requests
 from app import create_app
-from kaspibot.models import db, KaspiSyncRun, KaspiAutoSyncState, SellerCatalogImport
+from kaspibot.models import db, KaspiSyncRun, KaspiAutoSyncState, SellerCatalogImport, SyncSchedule
 from kaspibot.services.automatic_sync import tick, start, status
 from kaspibot.services.catalog_download import download_xml
 from kaspibot.services.seller_sync import utcnow
@@ -39,14 +39,13 @@ class AutomaticSyncTests(unittest.TestCase):
         self.temp.cleanup()
 
     def queue(self, days):
-        row = KaspiSyncRun(active_slot='orders', status='queued')
-        db.session.add(row)
-        db.session.commit()
-        return row.id
+        from kaspibot.services.seller_sync import start_run
+        return start_run()
 
     def make_due(self):
         row = db.session.get(KaspiAutoSyncState, 1)
         row.next_attempt_at = utcnow() - timedelta(seconds=1)
+        SyncSchedule.query.update({'next_attempt_at':utcnow()-timedelta(seconds=1)})
         db.session.commit()
 
     def test_initial_tick_periodic_duplicate_feed_and_no_overlapping_orders(self):
@@ -93,9 +92,10 @@ class AutomaticSyncTests(unittest.TestCase):
                 patch('kaspibot.services.automatic_sync.launch', side_effect=self.queue) as launch:
             db.session.add(KaspiAutoSyncState(id=1, lease_owner='dead-worker', lease_until=utcnow()+timedelta(minutes=10)))
             db.session.commit()
-            self.assertFalse(tick('new-worker', boot=True))
-            launch.assert_not_called()
+            self.assertTrue(tick('new-worker', boot=True))  # XML lease does not block API.
+            self.assertEqual(launch.call_count,1)
             db.session.get(KaspiAutoSyncState, 1).lease_until = utcnow()-timedelta(seconds=1)
+            db.session.get(SyncSchedule,'xml').lease_until=utcnow()-timedelta(seconds=1)
             db.session.commit()
             self.assertTrue(tick('new-worker', boot=True))
             self.assertEqual(launch.call_count, 1)
@@ -106,6 +106,8 @@ class AutomaticSyncTests(unittest.TestCase):
             tick('owner')
             row = KaspiSyncRun.query.one()
             row.status = 'partial'
+            from kaspibot.services import sync_schedule
+            sync_schedule.put('api',state='partial')
             row.active_slot = None
             db.session.commit()
             self.assertEqual(status()['orders_status'], 'partial')

@@ -10,7 +10,9 @@ def local_settings(root):
                'KASPI_API_BASE', 'KASPI_HISTORY_DAYS', 'KSM_DEMO_MODE',
                'KASPI_AUTO_SYNC', 'KASPI_SYNC_INTERVAL_SECONDS', 'KASPI_CATALOG_URL',
                'KASPI_ALLOW_LOCAL_CATALOG', 'KASPI_CATALOG_CA_BUNDLE',
-               'KASPI_CATALOG_EXPORT', 'KASPI_CATALOG_MERCHANT_ID'}
+               'KASPI_CATALOG_EXPORT', 'KASPI_CATALOG_MERCHANT_ID',
+               'KASPI_API_SYNC_INTERVAL_SECONDS', 'KASPI_XML_SYNC_INTERVAL_SECONDS',
+               'KASPI_XML_MAX_BACKOFF_SECONDS', 'KASPI_CATALOG_BROWSER_CHANNEL'}
     if path.is_file():
         for line in path.read_text(encoding='utf-8-sig').splitlines():
             line = line.strip()

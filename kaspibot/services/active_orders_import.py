@@ -1,5 +1,5 @@
 import json
-from kaspibot.services.order_payload import extract_lines as _extract_order_lines_from_entries, resolve_product as _find_product_for_line, ProductMappingConflict
+from kaspibot.services.order_payload import extract_lines as _extract_order_lines_from_entries, resolve_product as _find_product_for_line, ProductMappingConflict, history_protected
 from datetime import datetime
 from typing import Any
 
@@ -102,6 +102,14 @@ def sync_order_and_entries_to_db(
             row.customer_phone = line["customer_phone"]
             row.raw_json = json.dumps(line["raw_json"], ensure_ascii=False)
 
+        if not apply_movements and history_protected(row) and row.product_id:
+            from kaspibot.models import Product
+            original=db.session.get(Product,row.product_id)
+            if original and line.get('merchant_sku') and original.sku and original.sku!=line['merchant_sku']:
+                row.raw_json=json.dumps(dict(line['raw_json'],mapping_status='conflict',
+                    mapping_message='Прежняя складская привязка требует сверки.'),ensure_ascii=False)
+                unmatched+=1
+                continue
         try:
             product = _find_product_for_line(line)
         except ProductMappingConflict as exc:
@@ -128,11 +136,7 @@ def sync_order_and_entries_to_db(
             continue
 
         # Бұрын өңделген позицияны басқа тауарға ауыстырмау.
-        has_movements = (
-                row.is_onway_created
-                or row.is_sale_created
-                or row.is_cancelled
-        )
+        has_movements = history_protected(row)
 
         if has_movements and row.product_id != product.id:
             if not apply_movements:

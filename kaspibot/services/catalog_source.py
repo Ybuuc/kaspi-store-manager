@@ -83,6 +83,8 @@ def refresh_source(content=None):
     try:
         save_status('running', 'Получение нового XML из кабинета Kaspi.')
         if content is None:
+            from kaspibot.services.sync_schedule import check
+            check('xml')
             content = fetch_export(folder()/'kaspi-session.json', merchant)
         payload = parse_xml(content)
         latest = SellerCatalogImport.query.order_by(SellerCatalogImport.source_date.desc(), SellerCatalogImport.id.desc()).first()

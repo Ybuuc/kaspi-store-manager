@@ -2354,7 +2354,7 @@ def kaspi_sync_orders():
         run_id = launch(current_app.config['KASPI_HISTORY_DAYS'])
         return jsonify(ok=True, queued=True, run_id=run_id), 202
     except ValueError as exc:
-        return jsonify(ok=False, error=str(exc)), 409
+        return jsonify(ok=False, error=str(exc),next_attempt_at=getattr(exc,'until',None).isoformat()+'Z' if getattr(exc,'until',None) else None),429 if getattr(exc,'code',None)=='rate_limited' else 409
 
 
 @bp.get('/api/kaspi/status')
@@ -2362,11 +2362,12 @@ def kaspi_sync_status():
     from kaspibot.models import KaspiSyncRun
     run = KaspiSyncRun.query.order_by(KaspiSyncRun.id.desc()).first()
     from kaspibot.services.automatic_sync import status as automatic_status
+    from kaspibot.services.reconciliation import public_errors
     return jsonify(automatic=automatic_status(), configured=bool(current_app.config.get('KASPI_API_TOKEN')),
                    last_run=None if run is None else dict(status=run.status, orders=run.orders_count,
-                   lines=run.lines_count, errors=run.error_count, error_details=json.loads(run.errors_json or "[]"), message=run.message,
-                   started_at=run.started_at.isoformat(),
-                   finished_at=run.finished_at.isoformat() if run.finished_at else None))
+                   lines=run.lines_count, errors=run.error_count, error_details=public_errors(json.loads(run.errors_json or "[]")), message=run.message,
+                   started_at=run.started_at.isoformat()+'Z',
+                   finished_at=run.finished_at.isoformat()+'Z' if run.finished_at else None))
 
 # PRODUCTS
 # ----------------------

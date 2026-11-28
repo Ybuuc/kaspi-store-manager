@@ -1,6 +1,8 @@
 """Browser smoke on a disposable shop: menu, mobile layout, manual and live XML refresh."""
 # ruff: noqa: E402
 import argparse
+import json
+from datetime import datetime,timezone,timedelta
 import sys
 import tempfile
 import threading
@@ -176,6 +178,23 @@ def run(screenshot, channel=None):
                 page.reload()
                 assert sidebar_width()==480
                 contained()
+                state=page.request.get(base+'/api/kaspi/status').json()
+                channels=state['automatic']['channels']
+                channels['xml'].update(state='rate_limited',next_attempt_at=(datetime.now(timezone.utc)+timedelta(hours=1)).isoformat(),interval_seconds=1800,using_saved_data=True,message='Ограничение Kaspi (HTTP 429).')
+                channels['api'].update(state='partial',interval_seconds=300)
+                state['last_run']={'error_details':[{'code':'unmatched_product','message':'Конфликт SKU; склад не изменён.','kind':'mapping_conflict'}]}
+                page.route('**/api/kaspi/status',lambda route:route.fulfill(content_type='application/json',body=json.dumps(state)))
+                page.reload()
+                page.locator('#syncXmlChip').filter(has_text='429').wait_for()
+                assert 'частично успешно' in page.locator('#syncApiChip').inner_text()
+                page.locator('.sync-panel details summary').first.click()
+                detail=page.locator('#syncDetails').inner_text()
+                assert '5 мин' in detail and '30 мин' in detail
+                assert 'Сохранённый XML' in page.locator('#syncNotice').inner_text()
+                assert page.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth')
+                status_preview=screenshot.with_name(screenshot.stem+'-sync-state'+screenshot.suffix)
+                page.screenshot(path=str(status_preview))
+                print('Sync panel PASS — API 5 min, XML 30 min, rate limit deadline, partial API, saved XML and safe error details.',flush=True)
                 print('Orders layout PASS — long unbroken text, local table scroll, drag limits, live page resizing, persisted width, keyboard, 1920/1536/1280/1200/1024/390px.',flush=True)
                 print('Orders screenshots:',orders,orders_mobile,flush=True)
                 assert not errors,errors

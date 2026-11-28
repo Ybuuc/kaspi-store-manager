@@ -10,7 +10,7 @@ from unittest.mock import patch
 from playwright.sync_api import Error as BrowserError, sync_playwright
 
 from app import create_app
-from kaspibot.models import db, Product, SellerCatalogImport, KaspiAutoSyncState, KaspiSyncRun
+from kaspibot.models import db, Product, SellerCatalogImport, KaspiAutoSyncState, SyncSchedule
 from kaspibot.services.automatic_sync import tick, status
 from kaspibot.services.cabinet_export import ExportError, fetch_export, allowed_file_url, download_links, export_from_page, read_request_allowed
 from kaspibot.services.catalog_source import refresh_source, atomic_write
@@ -49,10 +49,8 @@ class SourceTests(unittest.TestCase):
         self.temp.cleanup()
 
     def queue(self, _days):
-        row = KaspiSyncRun(active_slot='orders', status='queued')
-        db.session.add(row)
-        db.session.commit()
-        return row.id
+        from kaspibot.services.seller_sync import start_run
+        return start_run()
 
     def test_new_cabinet_export_replaces_file_imports_price_and_preserves_inventory(self):
         newer = feed(date='2026-11-20 22:07', price=b'4800')
@@ -87,6 +85,7 @@ class SourceTests(unittest.TestCase):
             download.assert_not_called()
             row = db.session.get(KaspiAutoSyncState, 1)
             row.next_attempt_at = utcnow()-timedelta(seconds=1)
+            SyncSchedule.query.update({'next_attempt_at':utcnow()-timedelta(seconds=1)})
             db.session.commit()
             with patch('kaspibot.services.catalog_source.fetch_export', return_value=feed()), \
                     patch('kaspibot.services.automatic_sync.download_xml', return_value=feed()):
@@ -111,6 +110,7 @@ class SourceTests(unittest.TestCase):
                 row = db.session.get(KaspiAutoSyncState, 1)
                 if row:
                     row.next_attempt_at = utcnow()-timedelta(seconds=1)
+                    SyncSchedule.query.update({'next_attempt_at':utcnow()-timedelta(seconds=1)})
                     db.session.commit()
                 if failure == 'import':
                     with patch('kaspibot.services.automatic_sync.download_xml', side_effect=lambda *_a, **_k: self.path.read_bytes()), \

@@ -2,15 +2,18 @@
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, urlsplit
 import time
+import random
+from kaspibot.services import sync_schedule as schedule
 
 import requests
 from flask import current_app
 
 
 class KaspiAPIError(RuntimeError):
-    def __init__(self, message, status=None):
+    def __init__(self, message, status=None, code=None):
         super().__init__(message)
         self.status = status
+        self.code = code or ('rate_limited' if status==429 else 'needs_login' if status in (401,403) else 'permanent_error')
 
 
 def kaspi_headers():
@@ -33,20 +36,31 @@ def get(path, params=None, optional=False):
     if (url.scheme != 'https' or url.hostname != 'kaspi.kz' or url.path != '/shop/api/v2'
             or url.query or url.fragment or url.username or url.password or url.port not in (None,443)):
         raise KaspiAPIError('Адрес API должен быть https://kaspi.kz/shop/api/v2')
+    schedule.check('api')
     headers = kaspi_headers()
-    for attempt in range(2):
+    for attempt in range(3):
+        schedule.check('api')
         try:
             response = requests.get(base+'/'+path, headers=headers, params=params,
                                     timeout=(10,20), allow_redirects=False)
         except requests.Timeout:
-            if attempt == 0:
+            if attempt < 2:
+                time.sleep(2**attempt+random.uniform(0,.5))
                 continue
-            raise KaspiAPIError('Kaspi не ответил вовремя. Проверьте доступ к kaspi.kz; старые данные сохранены.') from None
+            raise KaspiAPIError('Kaspi не ответил вовремя; сохранённые данные доступны.',code='temporary_error') from None
+        except requests.exceptions.SSLError:
+            raise KaspiAPIError('Сертификат Kaspi не прошёл проверку TLS; запрос отменён.',code='tls_error') from None
         except requests.RequestException:
-            raise KaspiAPIError('Не удалось подключиться к Kaspi. Проверьте сеть и доступ к kaspi.kz.') from None
+            if attempt < 2:
+                time.sleep(2**attempt+random.uniform(0,.5))
+                continue
+            raise KaspiAPIError('Не удалось подключиться к Kaspi. Старые данные сохранены.',code='temporary_error') from None
         status=response.status_code
-        if status in (429,502,503,504) and attempt == 0:
-            time.sleep(1)
+        if status==429:
+            schedule.defer('api',header=response.headers.get('Retry-After'))
+            raise KaspiAPIError('Kaspi ограничил частоту запросов (HTTP 429); следующий запрос отложен.',429)
+        if status in (500,502,503,504) and attempt < 2:
+            time.sleep(2**attempt+random.uniform(0,.5))
             continue
         if status == 404 and optional:
             return {'data':None}
@@ -55,7 +69,7 @@ def get(path, params=None, optional=False):
                   400:'Kaspi отклонил параметры запроса.',
                   429:'Kaspi ограничил частоту запросов. Повторите позже.'}
         if status != 200:
-            raise KaspiAPIError(messages.get(status, f'Kaspi вернул HTTP {status}.'),status)
+            raise KaspiAPIError(messages.get(status, f'Kaspi вернул HTTP {status}.'),status,code='temporary_error' if status in (500,502,503,504) else None)
         try:
             payload=response.json()
         except ValueError:

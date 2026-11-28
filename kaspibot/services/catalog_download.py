@@ -10,6 +10,10 @@ from requests.adapters import HTTPAdapter
 
 class CatalogDownloadError(ValueError):
     """Only operator-safe messages; never include the URL or underlying exception."""
+    def __init__(self,message,code='failed',retry_after=None):
+        super().__init__(message)
+        self.code=code
+        self.retry_after=retry_after
 
 
 def validate_url(url, allow_local=False):
@@ -75,6 +79,8 @@ def download_xml(url, *, allow_local=False, ca_bundle=None):
                              timeout=(5, 20), allow_redirects=False, stream=True) as response:
                 if 300 <= response.status_code < 400:
                     raise CatalogDownloadError('HTTPS: перенаправления запрещены; укажите прямой адрес XML.')
+                if response.status_code==429:
+                    raise CatalogDownloadError('HTTPS: Kaspi ограничил частоту запросов (HTTP 429).','rate_limited',response.headers.get('Retry-After'))
                 if response.status_code != 200:
                     raise CatalogDownloadError(f'HTTPS: сервер прайса вернул HTTP {response.status_code}; прежний каталог сохранён.')
                 try:

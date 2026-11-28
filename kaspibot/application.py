@@ -46,6 +46,18 @@ def create_app(test_config=None):
         app.config.update(test_config)
         if app.testing and 'KASPI_CATALOG_EXPORT' not in test_config:
             app.config['KASPI_CATALOG_EXPORT'] = False
+    for source,default in [('API',300),('XML',1800)]:
+        key='KASPI_'+source+'_SYNC_INTERVAL_SECONDS'
+        app.config[key]=int(os.environ.get(key,local.get(key,str(default))))
+    app.config['KASPI_XML_MAX_BACKOFF_SECONDS']=int(os.environ.get('KASPI_XML_MAX_BACKOFF_SECONDS',local.get('KASPI_XML_MAX_BACKOFF_SECONDS','21600')))
+    app.config['KASPI_CATALOG_BROWSER_CHANNEL']=os.environ.get('KASPI_CATALOG_BROWSER_CHANNEL',local.get('KASPI_CATALOG_BROWSER_CHANNEL','chrome' if os.name=='nt' else 'chromium'))
+    if test_config:
+        for key in ['KASPI_API_SYNC_INTERVAL_SECONDS','KASPI_XML_SYNC_INTERVAL_SECONDS','KASPI_XML_MAX_BACKOFF_SECONDS','KASPI_CATALOG_BROWSER_CHANNEL']:
+            if key in test_config:
+                app.config[key]=test_config[key]
+    for key in ['KASPI_API_SYNC_INTERVAL_SECONDS','KASPI_XML_SYNC_INTERVAL_SECONDS','KASPI_XML_MAX_BACKOFF_SECONDS']:
+        if not 60 <= app.config[key] <= 86400:
+            raise ValueError(key+' must be between 60 and 86400')
     if not 60 <= app.config['KASPI_SYNC_INTERVAL_SECONDS'] <= 86400:
         raise ValueError('KASPI_SYNC_INTERVAL_SECONDS must be between 60 and 86400')
     if not app.secret_key:
@@ -131,7 +143,7 @@ def create_app(test_config=None):
     def old_init_alias(ctx):
         ctx.invoke(app.cli.commands['init-db'])
 
-    from kaspibot.services.automatic_sync import start as start_auto_sync
+    from kaspibot.services.automatic_sync import start as start_auto_sync, stop as stop_auto_sync
 
     @app.before_request
     def ensure_auto_sync_started():
@@ -149,6 +161,6 @@ def create_app(test_config=None):
             app.run(host=host, port=port, use_reloader=False)
         finally:
             if handle:
-                handle['stop'].set()
+                stop_auto_sync(app)
 
     return app

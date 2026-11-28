@@ -1,6 +1,8 @@
 # ruff: noqa: E402
 """Interactive local Kaspi login. Passwords/SMS are entered by the operator only."""
 import json
+import secrets
+from contextlib import contextmanager
 import sqlite3
 import sys
 import time
@@ -28,6 +30,22 @@ def progress(state, message, **values):
     print(message, flush=True)
 
 
+@contextmanager
+def export_lease(app):
+    from kaspibot.services import sync_schedule as schedule
+    owner=secrets.token_hex(16)
+    with app.app_context():
+        schedule.check('xml')
+        if not schedule.claim('xml',owner,manual=True):
+            raise ExportError('экспорт XML уже выполняется; дождитесь завершения.')
+        schedule.put('xml',state='needs_login',message='Ожидается вход в отдельном локальном окне Kaspi.')
+    try:
+        yield
+    finally:
+        with app.app_context():
+            schedule.release('xml',owner)
+
+
 def main():
     private = ROOT/'.local-catalog'
     provision(private)  # Restricts the folder ACL before writing session credentials.
@@ -41,7 +59,7 @@ def main():
     if not merchant.isascii() or not merchant.isdigit():
         raise ExportError('укажите числовой KASPI_CATALOG_MERCHANT_ID для вашего магазина.')
     session_file = private/'kaspi-session.json'
-    with sync_playwright() as runtime:
+    with export_lease(app), sync_playwright() as runtime:
         browser = runtime.chromium.launch(channel='chrome', headless=False)
         try:
             options = dict(accept_downloads=True, viewport={'width':1366,'height':900}, ignore_https_errors=False)
@@ -63,7 +81,16 @@ def main():
             state = context.storage_state()
             atomic_write(session_file, json.dumps(state).encode())
             progress('authenticated', 'Локальная сессия сохранена. Проверяется первая настоящая XML-выгрузка.')
-            content = export_from_page(context, page, merchant)
+            with app.app_context():
+                try:
+                    from kaspibot.services import sync_schedule as schedule
+                    schedule.put('xml',state='running',message='Проверка выгрузки после входа.')
+                    content = export_from_page(context, page, merchant)
+                except ExportError as error:
+                    if error.code=='rate_limited':
+                        from kaspibot.services.sync_schedule import defer
+                        defer('xml',header=error.retry_after)
+                    raise
             with app.app_context():
                 publication = refresh_source(content)
                 try:
@@ -76,6 +103,7 @@ def main():
                     publication.rollback()
                     raise
                 publication.accept()
+                schedule.finish('xml','imported',result['offers'],message='Выгрузка после входа подтверждена и импортирована.')
                 db.session.remove()
                 db.engine.dispose()
             progress('ready', 'Свежий XML получен, опубликован через HTTPS и импортирован.',

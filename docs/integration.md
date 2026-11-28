@@ -1,4 +1,4 @@
-> Автообновление при запуске и каждые 5 минут: [automatic-sync.md](automatic-sync.md).
+> Независимые расписания API (5 минут) и XML (30 минут): [automatic-sync.md](automatic-sync.md).
 
 > Сверка по предоставленному XML, отдельные цены/предзаказ и оставшиеся SKU: [seller-xml.md](seller-xml.md).
 

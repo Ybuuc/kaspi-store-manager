@@ -90,11 +90,13 @@ class SellerSyncTests(unittest.TestCase):
             db.session.add(ProductAlias(product_id=p.id,alias='tea'))
             db.session.commit()
             result=sync_order_and_entries_to_db(order(),entries())
-            self.assertEqual(result['unmatched'],1)
+            self.assertEqual(result['unmatched'],0)
             row=KaspiOrderSync.query.one()
-            self.assertIsNone(row.product_id)
+            self.assertNotEqual(row.product_id,p.id)
+            self.assertEqual(db.session.get(Product,row.product_id).sku,'SELLER-TEA')
+            self.assertEqual(db.session.get(Product,row.product_id).inventory_source,'unknown')
             self.assertEqual(row.sale_sum,2501)
-            self.assertEqual(json.loads(row.raw_json)['mapping_status'],'conflict')
+            self.assertEqual(ProductAlias.query.one().product_id,p.id)
             self.assertEqual(p.sku,'DIFFERENT')
             self.assertEqual(p.stock_qty,7)
 
@@ -206,3 +208,19 @@ class SellerSyncTests(unittest.TestCase):
             db.session.commit()
             synchronize()
             self.assertEqual(read.call_count,4)
+
+
+    def test_unchanged_archived_history_conflict_stays_partial_without_repeating_successful_entries(self):
+        with self.app.app_context():
+            product=Product(name='Legacy',sku='OLD',stock_qty=7,purchase_price=500)
+            db.session.add(product)
+            db.session.flush()
+            db.session.add(KaspiOrderSync(external_key='CODE-1::entry-1',order_code='CODE-1',entry_id='entry-1',product_id=product.id,is_sale_created=True))
+            db.session.commit()
+            def listing(**params):
+                return {'data':[order()] if params['state']=='ARCHIVE' else [],'meta':{'pageCount':1 if params['state']=='ARCHIVE' else 0}}
+            with patch('kaspibot.services.seller_sync.get_orders',side_effect=listing),patch('kaspibot.services.seller_sync.get_order_entries',return_value=entries()) as read:
+                self.assertTrue(synchronize()['partial'])
+                self.assertTrue(synchronize()['partial'])
+                self.assertEqual(read.call_count,1)
+            self.assertEqual((product.stock_qty,product.purchase_price),(7,500))
