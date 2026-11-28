@@ -217,7 +217,7 @@ class ExportBrowserSmoke(unittest.TestCase):
 
     def test_rejected_trigger_does_not_accept_old_download_from_cabinet(self):
         # Reproduce the real cabinet: a failed trigger still downloads an old file.
-        for http_status,code in [(429,'rate_limited'),(503,'response_error'),(401,'needs_login')]:
+        for http_status,code in [(429,'rate_limited'),(503,'response_error'),(401,'needs_login'),(403,'response_error')]:
             with self.subTest(status=http_status), self.assertRaises(ExportError) as error:
                 self.run_export(http_status)
             self.assertEqual(error.exception.code, code)

@@ -155,8 +155,10 @@ def export_from_page(context, page, merchant_id, timeout=90, on_authenticated=No
         trigger_status = triggered.value.status
         if trigger_status == 429:
             raise ExportError('Kaspi ограничил частоту экспорта (HTTP 429). Сохранён предыдущий XML; следующая попытка по расписанию.', 'rate_limited',triggered.value.headers.get('retry-after'))
-        if trigger_status in (401, 403):
+        if trigger_status == 401:
             raise ExportError('кабинет отклонил сессию экспорта; выполните локальный вход.', 'needs_login')
+        if trigger_status == 403:
+            raise ExportError('кабинет запретил создание выгрузки (HTTP 403); проверьте доступ магазина.', 'response_error')
         if not 200 <= trigger_status < 300:
             raise ExportError('Kaspi не подтвердил создание новой выгрузки; предыдущий XML сохранён.', 'response_error')
         attempted = set()
@@ -181,8 +183,10 @@ def export_from_page(context, page, merchant_id, timeout=90, on_authenticated=No
                     if len(data) <= LIMIT and is_xml(data):
                         bodies.append(data)
                         break
-            if any(row['status'] in (401, 403) for row in observations):
+            if any(row['status'] == 401 for row in observations):
                 raise ExportError('кабинет отклонил сессию экспорта; выполните локальный вход.', 'needs_login')
+            if any(row['status'] == 403 for row in observations):
+                raise ExportError('кабинет запретил создание выгрузки (HTTP 403); проверьте доступ магазина.', 'response_error')
             page.wait_for_timeout(250)
         if not bodies:
             error = ExportError('Kaspi не вернул XML за отведённое время; прежний файл сохранён.','timeout')
